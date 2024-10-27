@@ -5,8 +5,20 @@
     margin-left: 20px;
 }
 
+.main-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.heading {
+    display: flex;
+    flex-direction: row;
+}
+
 .search-container {
     position: relative;
+    flex-grow: 1;
 }
 
 .search-results {

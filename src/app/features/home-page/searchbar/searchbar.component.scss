@@ -1,10 +1,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap");
 
+:host {
+    flex: 1;
+}
+
 .InputContainer {
-    height: 40px;
+    height: 2em;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     background-color: rgb(255, 255, 255);
     border-radius: 10px;
     overflow: hidden;
@@ -13,14 +17,13 @@
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.075);
 }
 
-.input[type="text"] {
+.input {
+    display: flex;
     font-family: "Fredoka";
     font-size: 1.1em;
-    width: 170px;
     height: 100%;
     border: none;
     outline: none;
-    min-width: 15em;
     caret-color: var(--secondary-color);
 }
 
@@ -31,12 +34,6 @@
 
 .searchIcon {
     width: 13px;
-}
-
-.border {
-    height: 40%;
-    width: 1.3px;
-    background-color: rgb(223, 223, 223);
 }
 
 .micIcon {
