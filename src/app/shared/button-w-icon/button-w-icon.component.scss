@@ -1,0 +1,28 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    margin: 0.2em;
+    border: 0px;
+    border-left: 4px solid var(--secondary-color);
+    border-radius: 5px;
+    overflow: hidden;
+    justify-content: left;
+}
+
+.content button {
+    border: 0px;
+    margin: 0.1em;
+}
+
+.name {
+    font-size: 1em;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.metadata p {
+    font-size: 0.6em;
+    color: var(--primary-darker);
+}

@@ -1,0 +1,82 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");
+
+@import "variables";
+
+:root {
+  margin: 0px;
+  --background-color: #{$background-color-light};
+  --background-secondary: #{$background-secondary-light};
+  --background-ambient: #{$background-ambient-light};
+  --primary-color: #{$primary-color-light};
+  --primary-darker: #{$primary-darker-light};
+  --contrast-color: #{$contrast-color-light};
+  --font-color: #{$font-color-light};
+  --secondary-color: #{$secondary-color-light};
+  --secondary-color-contrast: #{$secondary-color-contrast-light};
+  --selected-color: #{$selected-color-light};
+  --third-color: #{$third-color-light};
+  --fourth-color: #{$fourth-color-light};
+}
+
+body.dark-mode {
+  --background-color: #{$background-color-dark};
+  --background-secondary: #{$background-secondary-dark};
+  --background-ambient: #{$background-ambient-dark};
+  --primary-color: #{$primary-color-dark};
+  --primary-darker: #{$primary-darker-dark};
+  --contrast-color: #{$contrast-color-dark};
+  --font-color: #{$font-color-dark};
+  --secondary-color: #{$secondary-color-dark};
+  --secondary-color-contrast: #{$secondary-color-contrast-dark};
+  --selected-color: #{$selected-color-dark};
+  --third-color: #{$third-color-dark};
+  --fourth-color: #{$fourth-color-dark};
+}
+
+body,
+html {
+  background: radial-gradient(
+    circle at 100% 107%,
+    var(--background-color) 0%,
+    var(--background-secondary) 30%,
+    var(--background-ambient) 60%,
+    var(--background-color) 100%
+  );
+  width: 100%;
+  height: 100%;
+  margin: 0px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+label,
+button {
+  margin: 0px;
+  font-weight: 300;
+  font-family: "Poppins", sans-serif;
+  color: var(--font-color);
+  font-size: 0.9em;
+}
+
+button {
+  cursor: pointer;
+  background-color: transparent;
+}
+
+body {
+  transition:
+    background-color 0.4s ease,
+    color 0.4s ease;
+}
+
+* {
+  transition:
+    background-color 0.4s ease,
+    color 0.4s ease,
+    border-color 0.4s ease;
+}

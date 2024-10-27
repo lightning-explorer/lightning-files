@@ -1,0 +1,24 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    padding: 0.2em;
+    border-left: 4px solid var(--secondary-color);
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: var(--background-color);
+
+    justify-content: left;
+}
+
+.name {
+    font-size: 1em;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.metadata p {
+    font-size: 0.6em;
+    color: var(--primary-darker);
+}

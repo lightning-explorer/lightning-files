@@ -1,0 +1,19 @@
+<div class="content">
+
+    <app-sidebar>
+        
+    </app-sidebar>
+
+    <div class="search-container">
+        <app-searchbar [searchFunction]="search.bind(this)" />
+
+        <div class="search-results">
+            <div *ngFor="let result of searchResults">
+                <app-file-result [file]="result" />
+            </div>
+        </div>
+    </div>
+
+    <div class="padding"></div>
+
+</div>

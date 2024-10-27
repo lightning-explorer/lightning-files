@@ -1,0 +1,27 @@
+.content {
+    display: flex;
+    height: 100vh;
+    flex-direction: row;
+    margin-left: 20px;
+}
+
+.search-container {
+    position: relative;
+}
+
+.search-results {
+    position: absolute;
+    width: 100%;
+}
+
+input {
+    min-width: 15em;
+}
+
+h1 {
+    font-size: 1.8em;
+}
+
+.padding {
+    margin-top: 6em;
+}

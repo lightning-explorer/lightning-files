@@ -1,0 +1,17 @@
+.content {
+    height: 100vh;
+    min-width: 10em;
+    max-width: 15em;
+    background-color: var(--primary-color);
+    padding: 1em;
+    border-radius: 20px;
+}
+
+.divider {
+    display: block;
+    border-radius: 10px;
+    height: 5px;
+    background-color: var(--secondary-color);
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
