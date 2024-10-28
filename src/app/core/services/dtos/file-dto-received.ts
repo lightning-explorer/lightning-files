@@ -1,7 +1,8 @@
-export interface FileDTOReceived{
-    Name:string,
-    DateModified:string,
-    Metadata:string,
-    FilePath:string,
-    Score:number
+export interface FileDTOReceived {
+    Name: string,
+    DateModified: string,
+    Metadata: string,
+    FilePath: string,
+    Score: number,
+    IsDirectory: boolean,
 }

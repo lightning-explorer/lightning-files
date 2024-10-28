@@ -11,6 +11,8 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
 import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-directory-bar.component";
 import { TestHtmlComponent } from "../../shared/test-html/test-html.component";
 import { FilesDisplayComponent } from "./files-display/files-display.component";
+import { invoke } from '@tauri-apps/api/core';
+import { DirectoryNavigatorService } from '../../core/services/directory-navigator.service';
 
 @Component({
   selector: 'app-home-page',
@@ -26,10 +28,16 @@ export class HomePageComponent implements OnInit {
   searchResults: FileDTOReceived[] = [];
   driveFiles: FileDTOReceived[] = [];
 
-  constructor(private searchEngineService: SearchEngineService) { }
+  constructor(private searchEngineService: SearchEngineService,
+    private directoryService: DirectoryNavigatorService
+  ) { }
 
   ngOnInit(): void {
+    this.directoryService.setDriveFiles();
     
+    this.directoryService.currentFiles$.subscribe(x =>
+      this.driveFiles = x
+    );
   }
 
   async search(value: string) {

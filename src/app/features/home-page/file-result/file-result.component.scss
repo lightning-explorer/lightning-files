@@ -6,19 +6,19 @@
     border-radius: 5px;
     overflow: hidden;
     background-color: var(--background-color);
-
-    justify-content: left;
+    margin: 0.2em;
 }
 
 .name {
-    font-size: 1em;
+    font-size: 0.9em;
     display: flex;
-    flex-direction: row;
-    align-items: center;
+    line-height: 0;
     justify-content: space-between;
 }
 
 .metadata p {
+    line-height: 0.4;
+    margin: 0px;
     font-size: 0.6em;
-    color: var(--primary-darker);
+    color: var(--third-color);
 }

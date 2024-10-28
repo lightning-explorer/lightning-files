@@ -25,3 +25,7 @@
     caret-color: var(--secondary-color);
     flex-grow: 1;
 }
+
+input:hover {
+    cursor: pointer;
+}

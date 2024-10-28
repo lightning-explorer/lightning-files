@@ -7,14 +7,17 @@
     border-radius: 5px;
     overflow: hidden;
     justify-content: left;
+    justify-content: center;
 }
 
 .content button {
+    line-height: 0;
     border: 0px;
     margin: 0.1em;
 }
 
 .name {
+    line-height: 0;
     font-size: 1em;
     display: flex;
     flex-direction: row;
@@ -23,6 +26,7 @@
 }
 
 .metadata p {
+    line-height: 0;
     font-size: 0.6em;
     color: var(--primary-darker);
 }

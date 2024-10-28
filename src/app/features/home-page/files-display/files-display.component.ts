@@ -1,7 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FileDTOReceived } from '../../../core/services/dtos/file-dto-received';
 import { CommonModule } from '@angular/common';
 import { FileResultComponent } from "../file-result/file-result.component";
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-files-display',
@@ -11,5 +12,5 @@ import { FileResultComponent } from "../file-result/file-result.component";
   styleUrl: './files-display.component.scss'
 })
 export class FilesDisplayComponent {
-  @Input() files:FileDTOReceived[] = [];
+  @Input() files: FileDTOReceived[] = [];
 }
