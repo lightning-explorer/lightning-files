@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
-import { FileDTOReceived } from "./dtos/file-dto-received";
+import { FileDTOReceived } from "../dtos/file-dto-received";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
@@ -16,7 +16,7 @@ export class DirectoryNavigatorService {
 
     async setCurrentDir(dir: string) {
         this.currentDirSubject.next(await this.formatPathIntoDir(dir, this.currentDirSubject.getValue()));
-        this.setDriveFiles();
+        await this.setDriveFiles();
     }
 
     async setDriveFiles() {
@@ -68,6 +68,24 @@ export class DirectoryNavigatorService {
                 this.currentDirSubject.getValue()
         }).then(path =>
             path
+        )
+    }
+
+    async isPathAFile(filePath: string): Promise<boolean> {
+        return invoke<boolean>("is_path_a_file", {
+            filePath
+        }).then(result =>
+            result
+        )
+    }
+
+    async openFileCmd(filePath: string): Promise<boolean> {
+        return invoke<void>("open_file", {
+            filePath
+        }).then(() =>
+            true
+        ).catch(() =>
+            false
         )
     }
 }

@@ -1,28 +1,69 @@
 .content {
     display: flex;
-    flex-direction: column;
-    padding: 0.2em;
+    flex-direction: row;
+    padding: 0.4em;
     border: 0px;
     border-left: 4px solid var(--secondary-color);
-    border-radius: 5px;
+    border-radius: 10px;
     overflow: hidden;
     background-color: var(--background-color);
     margin: 0.2em;
     width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    transition: all ease 100ms;
+}
+
+.icon {
+    width: 200px;
 }
 
 .name {
-    font-size: 0.9em;
+    flex-direction: column;
+    font-size: 1.1em;
     display: flex;
     line-height: 0;
     align-items: stretch;
-    justify-content: space-between;
+
     width: 100%;
+    text-wrap: wrap;
+    text-align: left;
+}
+
+.name p {
+    overflow-wrap: anywhere;
+    text-align: left;
+    width: 70%;
 }
 
 .metadata p {
-    line-height: 0.4;
+    overflow-wrap: anywhere;
+    text-align: left;
+    line-height: 1;
     margin: 0px;
     font-size: 0.6em;
     color: var(--third-color);
+}
+
+button:hover {
+    color: #ffffff;
+    transform: scale(1.01);
+    box-shadow: 4px 5px 17px -4px var(--secondary-color);
+}
+
+
+button::before {
+    content: "";
+    position: absolute;
+    left: -50px;
+    top: 0;
+    width: 0;
+    height: 100%;
+    transform: skewX(45deg);
+    z-index: -1;
+    transition: width 1000ms;
+}
+
+button:hover::before {
+    width: 250%;
 }

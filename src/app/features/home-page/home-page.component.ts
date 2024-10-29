@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { SearchEngineService } from '../../core/services/search-engine.service';
 import { SearchbarComponent } from "./searchbar/searchbar.component";
-import { FileDTOReceived } from '../../core/services/dtos/file-dto-received';
+import { FileDTOReceived } from '../../core/dtos/file-dto-received';
 import { FileResultComponent } from "./file-result/file-result.component";
 import { CommonModule } from '@angular/common';
 import { FormControl } from '@angular/forms';
 import { debounceTime } from 'rxjs';
-import { SearchParamsDTO } from '../../core/services/dtos/search-params-dto';
+import { SearchParamsDTO } from '../../core/dtos/search-params-dto';
 import { SidebarComponent } from "./sidebar/sidebar.component";
 import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-directory-bar.component";
 import { TestHtmlComponent } from "../../shared/test-html/test-html.component";
@@ -46,13 +46,9 @@ export class HomePageComponent implements OnInit {
       FilePath: value
     }
     let results = await this.searchEngineService.query(searchParams);
-    console.log(results)
     this.searchResults = results;
   }
 
-  fileClicked(file: FileDTOReceived) {
-    this.directoryService.setCurrentDir(file.FilePath);
-  }
 
   async onNavigateBackDirectoryClick() {
     let parent = await this.directoryService.getParentDirectory()

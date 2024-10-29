@@ -18,7 +18,8 @@
             <div class="search-container">
                 <app-searchbar [searchFunction]="search.bind(this)" />
 
-                <div class="search-results">
+                <div class="search-results"
+                [ngClass]="searchResults.length>0 ? 'active' : 'inactive'">
                     <div *ngFor="let result of searchResults">
                         <app-file-result [file]="result" />
                     </div>
@@ -27,7 +28,7 @@
 
         </div>
 
-        <app-files-display [files]="driveFiles" [onFileClicked]="fileClicked.bind(this)" />
+        <app-files-display [files]="driveFiles" />
 
     </div>
 

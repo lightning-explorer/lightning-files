@@ -3,7 +3,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use tauri::AppHandle;
 use tauri::Emitter;
-use super::dtos::file_dto::FileDTO;
+use super::super::super::dtos::file_dto::FileDTO;
 
 #[tauri::command]
 pub async fn get_files_as_dtos(directory: String, app_handle: AppHandle) -> Result<(), String> {

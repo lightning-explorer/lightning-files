@@ -1,24 +1,23 @@
 <div *ngIf="file">
-    <button class="content" (click)="clickEvent()">
+    <button class="content" (click)="onClick()">
 
         <div class="name">
+
             <p>{{file.Name}}</p>
 
-            <div *ngIf="file.IsDirectory; else elseBlock">
-                <mat-icon>folder</mat-icon>
+            <div class="metadata">
+                <p>{{file.FilePath}}</p>
             </div>
 
-            <ng-template #elseBlock>
-                <mat-icon> insert_drive_file</mat-icon>
-            </ng-template>
-
-
         </div>
 
-
-        <div class="metadata">
-            <p>{{file.FilePath}}</p>
+        <div *ngIf="file.IsDirectory; else elseBlock">
+            <iconify-icon icon="folder" />
         </div>
+
+        <ng-template #elseBlock class="icon">
+            <iconify-icon icon="default" />
+        </ng-template>
 
     </button>
 </div>

@@ -1,5 +1,5 @@
-use core::directory_nav_service::service::*;
-mod core;
+use directory_nav_service::service::*;
+mod directory_nav_service;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -10,7 +10,10 @@ pub fn run() {
             format_path_into_dir,
             get_directory_path,
             get_root_path,
-            get_parent_directory
+            get_parent_directory,
+            open_file,
+            is_path_a_file,
+            get_drives
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

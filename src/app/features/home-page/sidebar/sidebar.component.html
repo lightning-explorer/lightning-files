@@ -1,4 +1,5 @@
 <div class="content">
+
     <div class="divider"></div>
 
     <app-button-w-icon text="Your Collections" iconName="folder" />
@@ -6,5 +7,12 @@
 
     <div class="divider"></div>
 
+    <div class="scroll-region">
+
+        <div *ngFor="let drive of drives">
+            <app-drive-result [drive]="drive" />
+        </div>
+
+    </div>
 
 </div>

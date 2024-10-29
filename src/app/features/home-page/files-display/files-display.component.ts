@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FileDTOReceived } from '../../../core/services/dtos/file-dto-received';
+import { FileDTOReceived } from '../../../core/dtos/file-dto-received';
 import { CommonModule } from '@angular/common';
 import { FileResultComponent } from "../file-result/file-result.component";
 import { Observable } from 'rxjs';
@@ -13,5 +13,8 @@ import { Observable } from 'rxjs';
 })
 export class FilesDisplayComponent {
   @Input() files: FileDTOReceived[] = [];
-  @Input() onFileClicked: ((file:FileDTOReceived)=>void)|undefined;
+
+  trackByFile(index: number, file: FileDTOReceived): string {
+    return file.Name; // or a unique property in your FileDTO that can uniquely identify each file
+  }
 }

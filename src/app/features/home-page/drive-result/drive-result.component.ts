@@ -1,0 +1,15 @@
+import { Component, Input } from '@angular/core';
+import { DriveModel } from '../../../core/models/drive-model';
+import { CommonModule } from '@angular/common';
+import { IconifyIconModule } from '../../../shared/IconifyIcons/icon.module';
+
+@Component({
+  selector: 'app-drive-result',
+  standalone: true,
+  imports: [CommonModule, IconifyIconModule],
+  templateUrl: './drive-result.component.html',
+  styleUrl: './drive-result.component.scss'
+})
+export class DriveResultComponent {
+  @Input() drive:DriveModel|undefined;
+}
