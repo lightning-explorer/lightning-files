@@ -39,9 +39,9 @@
 
 .search-results {
     scrollbar-width: thin;
-    scrollbar-color: var(--background-color) transparent;
+    scrollbar-color: var(--secondary-color) transparent;
     overflow-x: hidden;
-    overflow-y: scroll;
+
     position: absolute;
     border-radius: 10px;
 
@@ -53,6 +53,8 @@
 .search-results.active {
     box-shadow: 0 0.625em 1em 0 rgba(17, 81, 255, 0.35);
     background-color: var(--primary-color);
+    overflow-y: scroll;
+    z-index: 5;
 }
 
 .search-results.inactive {
