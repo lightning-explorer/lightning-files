@@ -1,5 +1,5 @@
 <div class="content">
     <div *ngFor="let file of files">
-        <app-file-result [file]="file" />
+        <app-file-result [file]="file" [onClick]="onFileClicked"/>
     </div>
 </div>

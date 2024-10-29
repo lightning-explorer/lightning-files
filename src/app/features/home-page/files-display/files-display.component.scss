@@ -1,5 +1,10 @@
 :host {
-    overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--secondary-color) transparent;
+}
+
+.content {
+    height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }

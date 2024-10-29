@@ -31,13 +31,13 @@ export class CurrentDirectoryBarComponent implements OnInit {
     this.hasChanged = true;
   }
 
-  onEnterPressed(){
+  onEnterPressed() {
     this.textInput.nativeElement.blur();
   }
 
-  onBlur(){
+  async onBlur() {
     if (this.hasChanged)
-      this.directoryService.setCurrentDir(this.directory)
+      await this.directoryService.setCurrentDir(this.directory)
     this.hasChanged = false;
   }
 

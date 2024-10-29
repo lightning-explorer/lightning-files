@@ -1,19 +1,35 @@
 .content {
     display: flex;
-    height: 100vh;
+    height: 100%;
     flex-direction: row;
     margin-left: 20px;
+    overflow-y: hidden;
 }
 
 .main-layout {
     display: flex;
     flex-direction: column;
     width: 100%;
+    overflow-y: hidden;
 }
 
 .heading {
     display: flex;
     flex-direction: row;
+}
+
+.heading button {
+    border: 0px;
+    border-radius: 50px;
+    transition:
+        background-color 0.15s ease,
+        color 0.01s ease;
+}
+
+.heading button:hover {
+    letter-spacing: 3px;
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
 }
 
 .search-container {

@@ -7,10 +7,11 @@ import { Observable } from 'rxjs';
 @Component({
   selector: 'app-files-display',
   standalone: true,
-  imports: [CommonModule, FileResultComponent],
+  imports: [CommonModule, FileResultComponent,],
   templateUrl: './files-display.component.html',
   styleUrl: './files-display.component.scss'
 })
 export class FilesDisplayComponent {
   @Input() files: FileDTOReceived[] = [];
+  @Input() onFileClicked: ((file:FileDTOReceived)=>void)|undefined;
 }

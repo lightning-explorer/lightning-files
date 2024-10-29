@@ -2,18 +2,22 @@
     display: flex;
     flex-direction: column;
     padding: 0.2em;
+    border: 0px;
     border-left: 4px solid var(--secondary-color);
     border-radius: 5px;
     overflow: hidden;
     background-color: var(--background-color);
     margin: 0.2em;
+    width: 100%;
 }
 
 .name {
     font-size: 0.9em;
     display: flex;
     line-height: 0;
+    align-items: stretch;
     justify-content: space-between;
+    width: 100%;
 }
 
 .metadata p {

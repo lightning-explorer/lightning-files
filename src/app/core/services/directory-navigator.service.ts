@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 import { FileDTOReceived } from "./dtos/file-dto-received";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 
 @Injectable({ 'providedIn': 'root' })
 export class DirectoryNavigatorService {
@@ -13,22 +14,60 @@ export class DirectoryNavigatorService {
 
     constructor() { }
 
-    setCurrentDir(dir: string) {
-        this.currentDirSubject.next(this.formatPathIntoDir(dir));
+    async setCurrentDir(dir: string) {
+        this.currentDirSubject.next(await this.formatPathIntoDir(dir, this.currentDirSubject.getValue()));
         this.setDriveFiles();
     }
 
-    setDriveFiles() {
-        invoke<FileDTOReceived[]>("get_files_as_dtos", { directory: this.currentDirSubject.getValue() }).then((files) => {
-            this.currentFilesSubject.next(files);
+    async setDriveFiles() {
+        this.currentFilesSubject.next([]);
+
+        const unlisten = await listen<FileDTOReceived>("file_dto", (event) => {
+            const updatedFiles = [...this.currentFilesSubject.getValue(), event.payload];
+            this.currentFilesSubject.next(updatedFiles);
+        })
+
+        try {
+            await invoke("get_files_as_dtos", { directory: this.currentDirSubject.getValue() });
+        }
+        catch (err) {
+            console.log("Error setting files", err)
+        }
+        finally {
+            unlisten();
+        }
+    }
+
+    async formatPathIntoDir(path: string, prevPath: string): Promise<string> {
+        return await invoke<string | undefined>("format_path_into_dir", { path: path }).then((newPath) => {
+            return newPath == undefined ? prevPath : newPath;
         });
     }
 
-    formatPathIntoDir(path: string): string {
-        invoke<string | undefined>("format_path_into_dir", { path: path }).then((newPath) => {
-            if (newPath != undefined)
-                return newPath;
-        });
-        return path;
+    async getDirectoryPath(): Promise<string> {
+        return invoke<string>("get_directory_path", {
+            filePath:
+                this.currentDirSubject.getValue()
+        }).then(path =>
+            path
+        )
+    }
+
+    async getParentDirectory(): Promise<string> {
+        return invoke<string>("get_parent_directory", {
+            filePath:
+                this.currentDirSubject.getValue()
+        }).then(path =>
+            path
+        )
+    }
+
+    async getRootDirectory(): Promise<string> {
+        return invoke<string>("get_root_path", {
+            filePath:
+                this.currentDirSubject.getValue()
+        }).then(path =>
+            path
+        )
     }
 }

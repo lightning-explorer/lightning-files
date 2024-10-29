@@ -13,11 +13,12 @@ import { TestHtmlComponent } from "../../shared/test-html/test-html.component";
 import { FilesDisplayComponent } from "./files-display/files-display.component";
 import { invoke } from '@tauri-apps/api/core';
 import { DirectoryNavigatorService } from '../../core/services/directory-navigator.service';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [SearchbarComponent, FileResultComponent, CommonModule, SidebarComponent, CurrentDirectoryBarComponent, TestHtmlComponent, FilesDisplayComponent],
+  imports: [SearchbarComponent, FileResultComponent, CommonModule, SidebarComponent, CurrentDirectoryBarComponent, TestHtmlComponent, FilesDisplayComponent, MatIconModule],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss'
 })
@@ -34,7 +35,7 @@ export class HomePageComponent implements OnInit {
 
   ngOnInit(): void {
     this.directoryService.setDriveFiles();
-    
+
     this.directoryService.currentFiles$.subscribe(x =>
       this.driveFiles = x
     );
@@ -47,6 +48,19 @@ export class HomePageComponent implements OnInit {
     let results = await this.searchEngineService.query(searchParams);
     console.log(results)
     this.searchResults = results;
+  }
+
+  fileClicked(file: FileDTOReceived) {
+    this.directoryService.setCurrentDir(file.FilePath);
+  }
+
+  async onNavigateBackDirectoryClick() {
+    let parent = await this.directoryService.getParentDirectory()
+    await this.directoryService.setCurrentDir(parent);
+  }
+
+  onUndoClick() {
+
   }
 
 }
