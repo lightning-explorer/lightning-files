@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ButtonWIconComponent } from "../../../shared/button-w-icon/button-w-icon.component";
-import { DriveService } from '../../../core/services/drive.service';
+import { DriveService } from '../../../core/services/files/drive.service';
 import { DriveModel } from '../../../core/models/drive-model';
 import { CommonModule } from '@angular/common';
 import { DriveResultComponent } from "../drive-result/drive-result.component";

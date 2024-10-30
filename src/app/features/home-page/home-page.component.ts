@@ -1,24 +1,26 @@
-import { Component, OnInit } from '@angular/core';
-import { SearchEngineService } from '../../core/services/search-engine.service';
+import { Component, HostListener, OnInit } from '@angular/core';
+import { SearchEngineService } from '../../core/services/search/search-engine.service';
 import { SearchbarComponent } from "./searchbar/searchbar.component";
 import { FileDTOReceived } from '../../core/dtos/file-dto-received';
 import { FileResultComponent } from "./file-result/file-result.component";
 import { CommonModule } from '@angular/common';
 import { FormControl } from '@angular/forms';
-import { debounceTime } from 'rxjs';
 import { SearchParamsDTO } from '../../core/dtos/search-params-dto';
 import { SidebarComponent } from "./sidebar/sidebar.component";
 import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-directory-bar.component";
-import { TestHtmlComponent } from "../../shared/test-html/test-html.component";
 import { FilesDisplayComponent } from "./files-display/files-display.component";
-import { invoke } from '@tauri-apps/api/core';
-import { DirectoryNavigatorService } from '../../core/services/directory-navigator.service';
+import { DirectoryNavigatorService } from '../../core/services/files/directory-navigator.service';
 import { MatIconModule } from '@angular/material/icon';
+import { InlineQueryDTO } from '../../core/dtos/inline-query-dto';
+import { InlineSearchService } from '../../core/services/search/inline-search.service';
+
+// TODO:
+// put search bar in Shared and then make a simpler one in features to manage its own state
 
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [SearchbarComponent, FileResultComponent, CommonModule, SidebarComponent, CurrentDirectoryBarComponent, TestHtmlComponent, FilesDisplayComponent, MatIconModule],
+  imports: [SearchbarComponent, FileResultComponent, CommonModule, SidebarComponent, CurrentDirectoryBarComponent, FilesDisplayComponent, MatIconModule],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss'
 })
@@ -30,7 +32,8 @@ export class HomePageComponent implements OnInit {
   driveFiles: FileDTOReceived[] = [];
 
   constructor(private searchEngineService: SearchEngineService,
-    private directoryService: DirectoryNavigatorService
+    private directoryService: DirectoryNavigatorService,
+    private inlineSearchService: InlineSearchService
   ) { }
 
   ngOnInit(): void {
@@ -59,6 +62,23 @@ export class HomePageComponent implements OnInit {
   async onNavigateBackDirectoryClick() {
     let parent = await this.directoryService.getParentDirectory()
     await this.directoryService.setCurrentDir(parent);
+  }
+
+  searchQuery = "";
+  @HostListener('window:keydown', ['$event'])
+  async handleKeydown(event: KeyboardEvent) {
+
+    if (!this.isInputFocused()) {
+      this.searchQuery += event.key;
+      const queryDto: InlineQueryDTO = { Query: this.searchQuery }
+      const dtos = await this.inlineSearchService.query(queryDto);
+    }
+  }
+
+  private isInputFocused(): boolean {
+    const focusedElement = document.activeElement;
+    const result = focusedElement && (focusedElement.tagName === 'INPUT' || focusedElement.tagName === 'TEXTAREA');
+    return result ? result : false;
   }
 
   onUndoClick() {

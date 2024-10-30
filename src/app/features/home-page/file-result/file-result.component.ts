@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, Input, OnChanges, SimpleChanges } from '@
 import { FileDTOReceived } from '../../../core/dtos/file-dto-received';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon'
-import { DirectoryNavigatorService } from '../../../core/services/directory-navigator.service';
+import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator.service';
 import { IconifyIconModule } from '../../../shared/IconifyIcons/icon.module';
 import { getIconFromPath } from '../../../core/other/util/get-icon-from-path';
 import { CssVarToHexService } from '../../../core/services/misc/css-var-to-hex.service';
@@ -14,7 +14,7 @@ import { CssVarToHexService } from '../../../core/services/misc/css-var-to-hex.s
   templateUrl: './file-result.component.html',
   styleUrl: './file-result.component.scss'
 })
-export class FileResultComponent{
+export class FileResultComponent {
   @Input() file: FileDTOReceived | undefined;
 
   constructor(private directoryService: DirectoryNavigatorService,
@@ -36,7 +36,7 @@ export class FileResultComponent{
   get icon(): string {
     return getIconFromPath(this.file ? this.file.FilePath : "");
   }
-  
+
   get iconColor(): string {
     return this.cssVarService.cssVarToHex('--secondary-color');
   }

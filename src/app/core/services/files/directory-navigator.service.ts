@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
-import { FileDTOReceived } from "../dtos/file-dto-received";
+import { FileDTOReceived } from "../../dtos/file-dto-received";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 

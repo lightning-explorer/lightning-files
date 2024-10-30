@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { DirectoryNavigatorService } from '../../../core/services/directory-navigator.service';
+import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator.service';
 import { debounceTime } from 'rxjs';
 
 @Component({

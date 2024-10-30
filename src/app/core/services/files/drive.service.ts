@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
-import { DriveModel } from "../models/drive-model";
+import { DriveModel } from "../../models/drive-model";
 import { invoke } from "@tauri-apps/api/core";
 
 @Injectable({ 'providedIn': 'root' })
