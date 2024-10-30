@@ -13,6 +13,7 @@ export class SearchbarComponent implements OnInit {
 
   inputControl = new FormControl();
   @Input() searchFunction?: (input: string)=>void;
+  @Input() blurFunction?: ()=>void;
 
   ngOnInit(): void {
 
@@ -23,6 +24,11 @@ export class SearchbarComponent implements OnInit {
         this.searchFunction!(value)
       )
     }
+  }
+
+  onBlur(){
+    if(this.blurFunction)
+      this.blurFunction()
   }
 
 }

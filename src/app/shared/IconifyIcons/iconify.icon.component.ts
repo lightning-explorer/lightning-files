@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { IconService } from './icon.service';
 import { SafeHtmlPipe } from './safehtml.pipe';
 
@@ -7,16 +7,25 @@ import { SafeHtmlPipe } from './safehtml.pipe';
     template: `<div [innerHTML]="svgIcon | safeHtml"></div>`,
     styles: []
 })
-export class IconifyIconComponent implements OnInit {
+export class IconifyIconComponent implements OnInit, OnChanges {
     @Input() icon: string = 'default';
-    @Input() size: string|undefined;
+    @Input() size: string | undefined;
+    @Input() color: string | undefined;
     svgIcon: string = "";
 
-    constructor(private iconService: IconService) { }
+    constructor(private iconService: IconService) {}
 
     ngOnInit(): void {
-        const icon = this.iconService.getIcon(this.icon, this.size);
-        this.svgIcon = icon ? icon : "";
+        this.updateIcon();
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['icon'] || changes['size'] || changes['color']) {
+            this.updateIcon();
+        }
+    }
+
+    private updateIcon() {
+        this.svgIcon = this.iconService.getIcon(this.icon, this.size, this.color);
     }
 }
-

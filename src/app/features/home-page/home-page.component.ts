@@ -49,6 +49,12 @@ export class HomePageComponent implements OnInit {
     this.searchResults = results;
   }
 
+  searchBarBlur() {
+    setTimeout(() => {
+      this.searchResults.length = 0;
+    }, 100)
+
+  }
 
   async onNavigateBackDirectoryClick() {
     let parent = await this.directoryService.getParentDirectory()
