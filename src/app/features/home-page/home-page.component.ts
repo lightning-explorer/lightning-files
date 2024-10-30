@@ -13,6 +13,8 @@ import { DirectoryNavigatorService } from '../../core/services/files/directory-n
 import { MatIconModule } from '@angular/material/icon';
 import { InlineQueryDTO } from '../../core/dtos/inline-query-dto';
 import { InlineSearchService } from '../../core/services/search/inline-search.service';
+import { FileModel } from './models/FileModel';
+import { fileDTOToModel } from './models/converters/FileDTOToModel';
 
 // TODO:
 // put search bar in Shared and then make a simpler one in features to manage its own state
@@ -22,16 +24,15 @@ import { InlineSearchService } from '../../core/services/search/inline-search.se
   standalone: true,
   imports: [SearchbarComponent, FileResultComponent, CommonModule, SidebarComponent, CurrentDirectoryBarComponent, FilesDisplayComponent, MatIconModule],
   templateUrl: './home-page.component.html',
-  styleUrl: './home-page.component.scss'
+  styleUrl: './home-page.component.scss',
+  providers: []
 })
 export class HomePageComponent implements OnInit {
 
   inputControl = new FormControl();
+  driveFiles: FileModel[] = [];
 
-  searchResults: FileDTOReceived[] = [];
-  driveFiles: FileDTOReceived[] = [];
-
-  constructor(private searchEngineService: SearchEngineService,
+  constructor(
     private directoryService: DirectoryNavigatorService,
     private inlineSearchService: InlineSearchService
   ) { }
@@ -40,23 +41,8 @@ export class HomePageComponent implements OnInit {
     this.directoryService.setDriveFiles();
 
     this.directoryService.currentFiles$.subscribe(x =>
-      this.driveFiles = x
+      this.driveFiles = x.map(x => fileDTOToModel(x))
     );
-  }
-
-  async search(value: string) {
-    let searchParams: SearchParamsDTO = {
-      FilePath: value
-    }
-    let results = await this.searchEngineService.query(searchParams);
-    this.searchResults = results;
-  }
-
-  searchBarBlur() {
-    setTimeout(() => {
-      this.searchResults.length = 0;
-    }, 100)
-
   }
 
   async onNavigateBackDirectoryClick() {
@@ -64,21 +50,10 @@ export class HomePageComponent implements OnInit {
     await this.directoryService.setCurrentDir(parent);
   }
 
-  searchQuery = "";
+
   @HostListener('window:keydown', ['$event'])
   async handleKeydown(event: KeyboardEvent) {
-
-    if (!this.isInputFocused()) {
-      this.searchQuery += event.key;
-      const queryDto: InlineQueryDTO = { Query: this.searchQuery }
-      const dtos = await this.inlineSearchService.query(queryDto);
-    }
-  }
-
-  private isInputFocused(): boolean {
-    const focusedElement = document.activeElement;
-    const result = focusedElement && (focusedElement.tagName === 'INPUT' || focusedElement.tagName === 'TEXTAREA');
-    return result ? result : false;
+    this.inlineSearchService.handleKeydown(event, this.driveFiles);
   }
 
   onUndoClick() {

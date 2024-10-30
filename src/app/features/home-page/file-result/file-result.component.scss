@@ -30,7 +30,7 @@
     text-align: left;
 }
 
-.name p {
+.name {
     overflow-wrap: anywhere;
     text-align: left;
     width: 70%;
@@ -50,7 +50,6 @@ button:hover {
     transform: scale(1.01);
     box-shadow: 4px 5px 17px -4px var(--secondary-color);
 }
-
 
 button::before {
     content: "";

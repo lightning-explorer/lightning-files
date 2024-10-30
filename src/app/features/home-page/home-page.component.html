@@ -15,17 +15,9 @@
 
             <app-current-directory-bar />
 
-            <div class="search-container">
-                <app-searchbar [searchFunction]="search.bind(this)" 
-                [blurFunction]="searchBarBlur.bind(this)"/>
+                <app-searchbar/>
 
-                <div class="search-results"
-                [ngClass]="searchResults.length>0 ? 'active' : 'inactive'">
-                    <div *ngFor="let result of searchResults">
-                        <app-file-result [file]="result" />
-                    </div>
-                </div>
-            </div>
+
 
         </div>
 

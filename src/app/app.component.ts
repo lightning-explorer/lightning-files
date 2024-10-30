@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { invoke } from "@tauri-apps/api/core";
 import { WindowChromeComponent } from "./layout/window-chrome/window-chrome.component";
-import { IconifyIconModule } from './shared/IconifyIcons/icon.module';
+import { IconifyIconModule } from './shared/components/IconifyIcons/icon.module';
 
 @Component({
   selector: 'app-root',

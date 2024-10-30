@@ -3,20 +3,21 @@
 
         <div class="name">
 
-            <p>{{file.Name}}</p>
+            <app-highlightable-label [text]="file.Dto.Name" [highlight]="file.HighlightedText">
+            </app-highlightable-label>
 
             <div class="metadata">
-                <p>{{file.FilePath}}</p>
+                <p>{{file.Dto.FilePath}}</p>
             </div>
 
         </div>
 
-        <div *ngIf="file.IsDirectory; else elseBlock">
+        <div *ngIf="file.Dto.IsDirectory; else elseBlock">
             <iconify-icon icon="folder" />
         </div>
 
         <ng-template #elseBlock class="icon">
-            <iconify-icon [icon]="icon" [color]="iconColor"/>
+            <iconify-icon [icon]="icon" [color]="iconColor" />
         </ng-template>
 
     </button>
