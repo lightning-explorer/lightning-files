@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { FileResultComponent } from "../file-result/file-result.component";
 import { FileModel } from '../models/FileModel';
 import { fileDTOToModel } from '../models/converters/FileDTOToModel';
+import { LocalSearchEngineService } from '../../../core/services/search/local-search-engine.service';
 
 @Component({
   selector: 'app-searchbar',
@@ -21,7 +22,7 @@ export class SearchbarComponent implements OnInit {
   searchResults: FileModel[] = [];
   inputControl = new FormControl();
 
-  constructor(private searchEngineService: SearchEngineService){}
+  constructor(private searchEngineService: LocalSearchEngineService){}
 
   ngOnInit(): void {
 

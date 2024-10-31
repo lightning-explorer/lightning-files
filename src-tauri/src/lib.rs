@@ -1,37 +1,28 @@
-use std::{
-    path::Path,
-    sync::{Arc, RwLock},
-};
+use std::sync::Arc;
 
 use directory_nav_service::service::*;
 use tantivy_file_indexer::{
-    configs::file_indexer_config::FileIndexerConfig, search_index_service::SearchIndexService,
+    crawlers::crawler::Crawler, service::exports::search_index_query,
+    service_container::AppServiceContainer,
 };
+use tauri::{App, AppHandle, Manager};
 mod directory_nav_service;
 mod shared;
 mod tantivy_file_indexer;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let files_display_state = Arc::new(RwLock::new(FilesDisplayState::new()));
-
-    let buffer_size: usize = 50_000_000;
-    let indexer_batch_size: usize = 128;
-    let indexer_tasks_limit: usize = 6;
-
-    let config = FileIndexerConfig {
-        buffer_size,
-        indexer_batch_size,
-        indexer_tasks_limit,
-    };
-
-    let service = SearchIndexService::new(&config);
-
-    service.spawn_crawler("D:\\".to_string());
-
     tauri::Builder::default()
+        .setup(|app| {
+            let app_handle = app.handle().clone();
+
+            tauri::async_runtime::spawn(async move {
+                initialize_app(app_handle).await;
+            });
+
+            Ok(())
+        })
         .plugin(tauri_plugin_shell::init())
-        .manage(files_display_state)
         .invoke_handler(tauri::generate_handler![
             get_files_as_dtos,
             format_path_into_dir,
@@ -42,7 +33,15 @@ pub fn run() {
             is_path_a_file,
             get_drives,
             search_files_inline,
+            search_index_query
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+async fn initialize_app(handle: AppHandle) {
+    let service_container = AppServiceContainer::new_async(&handle).await;
+    let crawler = Crawler::new_from_service(&service_container);
+    tokio::spawn(crawler.crawl("", 128, 6));
+    handle.manage(service_container);
 }

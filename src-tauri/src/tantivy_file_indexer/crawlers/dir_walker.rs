@@ -49,7 +49,12 @@ fn create_dto(entry: &DirEntry) -> Result<FileDTOInput, String> {
         .expect("Time went backwards")
         .as_secs();
 
-    let file_id = file_id_helper::get_file_id(entry.path().to_path_buf())?;
+    let file_id = if entry.path().is_dir(){
+        //for directories, use the directory path since getting their ID is more difficult
+        entry.path().to_string_lossy().to_string()
+    }else{
+        file_id_helper::get_file_id(entry.path().to_path_buf())?
+    };
 
     let dto = FileDTOInput {
         file_id,

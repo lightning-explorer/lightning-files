@@ -1,11 +1,11 @@
-export interface SearchParamsDTO{
-    Name?:string,
-    Metadata?:string,
-    DateRange?:DateRange,
-    FilePath?:string,
+export interface SearchParamsDTO {
+    Name?: string,
+    Metadata?: string,
+    DateRange?: DateRange,
+    FilePath?: string,
 }
 
-interface DateRange{
-    Start:Date
-    End:Date
+interface DateRange {
+    Start: Date
+    End: Date
 }
