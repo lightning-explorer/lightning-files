@@ -1,5 +1,4 @@
 mod dtos {
-    pub mod file_dto;
     pub mod inline_query_dto;
 }
 mod models {

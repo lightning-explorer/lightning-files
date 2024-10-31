@@ -1,6 +1,6 @@
 use crate::FilesDisplayState;
 
-use super::super::super::dtos::file_dto::FileDTO;
+use crate::shared::dtos::file_dto::FileDTO;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
