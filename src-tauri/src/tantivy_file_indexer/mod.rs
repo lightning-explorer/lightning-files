@@ -7,8 +7,8 @@ mod schemas{
 }
 pub mod crawlers{
     pub mod crawler;
-    pub mod local_dispatcher;
-    pub mod dir_walker;
+    mod dir_walker;
+    mod walker;
 }
 mod dtos{
     pub mod file_dto_input;

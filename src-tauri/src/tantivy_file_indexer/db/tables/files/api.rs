@@ -43,12 +43,15 @@ impl FilesTable {
         Ok(result)
     }
 
-    pub async fn remove_path(&self, path: &str) -> Result<(), sqlx::Error> {
-        sqlx::query("DELETE FROM files WHERE path = ?")
+    /**
+     * Returns the number of rows that were affected
+     */
+    pub async fn remove_path(&self, path: &str) -> Result<u64, sqlx::Error> {
+        let result = sqlx::query("DELETE FROM files WHERE path = ?")
             .bind(path)
             .execute(&*self.pool.as_ref())
             .await?;
-        Ok(())
+        Ok(result.rows_affected())
     }
 
     pub async fn get_all_paths(&self) -> Result<HashSet<String>, sqlx::Error> {
@@ -56,5 +59,9 @@ impl FilesTable {
             .fetch_all(&*self.pool.as_ref())
             .await?;
         Ok(rows.into_iter().map(|model| model.path).collect())
+    }
+
+    pub async fn remove_paths_from_dir(&self, dir:&str, paths:HashSet<String>){
+        
     }
 }

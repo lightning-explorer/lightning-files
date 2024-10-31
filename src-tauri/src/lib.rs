@@ -1,11 +1,9 @@
-use std::sync::Arc;
-
 use directory_nav_service::service::*;
 use tantivy_file_indexer::{
     crawlers::crawler::Crawler, service::exports::search_index_query,
     service_container::AppServiceContainer,
 };
-use tauri::{App, AppHandle, Manager};
+use tauri::{AppHandle, Manager};
 mod directory_nav_service;
 mod shared;
 mod tantivy_file_indexer;

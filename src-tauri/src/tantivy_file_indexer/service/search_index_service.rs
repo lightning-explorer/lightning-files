@@ -1,9 +1,12 @@
-use crate::{shared::dtos::file_dto::FileDTO, tantivy_file_indexer::{db::sqlx_service::SqlxService, models::search_params_model::SearchParamsModel}};
+use crate::{
+    shared::dtos::file_dto::FileDTO,
+    tantivy_file_indexer::models::search_params_model::SearchParamsModel,
+};
 
-use super::{super::{
-    configs::file_indexer_config::FileIndexerConfig, crawlers::local_dispatcher,
-    schemas::file_schema,
-}, querier};
+use super::{
+    super::{configs::file_indexer_config::FileIndexerConfig, schemas::file_schema},
+    querier,
+};
 use dirs::data_dir;
 use std::{fs, sync::Arc};
 use tantivy::{schema::Schema, Index, IndexReader, IndexWriter};
@@ -13,7 +16,6 @@ pub struct SearchIndexService {
     pub schema: Schema,
     pub index_writer: Arc<Mutex<IndexWriter>>,
     index_reader: IndexReader,
-    config: FileIndexerConfig,
 }
 
 impl SearchIndexService {
@@ -44,15 +46,13 @@ impl SearchIndexService {
         let index_reader = index.reader().unwrap();
 
         Self {
-            config: config.clone(),
             schema,
             index_writer: Arc::new(Mutex::new(index_writer)),
             index_reader,
         }
     }
 
-
-    pub fn query(&self, params:&SearchParamsModel)->Result<Vec<FileDTO>, tantivy::TantivyError>{
+    pub fn query(&self, params: &SearchParamsModel) -> Result<Vec<FileDTO>, tantivy::TantivyError> {
         querier::advanced_query(&self.schema, &self.index_reader.searcher(), params)
     }
 }

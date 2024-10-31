@@ -1,7 +1,4 @@
-use super::{
-    db::sqlx_service::{self, SqlxService},
-    service::search_index_service::SearchIndexService,
-};
+use super::{db::sqlx_service::SqlxService, service::search_index_service::SearchIndexService};
 use std::sync::{Arc, RwLock};
 
 use tauri::{AppHandle, Manager};
