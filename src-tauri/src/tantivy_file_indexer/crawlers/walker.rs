@@ -6,28 +6,41 @@ use std::vec::Vec;
 use crate::tantivy_file_indexer::dtos::file_dto_input::FileDTOInput;
 use crate::tantivy_file_indexer::util::file_id_helper;
 
+type DirectoryPath = PathBuf;
 /// A recursive file crawler that implements `Iterator`, returning an iterator over each directory.
-pub struct FileCrawler {
-    stack: Vec<ReadDir>, // Stack of directories to visit
+pub struct FileWalker {
+    stack: Vec<(PathBuf, ReadDir)>, // Stack of directory paths and their iterators
 }
 
-impl FileCrawler {
-    /// Creates a new `FileCrawler` starting at the given path.
+impl FileWalker {
+    /// Creates a new `FileWalker` starting at the given path.
     pub fn new(start_path: impl AsRef<Path>) -> Result<Self, std::io::Error> {
-        let start_dir = fs::read_dir(start_path.as_ref())?; 
-        Ok(FileCrawler {
-            stack: vec![start_dir], // Add starting directory to the stack
+        let start_path = start_path.as_ref().to_path_buf();
+        let start_dir = fs::read_dir(&start_path)?;
+        Ok(FileWalker {
+            stack: vec![(start_path, start_dir)],
         })
+    }
+
+    pub fn new_from_queue(paths:Vec<String>) -> Self{
+        Self { stack: get_dirs_with_readers(paths) }
+    }
+
+    pub fn get_current_queue(&self) -> Vec<String> {
+        self.stack
+            .iter()
+            .map(|(x, _)| x.to_string_lossy().to_string())
+            .collect()
     }
 }
 
-impl Iterator for FileCrawler {
-    type Item = Vec<FileDTOInput>;
+impl Iterator for FileWalker {
+    type Item = (DirectoryPath, Vec<FileDTOInput>);
 
     /// Returns an iterator over the next directory's entries.
     fn next(&mut self) -> Option<Self::Item> {
         // Loop until we find a directory with entries or the stack is empty
-        while let Some(dir) = self.stack.pop() {
+        while let Some((path, dir)) = self.stack.pop() {
             let mut entries = Vec::new();
             for entry in dir {
                 match entry {
@@ -35,7 +48,7 @@ impl Iterator for FileCrawler {
                         // Push subdirectories onto the stack to recurse into them
                         if entry.path().is_dir() {
                             if let Ok(sub_dir) = fs::read_dir(entry.path()) {
-                                self.stack.push(sub_dir);
+                                self.stack.push((entry.path(), sub_dir));
                             }
                         }
                         entries.push(Ok(entry));
@@ -48,7 +61,7 @@ impl Iterator for FileCrawler {
                 .filter_map(|x| x.and_then(|y| Ok(create_dto(&y))).ok())
                 .filter_map(|x| x.ok())
                 .collect();
-            return Some(result);
+            return Some((path, result));
         }
         None // No more directories to process
     }
@@ -80,4 +93,16 @@ fn create_dto(entry: &DirEntry) -> Result<FileDTOInput, String> {
         popularity: 1.0,
     };
     Ok(dto)
+}
+
+fn get_dirs_with_readers(paths: Vec<String>) -> Vec<(PathBuf, ReadDir)> {
+    paths.into_iter()
+        .filter_map(|path_str| {
+            let path = PathBuf::from(&path_str);
+            match fs::read_dir(&path) {
+                Ok(read_dir) => Some((path, read_dir)),
+                Err(_) => None, // Ignore paths that cannot be read
+            }
+        })
+        .collect()
 }

@@ -18,7 +18,7 @@ pub fn save<T>(name:&str, data:T) -> Result<()> where T: Serialize {
 /**
  * Note: do not include '.json' when you pass in a value for `name`
  */
-fn load<T>(name:&str) -> Result<T> where T: DeserializeOwned {
+pub fn load<T>(name:&str) -> Result<T> where T: DeserializeOwned {
     let path = super::helper_methods::get_path(format!("{}.json",name).as_str());
     let file = File::open(path)?;
     let data: T = from_reader(file)?;

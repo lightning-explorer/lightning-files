@@ -40,6 +40,6 @@ pub fn run() {
 async fn initialize_app(handle: AppHandle) {
     let service_container = AppServiceContainer::new_async(&handle).await;
     let crawler = Crawler::new_from_service(&service_container);
-    tokio::spawn(crawler.crawl("", 128, 6));
+    tokio::spawn(crawler.crawl_existing("C:\\", 128, 6));
     handle.manage(service_container);
 }
