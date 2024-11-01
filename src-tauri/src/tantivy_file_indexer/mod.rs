@@ -1,4 +1,5 @@
 pub mod service_container;
+pub mod service_container_traits;
 pub mod configs{
     pub mod file_indexer_config;
 }

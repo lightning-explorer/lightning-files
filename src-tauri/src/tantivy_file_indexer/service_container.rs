@@ -29,7 +29,7 @@ impl AppServiceContainer {
     fn create_file_indexer_config() -> FileIndexerConfig {
         FileIndexerConfig {
             buffer_size: 50_000_000,
-            indexer_batch_size: 128,
+            indexer_batch_size: 64,
             indexer_tasks_limit: 6,
         }
     }
