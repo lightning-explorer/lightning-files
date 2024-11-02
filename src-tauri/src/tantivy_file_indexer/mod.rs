@@ -7,7 +7,9 @@ mod schemas{
     pub mod file_schema;
 }
 pub mod crawlers{
+    pub mod crawler_service;
     pub mod crawler;
+    mod crawler_mpsc;
     mod walker;
 }
 mod dtos{
