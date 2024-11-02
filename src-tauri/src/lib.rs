@@ -1,8 +1,8 @@
+use std::path::{Path, PathBuf};
+
 use directory_nav_service::service::*;
 use tantivy_file_indexer::{
-    crawlers::crawler::Crawler, service::exports::search_index_query,
-    service_container::AppServiceContainer,
-    service_container_traits::FromAppService,
+    service_container::AppServiceContainer, services::search_index::tauri_exports::*,
 };
 use tauri::{AppHandle, Manager};
 mod directory_nav_service;
@@ -40,7 +40,15 @@ pub fn run() {
 
 async fn initialize_app(handle: AppHandle) {
     let service_container = AppServiceContainer::new_async(&handle).await;
-    let crawler = Crawler::new_from_service(&service_container);
-    tokio::spawn(crawler.crawl_existing("C:\\", 128, 6));
+    let crawler_service = service_container.crawler_service.clone();
+    let db_service = service_container.sqlx_service.clone();
+
+    let sender = service_container
+        .search_service
+        .spawn_indexer(db_service, 128, 32);
+
+    crawler_service.spawn_crawler(sender);
+    crawler_service.push_dirs(vec!["C:\\"]);
+
     handle.manage(service_container);
 }

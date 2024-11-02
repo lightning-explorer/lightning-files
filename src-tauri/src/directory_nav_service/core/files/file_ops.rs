@@ -47,7 +47,7 @@ pub fn is_path_a_file(file_path:&str)->bool{
 #[tauri::command]
 pub async fn open_file(file_path:&str)-> Result<(),String>{
     tokio::process::Command::new("cmd")
-    .args(&["/C","start","",file_path])
+    .args(["/C","start","",file_path])
     .spawn()
     .map_err(|x| x.to_string())?;
     Ok(())

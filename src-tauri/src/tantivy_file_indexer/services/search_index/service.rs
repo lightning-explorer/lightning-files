@@ -1,16 +1,20 @@
 use crate::{
     shared::dtos::file_dto::FileDTO,
-    tantivy_file_indexer::models::search_params_model::SearchParamsModel,
+    tantivy_file_indexer::{
+        models::search_params_model::SearchParamsModel, services::local_db::service::SqlxService,
+    },
 };
 
 use super::{
-    super::{configs::file_indexer_config::FileIndexerConfig, schemas::file_schema},
-    querier,
+    super::super::{configs::file_indexer_config::FileIndexerConfig, schemas::file_schema},
+    core::{index_worker, querier},
+    models::index_worker::file_input::FileInputModel,
 };
 use dirs::data_dir;
 use std::{fs, sync::Arc};
 use tantivy::{schema::Schema, Index, IndexReader, IndexWriter};
-use tokio::sync::Mutex;
+use tauri::async_runtime::Sender;
+use tokio::sync::{mpsc, Mutex};
 
 pub struct SearchIndexService {
     pub schema: Schema,
@@ -50,6 +54,34 @@ impl SearchIndexService {
             index_writer: Arc::new(Mutex::new(index_writer)),
             index_reader,
         }
+    }
+
+    /**
+     * Returns a `Sender` that a crawler can use to send over files
+     */
+    pub fn spawn_indexer(
+        &self,
+        db_service: Arc<SqlxService>,
+        batch_size: usize,
+        buffer_size: usize,
+    ) -> Sender<FileInputModel> {
+        let schema_clone = Arc::new(self.schema.clone());
+        let (sender, receiver) = mpsc::channel(buffer_size);
+
+        let index_writer_clone = self.index_writer.clone();
+
+        tokio::spawn(async move {
+            index_worker::spawn_worker(
+                receiver,
+                index_writer_clone,
+                schema_clone,
+                db_service,
+                batch_size,
+            )
+            .await;
+        });
+
+        sender
     }
 
     pub fn query(&self, params: &SearchParamsModel) -> Result<Vec<FileDTO>, tantivy::TantivyError> {

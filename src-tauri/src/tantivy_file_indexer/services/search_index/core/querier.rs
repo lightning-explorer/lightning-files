@@ -21,14 +21,14 @@ pub fn advanced_query(
 
     if let Some(file_path) = &search_params.file_path {
         let field = schema.get_field("path").unwrap();
-        let query_parser = QueryParser::for_index(&searcher.index(), vec![field]);
-        let query = query_parser.parse_query(&file_path)?;
+        let query_parser = QueryParser::for_index(searcher.index(), vec![field]);
+        let query = query_parser.parse_query(file_path)?;
         queries.push((Occur::Should, Box::new(query)));
     }
 
     if let Some(query_str) = &search_params.name {
         let field = schema.get_field("name").unwrap();
-        let query_parser = QueryParser::for_index(&searcher.index(), vec![field]);
+        let query_parser = QueryParser::for_index(searcher.index(), vec![field]);
         let query = query_parser.parse_query(query_str)?;
         queries.push((Occur::Should, Box::new(query)));
     }
@@ -61,8 +61,7 @@ pub fn advanced_query(
             move |doc, original_score| {
                 // Default to 1 if no popularity
                 let pop_score = popularity_field.first(doc).unwrap_or(1.0);
-                let tweaked = apply_popularity(original_score, pop_score);
-                tweaked
+                apply_popularity(original_score, pop_score)
             }
         }),
     )?;
@@ -71,7 +70,7 @@ pub fn advanced_query(
         .into_iter()
         .map(|(_score, doc_address)| {
             let doc: TantivyDocument = searcher.doc(doc_address).unwrap();
-            doc_to_dto(doc, &schema, _score)
+            doc_to_dto(doc, schema, _score)
         })
         .collect();
 

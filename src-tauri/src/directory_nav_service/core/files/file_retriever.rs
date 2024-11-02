@@ -28,18 +28,17 @@ pub async fn get_files_as_dtos(
     // Read directory asynchronously
     let mut entries = fs::read_dir(path).map_err(|_| "Failed to read directory")?;
 
-    while let Some(entry) = entries.next() {
-        if let Ok(entry) = entry {
-            let path = entry.path();
-            if let Some(dto) = create_dto_from_path(path.clone()).await {
-                if let Ok(mut state) = FilesDisplayState::lock(&state_files_display) {
-                    state.add_dto(dto.clone());
-                } else {
-                    return Err("Failed to add DTO to state".to_string());
-                }
-
-                app_handle.emit("file_dto", dto).unwrap_or_default();
+    // flatten the iterator to remove the 'Err' 'DirEntries' from the loop
+    for entry in entries.next().into_iter().flatten() {
+        let path = entry.path();
+        if let Some(dto) = create_dto_from_path(path.clone()).await {
+            if let Ok(mut state) = FilesDisplayState::lock(&state_files_display) {
+                state.add_dto(dto.clone());
+            } else {
+                return Err("Failed to add DTO to state".to_string());
             }
+
+            app_handle.emit("file_dto", dto).unwrap_or_default();
         }
     }
 
