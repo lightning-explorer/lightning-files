@@ -39,19 +39,19 @@ impl FileCrawlerService {
         });
     }
 
-    pub fn push_dirs(&self, paths: Vec<&str>) {
+    pub async fn push_dirs(&self, paths: Vec<&str>) {
         let dirs: Vec<PathBuf> = paths.iter().map(|x| Path::new(x).to_path_buf()).collect();
-        self.process_dirs(dirs);
+        self.process_dirs(dirs).await;
     }
 
-    pub fn load_or(&self, fallback_directories: Vec<&str>){
+    pub async fn load_or(&self, fallback_directories: Vec<&str>){
         let dirs: Vec<PathBuf> = fallback_directories.iter().map(|x| Path::new(x).to_path_buf()).collect();
-        self.queue.load_or(dirs);
+        self.queue.load_or(dirs).await;
     }
 
-    fn process_dirs(&self, paths: Vec<PathBuf>) {
+    async fn process_dirs(&self, paths: Vec<PathBuf>) {
         for path in paths {
-            self.queue.push(path);
+            self.queue.push_default(path).await;
         }
     }
 }

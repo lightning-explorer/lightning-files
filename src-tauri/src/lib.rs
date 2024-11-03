@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use directory_nav_service::service::*;
 use tantivy_file_indexer::{
     service_container::AppServiceContainer, services::search_index::tauri_exports::*,
+    services::local_crawler::tauri_exports::*,
 };
 use tauri::{AppHandle, Manager};
 mod directory_nav_service;
@@ -32,7 +33,8 @@ pub fn run() {
             is_path_a_file,
             get_drives,
             search_files_inline,
-            search_index_query
+            search_index_query,
+            add_dirs_to_crawler_queue
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

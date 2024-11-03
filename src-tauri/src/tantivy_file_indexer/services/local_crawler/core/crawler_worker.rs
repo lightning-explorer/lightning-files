@@ -1,14 +1,8 @@
-use std::{
-    fs::{self, DirEntry},
-    path::PathBuf,
-    sync::Arc,
-    time::UNIX_EPOCH,
-};
-
-use crossbeam::{channel::bounded, queue::SegQueue};
-use futures::{stream::FuturesUnordered, StreamExt};
+use crossbeam::queue::SegQueue;
+use std::{path::PathBuf, sync::Arc, time::UNIX_EPOCH};
+use tokio::time::{self, Duration};
 use tokio::{
-    sync::{mpsc, Notify, Semaphore},
+    sync::{mpsc, Semaphore},
     task::JoinSet,
 };
 
@@ -26,54 +20,63 @@ pub async fn spawn_worker(
 ) {
     let dir_entries: Arc<SegQueue<FileDTOInput>> = Arc::new(SegQueue::new());
     let semaphore = Arc::new(Semaphore::new(max_concurrent_tasks));
-    let notify = Arc::new(Notify::new());
     let mut tasks = JoinSet::new();
 
-    let worker_notify = notify.clone();
     let worker_queue = queue.clone();
-
+    println!("spawning");
     loop {
         // Check if we have a path to process from the queue
-        if let Some(path) = worker_queue.pop().await {
-            let semaphore_clone = semaphore.clone();
-            let queue_clone = worker_queue.clone();
-            let sender_clone = sender.clone();
-            let dir_entries_clone = Arc::clone(&dir_entries);
-            let notify_clone = notify.clone();
+        let path = match queue.pop().await {
+            Some(path) => path,
+            None => {
+                // Exit if no tasks are running and the queue is empty
+                if tasks.is_empty() {
+                    println!("worked done processing");
+                    break;
+                }
+                // Sleep briefly to wait for more entries if tasks are still processing
+                time::sleep(Duration::from_millis(100)).await;
+                continue;
+            }
+        };
 
-            // Spawn the task directly into the JoinSet
-            tasks.spawn(async move {
-                // Use a semaphore permit for concurrency control
-                let _permit = semaphore_clone
-                    .acquire_owned()
-                    .await
-                    .expect("Failed to acquire semaphore");
+        let semaphore_clone = semaphore.clone();
+        let queue_clone = worker_queue.clone();
+        let sender_clone = sender.clone();
+        let dir_entries_clone = Arc::clone(&dir_entries);
+        println!("spawn task");
 
-                if path.is_dir() {
-                    if let Ok(dir) = tokio::fs::read_dir(&path).await {
-                        tokio::pin!(dir);
-                        while let Ok(Some(entry)) = dir.next_entry().await {
-                            let entry_path = entry.path();
-                            if entry_path.is_dir() {
-                                queue_clone.push(entry_path);
-                                notify_clone.notify_one(); // Notify that a new item is in the queue
-                            }
-                            if let Ok(dto) = create_dto(&entry).await {
-                                dir_entries_clone.push(dto);
-                            }
+        // Spawn the task directly into the JoinSet
+        tasks.spawn(async move {
+            // Use a semaphore permit for concurrency control
+            let _permit = semaphore_clone
+                .acquire_owned()
+                .await
+                .expect("Failed to acquire semaphore");
+
+            if path.is_dir() {
+                if let Ok(dir) = tokio::fs::read_dir(&path).await {
+                    tokio::pin!(dir);
+                    while let Ok(Some(entry)) = dir.next_entry().await {
+                        let entry_path = entry.path();
+                        if entry_path.is_dir() {
+                            queue_clone.push_default(entry_path).await;
+                            println!("pushed dir");
+                        }
+                        if let Ok(dto) = create_dto(&entry).await {
+                            dir_entries_clone.push(dto);
                         }
                     }
                 }
+            }
 
-                let model = create_model(path, &dir_entries_clone);
-                if let Err(err) = sender_clone.send(model).await {
-                    println!("Error sending FileInputModel to indexer: {}", err);
-                }
-            });
-        } else {
-            // Wait for notification if the queue is empty
-            worker_notify.notified().await;
-        }
+            let model = create_model(path, &dir_entries_clone);
+            println!("sending");
+            if let Err(err) = sender_clone.send(model).await {
+                println!("Error sending FileInputModel to indexer: {}", err);
+            }
+            println!("sent");
+        });
 
         // Process tasks as they complete to handle task management
         while let Some(result) = tasks.join_next().await {
