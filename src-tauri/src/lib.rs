@@ -41,14 +41,14 @@ pub fn run() {
 async fn initialize_app(handle: AppHandle) {
     let service_container = AppServiceContainer::new_async(&handle).await;
     let crawler_service = service_container.crawler_service.clone();
-    let db_service = service_container.sqlx_service.clone();
+    let db_service  = service_container.sqlx_service.clone();
 
     let sender = service_container
         .search_service
         .spawn_indexer(db_service, 128, 32);
 
     crawler_service.spawn_crawler(sender);
-    crawler_service.push_dirs(vec!["C:\\"]);
+    crawler_service.load_or(vec!["C:\\"]);
 
     handle.manage(service_container);
 }

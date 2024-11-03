@@ -25,7 +25,6 @@ pub async fn spawn_worker(
     batch_size: usize,
 ) {
     let mut batches_processed: usize = 0;
-
     // Each call to 'next' will return every file/directory path as a DTO
     while let Some(model) = receiver.recv().await {
         let seen_paths: HashSet<String> = model.dtos.iter().map(|x| x.file_path.clone()).collect();
@@ -55,8 +54,10 @@ pub async fn spawn_worker(
             if let Err(err) = commit_and_retry(writer.clone()).await {
                 println!("Error committing files: {}", err);
             }
+            batches_processed = 0;
         }
     }
+    println!("receiver channel closed");
 }
 
 async fn process_file(

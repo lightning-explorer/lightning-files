@@ -1,4 +1,7 @@
-use super::services::{local_crawler::service::FileCrawlerService, local_db::service::SqlxService, search_index::service::SearchIndexService};
+use super::services::{
+    local_crawler::service::FileCrawlerService, local_db::service::SqlxService,
+    search_index::service::SearchIndexService,
+};
 use std::sync::{Arc, RwLock};
 
 use tauri::{AppHandle, Manager};
@@ -9,7 +12,7 @@ use crate::FilesDisplayState;
 pub struct AppServiceContainer {
     pub search_service: Arc<SearchIndexService>,
     pub sqlx_service: Arc<SqlxService>,
-    pub crawler_service: Arc<FileCrawlerService>
+    pub crawler_service: Arc<FileCrawlerService>,
 }
 
 impl AppServiceContainer {
@@ -18,7 +21,8 @@ impl AppServiceContainer {
         let config = Self::create_file_indexer_config();
         let search_service = Self::initialize_search_service(&config);
         let sqlx_service = Self::initialize_sqlx_service().await;
-        let crawler_service = Self::initialize_crawler_service(8, search_service.clone(), sqlx_service.clone());
+        let crawler_service =
+            Self::initialize_crawler_service(8, search_service.clone(), sqlx_service.clone());
 
         handle.manage(files_display_state.clone());
         handle.manage(search_service.clone());
@@ -52,8 +56,16 @@ impl AppServiceContainer {
         Arc::new(SqlxService::new_async().await)
     }
 
-    fn initialize_crawler_service(max_concurrent:usize,search_service: Arc<SearchIndexService>,
-        sqlx_service: Arc<SqlxService>) -> Arc<FileCrawlerService>{
-        Arc::new(FileCrawlerService::new(max_concurrent,search_service,sqlx_service))
+    fn initialize_crawler_service(
+        max_concurrent: usize,
+        search_service: Arc<SearchIndexService>,
+        sqlx_service: Arc<SqlxService>,
+    ) -> Arc<FileCrawlerService> {
+        Arc::new(FileCrawlerService::new(
+            max_concurrent,
+            2048,
+            search_service,
+            sqlx_service,
+        ))
     }
 }

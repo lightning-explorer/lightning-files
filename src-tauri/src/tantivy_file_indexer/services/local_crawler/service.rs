@@ -18,6 +18,7 @@ pub struct FileCrawlerService {
 impl FileCrawlerService {
     pub fn new(
         max_concurrent_tasks: usize,
+        crawler_save_after_iters: usize,
         search_service: Arc<SearchIndexService>,
         db_service: Arc<SqlxService>,
     ) -> Self {
@@ -25,7 +26,7 @@ impl FileCrawlerService {
             max_concurrent_tasks,
             search_service,
             db_service,
-            queue: Arc::new(CrawlerQueue::new(vec![])),
+            queue: Arc::new(CrawlerQueue::new(vec![], crawler_save_after_iters)),
         }
     }
 
@@ -41,6 +42,11 @@ impl FileCrawlerService {
     pub fn push_dirs(&self, paths: Vec<&str>) {
         let dirs: Vec<PathBuf> = paths.iter().map(|x| Path::new(x).to_path_buf()).collect();
         self.process_dirs(dirs);
+    }
+
+    pub fn load_or(&self, fallback_directories: Vec<&str>){
+        let dirs: Vec<PathBuf> = fallback_directories.iter().map(|x| Path::new(x).to_path_buf()).collect();
+        self.queue.load_or(dirs);
     }
 
     fn process_dirs(&self, paths: Vec<PathBuf>) {

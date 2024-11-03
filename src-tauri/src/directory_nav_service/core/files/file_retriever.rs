@@ -26,10 +26,10 @@ pub async fn get_files_as_dtos(
 
     let path = Path::new(&directory);
     // Read directory asynchronously
-    let mut entries = fs::read_dir(path).map_err(|_| "Failed to read directory")?;
+    let entries = fs::read_dir(path).map_err(|_| "Failed to read directory")?;
 
     // flatten the iterator to remove the 'Err' 'DirEntries' from the loop
-    for entry in entries.next().into_iter().flatten() {
+    for entry in entries.flatten() {
         let path = entry.path();
         if let Some(dto) = create_dto_from_path(path.clone()).await {
             if let Ok(mut state) = FilesDisplayState::lock(&state_files_display) {
@@ -41,7 +41,6 @@ pub async fn get_files_as_dtos(
             app_handle.emit("file_dto", dto).unwrap_or_default();
         }
     }
-
     Ok(())
 }
 
