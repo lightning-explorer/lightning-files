@@ -10,7 +10,6 @@ use super::{
     core::{index_worker, querier},
     models::index_worker::file_input::FileInputModel,
 };
-use dirs::data_dir;
 use std::{fs, sync::Arc};
 use tantivy::{schema::Schema, Index, IndexReader, IndexWriter};
 use tauri::async_runtime::Sender;
@@ -24,8 +23,7 @@ pub struct SearchIndexService {
 
 impl SearchIndexService {
     pub fn new(config: &FileIndexerConfig) -> Self {
-        let app_data = data_dir().expect("Could not find AppData directory");
-        let app_path = app_data.join("DesktopSearch");
+        let app_path = config.app_path.clone();
         let index_path = app_path.join("TantivyOut");
 
         let schema = file_schema::create_schema();

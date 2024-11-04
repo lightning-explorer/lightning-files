@@ -35,7 +35,7 @@ pub async fn spawn_worker(
             None => {
                 // Exit if no tasks are running and the queue is empty
                 if tasks.is_empty() {
-                    println!("worked done processing");
+                    println!("worker done processing");
                     break;
                 }
                 // Sleep briefly to wait for more entries if tasks are still processing
@@ -48,7 +48,7 @@ pub async fn spawn_worker(
         let queue_clone = worker_queue.clone();
         let sender_clone = sender.clone();
         let dir_entries_clone = Arc::clone(&dir_entries);
-        let files_processed_clone = files_processed.clone();
+        let files_processed_clone: Arc<RwLock<usize>> = files_processed.clone();
 
         // Spawn the task directly into the JoinSet
         tasks.spawn(async move {
@@ -69,18 +69,23 @@ pub async fn spawn_worker(
                         if let Ok(dto) = create_dto(&entry).await {
                             dir_entries_clone.push(dto);
                             // Increment queue save counter
+                            
                             *files_processed_clone.write().await += 1;
                             if *files_processed_clone.read().await > save_queue_after {
                                 *files_processed_clone.write().await = 0;
                                 // Save queue
-                                queue_clone.save().await;
+                                if let Err(err) = queue_clone.save().await {
+                                    println!("Failed to save queue: {}", err);
+                                }
                             }
+                            
                         }
                     }
                 }
             }
 
             let model = create_model(path, &dir_entries_clone);
+            println!("sending to indexer");
             if let Err(err) = sender_clone.send(model).await {
                 println!("Error sending FileInputModel to indexer: {}", err);
             }

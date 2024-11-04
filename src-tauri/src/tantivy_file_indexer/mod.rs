@@ -47,11 +47,13 @@ pub mod services {
         }
         pub mod tauri_exports;
     }
+    pub mod app_save {
+        pub mod service;
+        mod core {
+            pub mod helper;
+        }
+    }
 }
 mod models {
     pub mod search_params_model;
-}
-mod app_data {
-    pub mod helper_methods;
-    pub mod json;
 }

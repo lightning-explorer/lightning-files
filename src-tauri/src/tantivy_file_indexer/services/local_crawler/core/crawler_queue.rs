@@ -2,25 +2,32 @@ use std::{path::PathBuf, sync::Arc};
 
 use tokio::sync::RwLock;
 
-use crate::{shared::collections::popularity_set::PopularitySet, tantivy_file_indexer::app_data};
+use crate::{
+    shared::collections::popularity_set::PopularitySet,
+    tantivy_file_indexer::services::app_save::service::AppSaveService,
+};
 
 const DEFAULT_PRIORITY: Priority = 1;
-const SAVE_PATH: &str = "files_queue";
+const SAVE_NAME: &str = "files_queue";
 pub struct CrawlerQueue {
     queue: Arc<RwLock<PopularitySet<PathBuf>>>,
+    save_service: Arc<AppSaveService>,
 }
 
 pub type Priority = u32;
 impl CrawlerQueue {
     /**
-     * An 'iteration' is one file being processed. So `save_after_iters` should be a pretty sizeable value
+     * An 'iteration' is one file being processed
      */
-    pub fn new(directories: Vec<PathBuf>) -> Self {
+    pub async fn new_async(directories: Vec<PathBuf>, save_service: Arc<AppSaveService>) -> Self {
         let queue = Arc::new(RwLock::new(PopularitySet::<PathBuf>::new()));
         for item in directories {
-            queue.blocking_write().insert(item, DEFAULT_PRIORITY);
+            queue.write().await.insert(item, DEFAULT_PRIORITY);
         }
-        Self { queue }
+        Self {
+            save_service,
+            queue,
+        }
     }
 
     pub async fn push(&self, directory: PathBuf, priority: Priority) {
@@ -40,7 +47,7 @@ impl CrawlerQueue {
     }
 
     pub async fn save(&self) -> Result<(), std::io::Error> {
-        app_data::json::save(SAVE_PATH, self.queue_as_vec().await)
+        self.save_service.save(SAVE_NAME, self.queue_as_vec().await)
     }
 
     /**
@@ -53,34 +60,19 @@ impl CrawlerQueue {
     }
 
     pub async fn load(&self) -> Result<(), std::io::Error> {
-        let entries = app_data::json::load::<Vec<PathBuf>>(SAVE_PATH)?;
+        let entries = self.save_service.load::<Vec<PathBuf>>(SAVE_NAME)?;
         self.populate_queue(entries).await;
         Ok(())
     }
 
     async fn populate_queue(&self, entries: Vec<PathBuf>) {
-        for entry in entries.into_iter() {
-            self.queue.write().await.insert(entry, DEFAULT_PRIORITY);
-        }
+        self.queue
+            .write()
+            .await
+            .insert_many(entries.into_iter().map(|x| (x, DEFAULT_PRIORITY)).collect());
     }
 
     async fn queue_as_vec(&self) -> Vec<PathBuf> {
-        let mut result = Vec::<PathBuf>::new();
-        while let Some(item) = self.queue.write().await.pop() {
-            result.push(item.clone());
-            self.queue.write().await.insert(item, DEFAULT_PRIORITY);
-        }
-        result
-    }
-
-    async fn contains(&self, directory: &PathBuf) -> bool {
-        while let Some(item) = self.queue.write().await.pop() {
-            let item_clone = item.clone();
-            self.queue.write().await.insert(item, DEFAULT_PRIORITY);
-            if &item_clone == directory {
-                return true;
-            }
-        }
-        false
+        self.queue.read().await.as_partial_vec()
     }
 }

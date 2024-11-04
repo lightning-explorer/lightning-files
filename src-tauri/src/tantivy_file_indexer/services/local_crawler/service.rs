@@ -1,5 +1,6 @@
 use tokio::sync::mpsc;
 
+use crate::tantivy_file_indexer::services::app_save::service::AppSaveService;
 use crate::tantivy_file_indexer::services::local_db::service::SqlxService;
 use crate::tantivy_file_indexer::services::search_index::models::index_worker::file_input::FileInputModel;
 use crate::tantivy_file_indexer::services::search_index::service::SearchIndexService;
@@ -17,18 +18,20 @@ pub struct FileCrawlerService {
 }
 
 impl FileCrawlerService {
-    pub fn new(
+    pub async fn new_async(
         max_concurrent_tasks: usize,
         crawler_save_after_iters: usize,
         search_service: Arc<SearchIndexService>,
         db_service: Arc<SqlxService>,
+        app_save_service: Arc<AppSaveService>,
     ) -> Self {
+        let queue = Arc::new(CrawlerQueue::new_async(vec![], app_save_service.clone()).await);
         Self {
             max_concurrent_tasks,
             crawler_save_after_iters,
             search_service,
             db_service,
-            queue: Arc::new(CrawlerQueue::new(vec![])),
+            queue,
         }
     }
 
