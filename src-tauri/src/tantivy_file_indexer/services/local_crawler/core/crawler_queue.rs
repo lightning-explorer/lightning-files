@@ -1,34 +1,29 @@
 use std::{path::PathBuf, sync::Arc};
 
-use tokio::sync::{Mutex, RwLock};
+use tokio::sync::RwLock;
 
 use crate::{shared::collections::popularity_set::PopularitySet, tantivy_file_indexer::app_data};
 
-const DEFAULT_PRIORITY: u32 = 1;
+const DEFAULT_PRIORITY: Priority = 1;
 const SAVE_PATH: &str = "files_queue";
 pub struct CrawlerQueue {
     queue: Arc<RwLock<PopularitySet<PathBuf>>>,
-    iter_on: Arc<Mutex<usize>>,
-    save_after_iters: usize,
 }
 
+pub type Priority = u32;
 impl CrawlerQueue {
     /**
      * An 'iteration' is one file being processed. So `save_after_iters` should be a pretty sizeable value
      */
-    pub fn new(directories: Vec<PathBuf>, save_after_iters: usize) -> Self {
+    pub fn new(directories: Vec<PathBuf>) -> Self {
         let queue = Arc::new(RwLock::new(PopularitySet::<PathBuf>::new()));
         for item in directories {
             queue.blocking_write().insert(item, DEFAULT_PRIORITY);
         }
-        Self {
-            queue,
-            iter_on: Arc::new(Mutex::new(0)),
-            save_after_iters,
-        }
+        Self { queue }
     }
 
-    pub async fn push(&self, directory: PathBuf, priority: u32) {
+    pub async fn push(&self, directory: PathBuf, priority: Priority) {
         self.queue.write().await.insert(directory, priority);
     }
 
@@ -37,7 +32,6 @@ impl CrawlerQueue {
     }
 
     pub async fn pop(&self) -> Option<PathBuf> {
-        self.increment_iter().await;
         self.queue.write().await.pop()
     }
 
@@ -62,18 +56,6 @@ impl CrawlerQueue {
         let entries = app_data::json::load::<Vec<PathBuf>>(SAVE_PATH)?;
         self.populate_queue(entries).await;
         Ok(())
-    }
-
-    async fn increment_iter(&self) {
-        let mut iter_on = self.iter_on.lock().await;
-        if *iter_on >= self.save_after_iters {
-            *iter_on = 0;
-            if let Err(err) = self.save().await {
-                println!("Failed to save crawler queue: {}", err);
-            }
-        } else {
-            *iter_on += 1;
-        }
     }
 
     async fn populate_queue(&self, entries: Vec<PathBuf>) {

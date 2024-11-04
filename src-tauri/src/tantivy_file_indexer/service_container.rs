@@ -63,7 +63,7 @@ impl AppServiceContainer {
     ) -> Arc<FileCrawlerService> {
         Arc::new(FileCrawlerService::new(
             max_concurrent,
-            2048,
+            8,
             search_service,
             sqlx_service,
         ))

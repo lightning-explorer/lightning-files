@@ -50,7 +50,7 @@ async fn initialize_app(handle: AppHandle) {
         .spawn_indexer(db_service, 128, 32);
 
     crawler_service.spawn_crawler(sender);
-    crawler_service.load_or(vec!["C:\\"]);
+    crawler_service.load_or(vec!["C:\\"]).await;
 
     handle.manage(service_container);
 }

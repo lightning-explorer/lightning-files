@@ -1,12 +1,13 @@
 use std::sync::Arc;
 use tauri::State;
 
-use super::service::FileCrawlerService;
+use super::{core::crawler_queue::Priority, service::FileCrawlerService};
 
 #[tauri::command]
-pub fn add_dirs_to_crawler_queue(
-    directories: Vec<&str>,
+pub async fn add_dirs_to_crawler_queue(
+    directories: Vec<(&str, Priority)>,
     service: State<'_, Arc<FileCrawlerService>>,
-) {
-    service.push_dirs(directories);
+) -> Result<(), ()> {
+    service.push_dirs(directories).await;
+    Ok(())
 }

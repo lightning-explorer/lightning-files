@@ -1,5 +1,5 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-use tantivy::{time::serde::timestamp, DateTime};
+use std::time::UNIX_EPOCH;
+use tantivy::DateTime;
 
 pub fn unix_time_to_tantivy_datetime(timestamp: u64) -> DateTime {
     let system_time = UNIX_EPOCH + std::time::Duration::from_secs(timestamp);

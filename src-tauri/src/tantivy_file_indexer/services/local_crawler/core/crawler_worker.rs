@@ -1,5 +1,6 @@
 use crossbeam::queue::SegQueue;
 use std::{path::PathBuf, sync::Arc, time::UNIX_EPOCH};
+use tokio::sync::RwLock;
 use tokio::time::{self, Duration};
 use tokio::{
     sync::{mpsc, Semaphore},
@@ -16,14 +17,17 @@ use super::crawler_queue::CrawlerQueue;
 pub async fn spawn_worker(
     sender: mpsc::Sender<FileInputModel>,
     max_concurrent_tasks: usize,
+    save_queue_after: usize,
     queue: Arc<CrawlerQueue>,
 ) {
     let dir_entries: Arc<SegQueue<FileDTOInput>> = Arc::new(SegQueue::new());
     let semaphore = Arc::new(Semaphore::new(max_concurrent_tasks));
     let mut tasks = JoinSet::new();
 
+    // Keep track of files to process until queue should be saved
+    let files_processed: Arc<RwLock<usize>> = Arc::new(RwLock::new(0));
+
     let worker_queue = queue.clone();
-    println!("spawning");
     loop {
         // Check if we have a path to process from the queue
         let path = match queue.pop().await {
@@ -44,7 +48,7 @@ pub async fn spawn_worker(
         let queue_clone = worker_queue.clone();
         let sender_clone = sender.clone();
         let dir_entries_clone = Arc::clone(&dir_entries);
-        println!("spawn task");
+        let files_processed_clone = files_processed.clone();
 
         // Spawn the task directly into the JoinSet
         tasks.spawn(async move {
@@ -61,21 +65,25 @@ pub async fn spawn_worker(
                         let entry_path = entry.path();
                         if entry_path.is_dir() {
                             queue_clone.push_default(entry_path).await;
-                            println!("pushed dir");
                         }
                         if let Ok(dto) = create_dto(&entry).await {
                             dir_entries_clone.push(dto);
+                            // Increment queue save counter
+                            *files_processed_clone.write().await += 1;
+                            if *files_processed_clone.read().await > save_queue_after {
+                                *files_processed_clone.write().await = 0;
+                                // Save queue
+                                queue_clone.save().await;
+                            }
                         }
                     }
                 }
             }
 
             let model = create_model(path, &dir_entries_clone);
-            println!("sending");
             if let Err(err) = sender_clone.send(model).await {
                 println!("Error sending FileInputModel to indexer: {}", err);
             }
-            println!("sent");
         });
 
         // Process tasks as they complete to handle task management
