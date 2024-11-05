@@ -1,11 +1,9 @@
-use std::path::{Path, PathBuf};
-
 use directory_nav_service::service::*;
 use tantivy_file_indexer::{
-    service_container::AppServiceContainer, services::search_index::tauri_exports::*,
-    services::local_crawler::tauri_exports::*,
+    service_container::AppServiceContainer, services::local_crawler::tauri_exports::*,
+    services::local_db::tables::files::tauri_exports::*, services::search_index::tauri_exports::*,
 };
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, WebviewAttributes};
 mod directory_nav_service;
 mod shared;
 mod tantivy_file_indexer;
@@ -34,23 +32,27 @@ pub fn run() {
             get_drives,
             search_files_inline,
             search_index_query,
-            add_dirs_to_crawler_queue
+            add_dirs_to_crawler_queue,
+            get_num_stored_files
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
 async fn initialize_app(handle: AppHandle) {
+    let index_files = false;
     let service_container = AppServiceContainer::new_async(&handle).await;
     let crawler_service = service_container.crawler_service.clone();
-    let db_service  = service_container.sqlx_service.clone();
+    let db_service = service_container.sqlx_service.clone();
 
-    let sender = service_container
-        .search_service
-        .spawn_indexer(db_service, 128, 8);
+    if index_files {
+        let sender = service_container
+            .search_service
+            .spawn_indexer(db_service, 128, 4);
 
-    crawler_service.spawn_crawler(sender);
-    crawler_service.load_or(vec!["C:\\"]).await;
+        crawler_service.spawn_crawler(sender);
+        crawler_service.load_or(vec!["C:\\"]).await;
+    }
 
     handle.manage(service_container);
 }

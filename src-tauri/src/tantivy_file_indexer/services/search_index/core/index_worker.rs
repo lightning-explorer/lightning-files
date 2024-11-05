@@ -31,9 +31,6 @@ pub async fn spawn_worker(
 
         let dtos_len = model.dtos.len();
         batches_processed += dtos_len;
-        println!("Received {} items", dtos_len);
-
-        let time = Instant::now();
 
         if let Err(err) = process_files(
             model.dtos,
@@ -45,10 +42,6 @@ pub async fn spawn_worker(
         {
             println!("Error processing files: {}", err)
         }
-
-        println!("Processing files took {:?}", time.elapsed());
-
-        let time = Instant::now();
 
         if let Err(err) = remove_unseen_entries(
             model.directory_from,
@@ -62,18 +55,12 @@ pub async fn spawn_worker(
             println!("Error removing stale entries: {}", err);
         }
 
-        println!("Stale entries removal took {:?}", time.elapsed());
-
-        let time = Instant::now();
-
         if batches_processed >= batch_size {
             if let Err(err) = commit_and_retry(writer.clone()).await {
                 println!("Error committing files: {}", err);
             }
             batches_processed = 0;
         }
-
-        println!("Committing files took {:?}", time.elapsed());
     }
     println!("receiver channel closed");
 }
@@ -87,6 +74,9 @@ async fn process_files(
 ) -> Result<(), String> {
     let writer = writer.lock().await;
     // Remove from index and add document within a single lock
+
+    let mut db_file_models: Vec<FileModel> = Vec::new();
+
     for dto in dtos.into_iter() {
         writer.delete_term(tantivy::Term::from_field_text(
             schema
@@ -101,19 +91,22 @@ async fn process_files(
         schema.get_field("path").unwrap() => dto.file_path.clone(),
         schema.get_field("metadata").unwrap() => dto.metadata,
         schema.get_field("popularity").unwrap() => dto.popularity,
-    }).map_err(|x| format!("Failed to add document: {}",x))?;
+        }).map_err(|x| format!("Failed to add document: {}",x))?;
 
-        // Proceed with database operation outside the lock
+        // Create model for DTO but dont add it to DB
         let path_clone = dto.file_path.clone();
         let parent_path = get_parent_path(path_clone);
         let file_model = FileModel {
             path: dto.file_path,
             parent_path,
         };
-        if let Err(err) = db_service.files_table.upsert(&file_model).await {
-            return Err(format!("Error upserting file model: {}", err));
-        }
+        db_file_models.push(file_model);
     }
+
+    if let Err(err) = db_service.files_table().upsert_many(&db_file_models).await {
+        return Err(format!("Error upserting file models: {}", err));
+    }
+
     Ok(())
 }
 
@@ -125,7 +118,7 @@ async fn remove_unseen_entries(
     db_service: &SqlxService,
 ) -> Result<usize, String> {
     let stored_paths = db_service
-        .files_table
+        .files_table()
         .get_paths_from_dir(&directory.to_string_lossy())
         .await
         .map_err(|e| e.to_string())?;
@@ -136,7 +129,7 @@ async fn remove_unseen_entries(
     if let Err(err) = remove_files_from_index(&stale_paths, writer.clone(), schema).await {
         return Err(err.to_string());
     }
-    if let Err(err) = db_service.files_table.remove_paths(&stale_paths).await {
+    if let Err(err) = db_service.files_table().remove_paths(&stale_paths).await {
         return Err(err.to_string());
     }
 

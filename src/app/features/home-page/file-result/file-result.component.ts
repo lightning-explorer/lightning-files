@@ -18,22 +18,11 @@ import { HighlightableLabelComponent } from "../../../shared/components/highligh
 })
 export class FileResultComponent {
   @Input() file: FileModel | undefined;
+  @Input() selected = false;
 
   constructor(private directoryService: DirectoryNavigatorService,
     private cssVarService: CssVarToHexService,
   ) { }
-
-  async onClick() {
-    if (this.file) {
-      console.log('clcu');
-      const path = this.file.Dto.FilePath;
-      if (await this.directoryService.isPathAFile(path)) {
-        await this.directoryService.openFileCmd(path);
-      } else {
-        await this.directoryService.setCurrentDir(path);
-      }
-    }
-  }
 
   get icon(): string {
     return getIconFromPath(this.file ? this.file.Dto.FilePath : "");

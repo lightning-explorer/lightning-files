@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { FileDTOReceived } from '../../../core/dtos/file-dto-received';
 import { CommonModule } from '@angular/common';
 import { FileResultComponent } from "../file-result/file-result.component";
@@ -6,11 +6,18 @@ import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrollin
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { FileModel } from '../models/FileModel';
 import { InlineSearchService } from '../../../core/services/search/inline-search.service';
+import { SelectService } from './services/select.service';
+import { DragDropService } from './services/dragdrop.service';
+import { ModalPopupComponent } from "../../../shared/components/modal-popup/modal-popup.component";
+import { MoveItemsPopupComponent } from "./components/move-items-popup/move-items-popup.component";
+import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator.service';
+import { DriveService } from '../../../core/services/files/drive.service';
 
 @Component({
   selector: 'app-files-display',
   standalone: true,
-  imports: [CommonModule, FileResultComponent, ScrollingModule],
+  imports: [CommonModule, FileResultComponent, ScrollingModule, ModalPopupComponent, MoveItemsPopupComponent],
+  providers: [SelectService, DragDropService],
   templateUrl: './files-display.component.html',
   styleUrl: './files-display.component.scss',
   animations: [
@@ -26,16 +33,32 @@ import { InlineSearchService } from '../../../core/services/search/inline-search
 })
 export class FilesDisplayComponent implements OnInit, OnChanges {
   @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
+  @ViewChild('dragPreview') dragPreview!: ElementRef;
+  @ViewChild('moveItemsPopup') moveItemsPopup!: MoveItemsPopupComponent;
   @Input() files: FileModel[] = [];
 
+  currentDirectory: string = "";
   animationState = 'visible';
 
-  constructor(private inlineSearchService: InlineSearchService) { }
+  get selectedIndices(): Set<number> {
+    return this.selectService.selectedIndices;
+  }
+  selectedItems: FileModel[] = [];
+
+  constructor(private inlineSearchService: InlineSearchService,
+    private dragService: DragDropService,
+    private selectService: SelectService,
+    private directoryService: DirectoryNavigatorService,
+    private driveService: DriveService) { }
 
   ngOnInit(): void {
     this.inlineSearchService.firstOccurenceOfQueryIndex$.subscribe(x =>
       this.inlineSearchToFirstOccurence(x)
-    )
+    );
+    this.directoryService.currentDir$.subscribe(x => {
+      this.selectService.clearSelection();
+      this.currentDirectory = x
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -61,5 +84,47 @@ export class FilesDisplayComponent implements OnInit, OnChanges {
         indexOffset = 0;
       this.viewport.scrollToIndex(indexOffset, 'smooth');
     }
+  }
+
+  onFileClick(index: number, event: MouseEvent) {
+    this.selectService.onFileClick(index, event);
+  }
+
+  onFileDoubleClick(file: FileModel) {
+    this.selectService.onFileDoubleClick(file);
+  }
+
+  onDragStart(event: DragEvent, index: number, item: FileModel) {
+    this.populateSelected();
+    const selectedSet = new Set(this.selectedItems);
+    if (!selectedSet.has(item)) {
+      this.selectService.clearSelection();
+      this.selectService.toggleSelection(index);
+      this.populateSelected();
+    }
+    this.dragService.onDragStart(event, selectedSet, this.dragPreview);
+  }
+
+  onDragOver(event: DragEvent) {
+    this.dragService.onDragOver(event);
+  }
+
+  onDrop(event: DragEvent, targetItem: FileModel) {
+    if (!this.dragService.onDrop(event, targetItem, 0)) {
+      this.moveItemsPopup.open(this.currentDirectory, this.dragService.draggingItemsTo, this.selectService.selectedIndices.size, () => {
+        this.dragService.moveItems(targetItem);
+      });
+    }
+  }
+
+  private populateSelected() {
+    const sortedIndices = Array.from(this.selectedIndices).sort((a, b) => a - b);
+    let res: FileModel[] = [];
+    sortedIndices.forEach(x => {
+      const item = this.files.at(x)
+      if (item)
+        res.push(item);
+    });
+    this.selectedItems = res;
   }
 }

@@ -21,10 +21,8 @@ impl AppServiceContainer {
     pub async fn new_async(handle: &AppHandle) -> Self {
         let app_name = "DesktopSearch";
 
-        let app_save_service = Self::initialize_app_save_service(
-            AppSavePath::Other("D:\\DSearch".to_string()),
-            app_name,
-        );
+        // AppSavePath::Other("D:\\DSearch".to_string())
+        let app_save_service = Self::initialize_app_save_service(AppSavePath::AppData, app_name);
 
         let files_display_state = Self::initialize_files_display_state();
         let config = Self::create_file_indexer_config(&app_save_service);
@@ -56,7 +54,6 @@ impl AppServiceContainer {
         FileIndexerConfig {
             buffer_size: 50_000_000,
             indexer_batch_size: 256,
-            indexer_tasks_limit: 8,
             app_path: app_save_service.save_dir.clone(),
         }
     }

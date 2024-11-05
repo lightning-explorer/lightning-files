@@ -21,9 +21,10 @@
         "fullscreen": false,
         "resizable": true,
         "minWidth": 400,
-        "minHeight": 300
+        "minHeight": 300,
+        "dragDropEnabled": false
+        
       }
-      
     ],
     "security": {
       "csp": "default-src self http://localhost:1420"

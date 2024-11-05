@@ -28,12 +28,18 @@ impl FilesTable {
         Self { pool }
     }
 
-    pub async fn upsert(&self, model: &FileModel) -> Result<(), sqlx::Error> {
+    pub async fn upsert_many(&self, models: &Vec<FileModel>) -> Result<(), sqlx::Error> {
         let pool = self.pool.lock().await;
-        sqlx::query("INSERT OR IGNORE INTO files (path) VALUES (?)")
-            .bind(&model.path)
-            .execute(&*pool)
-            .await?;
+        let mut transaction = pool.begin().await?;
+    
+        for model in models {
+            sqlx::query("INSERT OR IGNORE INTO files (path) VALUES (?)")
+                .bind(&model.path)
+                .execute(&mut transaction)
+                .await?;
+        }
+    
+        transaction.commit().await?;
         Ok(())
     }
 
@@ -72,5 +78,13 @@ impl FilesTable {
             .await?;
         let set: HashSet<String> = rows.into_iter().map(|x| x.path.to_string()).collect();
         Ok(set)
+    }
+
+    pub async fn count_files(&self) -> Result<i64, sqlx::Error> {
+        let pool = self.pool.lock().await;
+        let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM files")
+            .fetch_one(&*pool)
+            .await?;
+        Ok(row.0)
     }
 }

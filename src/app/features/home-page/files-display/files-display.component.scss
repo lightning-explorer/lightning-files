@@ -12,3 +12,21 @@
     margin-right: 1em;
     margin-left: 1em;
 }
+
+.drag-preview {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    font-family: "Fredoka";
+    top: -1000px;
+    /* Hide it off-screen */
+    left: -1000px;
+    pointer-events: none;
+    display: flex;
+    align-items: left;
+    gap: 5px;
+    background-color: var(--background-color);
+    padding: 5px;
+    border-radius: 4px;
+    font-size: 12px;
+}

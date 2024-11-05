@@ -36,6 +36,7 @@ pub mod services {
             pub mod files {
                 pub mod api;
                 pub mod models;
+                pub mod tauri_exports;
             }
         }
     }

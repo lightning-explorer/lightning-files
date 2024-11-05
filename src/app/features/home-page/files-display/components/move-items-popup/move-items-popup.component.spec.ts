@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TestHtmlComponent } from './test-html.component';
+import { MoveItemsPopupComponent } from './move-items-popup.component';
 
-describe('TestHtmlComponent', () => {
-  let component: TestHtmlComponent;
-  let fixture: ComponentFixture<TestHtmlComponent>;
+describe('MoveItemsPopupComponent', () => {
+  let component: MoveItemsPopupComponent;
+  let fixture: ComponentFixture<MoveItemsPopupComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TestHtmlComponent]
+      imports: [MoveItemsPopupComponent]
     })
     .compileComponents();
     
-    fixture = TestBed.createComponent(TestHtmlComponent);
+    fixture = TestBed.createComponent(MoveItemsPopupComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -7,7 +7,7 @@ use tokio::sync::Mutex;
 
 pub struct SqlxService {
     pool: Arc<Mutex<Pool<Sqlite>>>,
-    pub files_table: FilesTable,
+    files_table: FilesTable,
 }
 
 impl SqlxService {
@@ -20,6 +20,10 @@ impl SqlxService {
         let files_table = FilesTable::new_async(pool.clone()).await;
 
         Self { pool, files_table }
+    }
+
+    pub fn files_table(&self)->&FilesTable{
+        &self.files_table
     }
     /**
      * Runs a command on the database to reclaim unused memory
