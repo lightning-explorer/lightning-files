@@ -1,6 +1,7 @@
 use crossbeam::queue::SegQueue;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::time::Instant;
 use std::{path::PathBuf, sync::Arc, time::UNIX_EPOCH};
-use tokio::sync::RwLock;
 use tokio::time::{self, Duration};
 use tokio::{
     sync::{mpsc, Semaphore},
@@ -14,93 +15,87 @@ use crate::tantivy_file_indexer::{
 
 use super::crawler_queue::CrawlerQueue;
 
+// Note that the crawler does not handle database operations
 pub async fn spawn_worker(
     sender: mpsc::Sender<FileInputModel>,
     max_concurrent_tasks: usize,
     save_queue_after: usize,
     queue: Arc<CrawlerQueue>,
 ) {
-    let dir_entries: Arc<SegQueue<FileDTOInput>> = Arc::new(SegQueue::new());
+    let dir_entries = Arc::new(SegQueue::new());
     let semaphore = Arc::new(Semaphore::new(max_concurrent_tasks));
     let mut tasks = JoinSet::new();
+    let files_processed = Arc::new(AtomicUsize::new(0));
+    let worker_queue = Arc::clone(&queue);
 
-    // Keep track of files to process until queue should be saved
-    let files_processed: Arc<RwLock<usize>> = Arc::new(RwLock::new(0));
-
-    let worker_queue = queue.clone();
     loop {
-        // Check if we have a path to process from the queue
-        let path = match queue.pop().await {
-            Some(path) => path,
-            None => {
-                // Exit if no tasks are running and the queue is empty
-                if tasks.is_empty() {
-                    println!("worker done processing");
-                    break;
-                }
-                // Sleep briefly to wait for more entries if tasks are still processing
-                time::sleep(Duration::from_millis(100)).await;
-                continue;
-            }
-        };
+        if let Some(path) = queue.pop().await {
+            let dir_entries = Arc::clone(&dir_entries);
+            let semaphore = Arc::clone(&semaphore);
+            let sender = sender.clone();
+            let queue = Arc::clone(&worker_queue);
+            let files_processed = Arc::clone(&files_processed);
 
-        let semaphore_clone = semaphore.clone();
-        let queue_clone = worker_queue.clone();
-        let sender_clone = sender.clone();
-        let dir_entries_clone = Arc::clone(&dir_entries);
-        let files_processed_clone: Arc<RwLock<usize>> = files_processed.clone();
+            tasks.spawn(async move {
+                let _permit = semaphore
+                    .acquire_owned()
+                    .await
+                    .expect("Failed to acquire semaphore");
 
-        // Spawn the task directly into the JoinSet
-        tasks.spawn(async move {
-            // Use a semaphore permit for concurrency control
-            let _permit = semaphore_clone
-                .acquire_owned()
-                .await
-                .expect("Failed to acquire semaphore");
+                if path.is_dir() {
+                    if let Ok(mut dir) = tokio::fs::read_dir(&path).await {
+                        while let Ok(Some(entry)) = dir.next_entry().await {
+                            let entry_path = entry.path();
+                            if entry_path.is_dir() {
+                                //let time = Instant::now();
 
-            if path.is_dir() {
-                if let Ok(dir) = tokio::fs::read_dir(&path).await {
-                    tokio::pin!(dir);
-                    while let Ok(Some(entry)) = dir.next_entry().await {
-                        let entry_path = entry.path();
-                        if entry_path.is_dir() {
-                            queue_clone.push_default(entry_path).await;
-                        }
-                        if let Ok(dto) = create_dto(&entry).await {
-                            dir_entries_clone.push(dto);
-                            // Increment queue save counter
-                            
-                            *files_processed_clone.write().await += 1;
-                            if *files_processed_clone.read().await > save_queue_after {
-                                *files_processed_clone.write().await = 0;
-                                // Save queue
-                                if let Err(err) = queue_clone.save().await {
-                                    println!("Failed to save queue: {}", err);
-                                }
+                                queue.push_default(entry_path).await;
+
+                                //println!("dir queue push took {:?}", time.elapsed());
                             }
-                            
+                            if let Ok(dto) = create_dto(&entry).await {
+                                //let time = Instant::now();
+
+                                dir_entries.push(dto);
+                                let count = files_processed.fetch_add(1, Ordering::Relaxed) + 1;
+                                if count >= save_queue_after {
+                                    files_processed.store(0, Ordering::Relaxed);
+                                    if let Err(err) = queue.save().await {
+                                        eprintln!("Failed to save queue: {}", err);
+                                    }
+                                }
+
+                                //println!("create dto took {:?}", time.elapsed());
+                            }
                         }
                     }
                 }
-            }
 
-            let model = create_model(path, &dir_entries_clone);
-            println!("sending to indexer");
-            if let Err(err) = sender_clone.send(model).await {
-                println!("Error sending FileInputModel to indexer: {}", err);
+                let model = create_model(path, &dir_entries).await;
+                //let time = Instant::now();
+                // Apparent bottleneck:
+                if let Err(err) = sender.send(model).await {
+                    eprintln!("Error sending FileInputModel to indexer: {}", err);
+                }
+                //println!("files send {:?}", time.elapsed());
+            });
+        } else {
+            if tasks.is_empty() {
+                println!("Worker done processing");
+                break;
             }
-        });
+            time::sleep(Duration::from_millis(100)).await;
+        }
 
-        // Process tasks as they complete to handle task management
         while let Some(result) = tasks.join_next().await {
             if let Err(err) = result {
-                println!("Task error: {:?}", err);
+                eprintln!("Task error: {:?}", err);
             }
         }
     }
 }
 
-fn create_model(directory_from: PathBuf, entries: &SegQueue<FileDTOInput>) -> FileInputModel {
+async fn create_model(directory_from: PathBuf, entries: &SegQueue<FileDTOInput>) -> FileInputModel {
     let mut dtos = Vec::<FileDTOInput>::new();
     while let Some(entry) = entries.pop() {
         dtos.push(entry);
@@ -111,6 +106,7 @@ fn create_model(directory_from: PathBuf, entries: &SegQueue<FileDTOInput>) -> Fi
     }
 }
 
+// This function takes around 60ms to complete so look at this
 async fn create_dto(entry: &tokio::fs::DirEntry) -> Result<FileDTOInput, String> {
     let metadata = entry.metadata().await.map_err(|x| x.to_string())?;
 

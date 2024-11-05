@@ -47,7 +47,7 @@ async fn initialize_app(handle: AppHandle) {
 
     let sender = service_container
         .search_service
-        .spawn_indexer(db_service, 128, 32);
+        .spawn_indexer(db_service, 128, 8);
 
     crawler_service.spawn_crawler(sender);
     crawler_service.load_or(vec!["C:\\"]).await;

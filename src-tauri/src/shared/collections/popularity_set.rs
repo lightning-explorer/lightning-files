@@ -94,6 +94,10 @@ where
         None
     }
 
+    pub fn as_vec(&self) -> Vec<(T,Priority)>{
+        self.items.iter().map(|x| (x.0.clone(),x.1.clone())).collect()
+    }
+
     pub fn as_partial_vec(&self) -> Vec<T>{
         self.items.iter().map(|x|x.0.clone()).collect()
     }

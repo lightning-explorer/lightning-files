@@ -2,7 +2,7 @@ use std::{
     collections::HashSet,
     path::{Path, PathBuf},
     sync::Arc,
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use super::super::models::index_worker::file_input::FileInputModel;
@@ -29,19 +29,31 @@ pub async fn spawn_worker(
     while let Some(model) = receiver.recv().await {
         let seen_paths: HashSet<String> = model.dtos.iter().map(|x| x.file_path.clone()).collect();
 
-        for dto in model.dtos.into_iter() {
-            if let Err(err) =
-                process_file(dto, writer.clone(), schema.clone(), db_service.clone()).await
-            {
-                println!("Error processing file:{}", err)
-            }
+        let dtos_len = model.dtos.len();
+        batches_processed += dtos_len;
+        println!("Received {} items", dtos_len);
+
+        let time = Instant::now();
+
+        if let Err(err) = process_files(
+            model.dtos,
+            Arc::clone(&writer),
+            Arc::clone(&schema),
+            Arc::clone(&db_service),
+        )
+        .await
+        {
+            println!("Error processing files: {}", err)
         }
-        batches_processed += 1;
+
+        println!("Processing files took {:?}", time.elapsed());
+
+        let time = Instant::now();
 
         if let Err(err) = remove_unseen_entries(
             model.directory_from,
             seen_paths,
-            writer.clone(),
+            Arc::clone(&writer),
             &schema,
             &db_service,
         )
@@ -50,61 +62,58 @@ pub async fn spawn_worker(
             println!("Error removing stale entries: {}", err);
         }
 
+        println!("Stale entries removal took {:?}", time.elapsed());
+
+        let time = Instant::now();
+
         if batches_processed >= batch_size {
             if let Err(err) = commit_and_retry(writer.clone()).await {
                 println!("Error committing files: {}", err);
             }
             batches_processed = 0;
         }
+
+        println!("Committing files took {:?}", time.elapsed());
     }
     println!("receiver channel closed");
 }
 
-async fn process_file(
-    dto: FileDTOInput,
+// THIS one is the bottleneck
+async fn process_files(
+    dtos: Vec<FileDTOInput>,
     writer: Arc<Mutex<IndexWriter>>,
     schema: Arc<Schema>,
     db_service: Arc<SqlxService>,
-) -> Result<(), std::io::Error> {
-    // Attempt to remove file from index
-    if let Err(err) = remove_file_from_index(&dto.file_path, writer.clone(), &schema).await {
-        eprintln!("Error removing file from index: {}", err);
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            "Index removal failed",
-        ));
-    }
+) -> Result<(), String> {
     let writer = writer.lock().await;
-    // Write the document to the index
-    {
-        if let Err(err) = writer.add_document(doc! {
-                schema.get_field("file_id").unwrap() => dto.file_id,
-                schema.get_field("name").unwrap() => dto.name,
-                schema.get_field("date_modified").unwrap() => unix_time_to_tantivy_datetime(dto.date_modified),
-                schema.get_field("path").unwrap() => dto.file_path.clone(),
-                schema.get_field("metadata").unwrap() => dto.metadata,
-                schema.get_field("popularity").unwrap() => dto.popularity,
-            }) {
-                eprintln!("Error adding document to index: {}", err);
-                return Err(std::io::Error::new(std::io::ErrorKind::Other, "Document addition failed"));
-            }
-    }
-
-    // Update the database
-    let path_clone = dto.file_path.clone();
-    let parent_path = get_parent_path(path_clone);
-    let file_model = FileModel {
-        path: dto.file_path,
-        parent_path,
-    };
-    if let Err(err) = db_service.files_table.upsert(&file_model).await {
-        eprintln!("Error upserting file model: {}", err);
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            "DB upsert failed",
+    // Remove from index and add document within a single lock
+    for dto in dtos.into_iter() {
+        writer.delete_term(tantivy::Term::from_field_text(
+            schema
+                .get_field("file_id")
+                .map_err(|x| format!("Field doesn't exist: {}", x))?,
+            &dto.file_path,
         ));
-    }
+        writer.add_document(doc! {
+        schema.get_field("file_id").unwrap() => dto.file_id,
+        schema.get_field("name").unwrap() => dto.name,
+        schema.get_field("date_modified").unwrap() => unix_time_to_tantivy_datetime(dto.date_modified),
+        schema.get_field("path").unwrap() => dto.file_path.clone(),
+        schema.get_field("metadata").unwrap() => dto.metadata,
+        schema.get_field("popularity").unwrap() => dto.popularity,
+    }).map_err(|x| format!("Failed to add document: {}",x))?;
 
+        // Proceed with database operation outside the lock
+        let path_clone = dto.file_path.clone();
+        let parent_path = get_parent_path(path_clone);
+        let file_model = FileModel {
+            path: dto.file_path,
+            parent_path,
+        };
+        if let Err(err) = db_service.files_table.upsert(&file_model).await {
+            return Err(format!("Error upserting file model: {}", err));
+        }
+    }
     Ok(())
 }
 
@@ -124,14 +133,13 @@ async fn remove_unseen_entries(
     let stale_paths: HashSet<_> = stored_paths.difference(&seen_paths).cloned().collect();
     let stale_paths_len = stale_paths.len();
 
-    for path in stale_paths {
-        if let Err(err) = remove_file_from_index(&path, writer.clone(), schema).await {
-            return Err(err.to_string());
-        }
-        if let Err(err) = db_service.files_table.remove_path(&path).await {
-            return Err(err.to_string());
-        }
+    if let Err(err) = remove_files_from_index(&stale_paths, writer.clone(), schema).await {
+        return Err(err.to_string());
     }
+    if let Err(err) = db_service.files_table.remove_paths(&stale_paths).await {
+        return Err(err.to_string());
+    }
+
     Ok(stale_paths_len)
 }
 
@@ -151,14 +159,21 @@ async fn commit_and_retry(writer: Arc<Mutex<IndexWriter>>) -> Result<(), Tantivy
     Ok(())
 }
 
-async fn remove_file_from_index(
-    file_path: &str,
+async fn remove_files_from_index<T, S>(
+    file_paths: T,
     writer: Arc<Mutex<IndexWriter>>,
     schema: &Schema,
-) -> tantivy::Result<()> {
+) -> tantivy::Result<()>
+where
+    T: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
     let field = schema.get_field("file_id")?;
     let writer = writer.lock().await;
-    writer.delete_term(tantivy::Term::from_field_text(field, file_path));
+    for path in file_paths {
+        writer.delete_term(tantivy::Term::from_field_text(field, path.as_ref()));
+    }
+
     Ok(())
 }
 

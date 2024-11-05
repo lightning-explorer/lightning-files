@@ -55,7 +55,9 @@ impl SearchIndexService {
     }
 
     /**
-     * Returns a `Sender` that a crawler can use to send over files
+     * Returns a `Sender` that a crawler can use to send over files.
+     
+     * The `batch_size` indicates how many files are processed before the index writer make a commit
      */
     pub fn spawn_indexer(
         &self,

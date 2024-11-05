@@ -1,4 +1,4 @@
-use std::{collections::HashSet, sync::Arc};
+use std::{borrow::Cow, collections::HashSet, sync::Arc};
 
 use sqlx::{Pool, Sqlite};
 use tokio::sync::Mutex;
@@ -7,11 +7,10 @@ use super::models::FileModel;
 
 type RowsAffected = u64;
 pub struct FilesTable {
-    pool:  Arc<Mutex<Pool<Sqlite>>>,
+    pool: Arc<Mutex<Pool<Sqlite>>>,
 }
 
 impl FilesTable {
-
     pub async fn new_async(pool: Arc<Mutex<Pool<Sqlite>>>) -> Self {
         let pool_clone = pool.clone();
         let pool_locked = pool_clone.lock().await;
@@ -29,10 +28,7 @@ impl FilesTable {
         Self { pool }
     }
 
-     pub async fn upsert(
-        &self,
-        model: &FileModel,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn upsert(&self, model: &FileModel) -> Result<(), sqlx::Error> {
         let pool = self.pool.lock().await;
         sqlx::query("INSERT OR IGNORE INTO files (path) VALUES (?)")
             .bind(&model.path)
@@ -41,12 +37,30 @@ impl FilesTable {
         Ok(())
     }
 
-    pub async fn remove_path(&self, path: &str) -> Result<RowsAffected, sqlx::Error> {
+    pub async fn remove_paths<'a, I, S>(&self, paths: I) -> Result<RowsAffected, sqlx::Error>
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<str> + 'a,
+    {
+        let paths: Vec<Cow<'a, str>> = paths
+            .into_iter()
+            .map(|p| Cow::from(p.as_ref().to_string()))
+            .collect();
+
+        if paths.is_empty() {
+            return Ok(0);
+        }
+
         let pool = self.pool.lock().await;
-        let result = sqlx::query("DELETE FROM files WHERE path = ?")
-            .bind(path)
-            .execute(&*pool)
-            .await?;
+        let placeholders = paths.iter().map(|_| "?").collect::<Vec<_>>().join(", ");
+        let query = format!("DELETE FROM files WHERE path IN ({})", placeholders);
+
+        let mut query_builder = sqlx::query(&query);
+        for path in &paths {
+            query_builder = query_builder.bind(path);
+        }
+
+        let result = query_builder.execute(&*pool).await?;
         Ok(result.rows_affected())
     }
 

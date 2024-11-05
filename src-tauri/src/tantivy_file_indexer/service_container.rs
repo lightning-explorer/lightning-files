@@ -33,6 +33,7 @@ impl AppServiceContainer {
         let sqlx_service = Self::initialize_sqlx_service(&app_save_service).await;
         let crawler_service = Self::initialize_crawler_service(
             8,
+            512,
             search_service.clone(),
             sqlx_service.clone(),
             app_save_service.clone(),
@@ -54,8 +55,8 @@ impl AppServiceContainer {
     fn create_file_indexer_config(app_save_service: &Arc<AppSaveService>) -> FileIndexerConfig {
         FileIndexerConfig {
             buffer_size: 50_000_000,
-            indexer_batch_size: 64,
-            indexer_tasks_limit: 6,
+            indexer_batch_size: 256,
+            indexer_tasks_limit: 8,
             app_path: app_save_service.save_dir.clone(),
         }
     }
@@ -78,6 +79,7 @@ impl AppServiceContainer {
 
     async fn initialize_crawler_service(
         max_concurrent: usize,
+        save_after_iters: usize,
         search_service: Arc<SearchIndexService>,
         sqlx_service: Arc<SqlxService>,
         save_service: Arc<AppSaveService>,
@@ -85,7 +87,7 @@ impl AppServiceContainer {
         Arc::new(
             FileCrawlerService::new_async(
                 max_concurrent,
-                8,
+                save_after_iters,
                 search_service,
                 sqlx_service,
                 save_service,

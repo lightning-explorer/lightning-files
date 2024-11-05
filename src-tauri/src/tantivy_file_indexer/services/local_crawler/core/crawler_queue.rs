@@ -1,4 +1,4 @@
-use std::{path::PathBuf, sync::Arc};
+use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 use tokio::sync::RwLock;
 
@@ -55,24 +55,32 @@ impl CrawlerQueue {
      */
     pub async fn load_or(&self, fallback_directories: Vec<PathBuf>) {
         if self.load().await.is_err() {
-            self.populate_queue(fallback_directories).await;
+            self.populate_queue(
+                fallback_directories
+                    .iter()
+                    .map(|x| (x.clone(), DEFAULT_PRIORITY))
+                    .collect(),
+            )
+            .await;
         }
     }
 
     pub async fn load(&self) -> Result<(), std::io::Error> {
-        let entries = self.save_service.load::<Vec<PathBuf>>(SAVE_NAME)?;
+        let entries = self
+            .save_service
+            .load::<Vec<(PathBuf, Priority)>>(SAVE_NAME)?;
         self.populate_queue(entries).await;
         Ok(())
     }
 
-    async fn populate_queue(&self, entries: Vec<PathBuf>) {
+    async fn populate_queue(&self, entries: Vec<(PathBuf, Priority)>) {
         self.queue
             .write()
             .await
-            .insert_many(entries.into_iter().map(|x| (x, DEFAULT_PRIORITY)).collect());
+            .insert_many(entries.into_iter().map(|x| (x.0, x.1)).collect());
     }
 
-    async fn queue_as_vec(&self) -> Vec<PathBuf> {
-        self.queue.read().await.as_partial_vec()
+    async fn queue_as_vec(&self) -> Vec<(PathBuf, Priority)> {
+        self.queue.read().await.as_vec()
     }
 }
