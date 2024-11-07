@@ -9,12 +9,14 @@ import { SearchParamsDTO } from '../../core/dtos/search-params-dto';
 import { SidebarComponent } from "./sidebar/sidebar.component";
 import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-directory-bar.component";
 import { FilesDisplayComponent } from "./files-display/files-display.component";
-import { DirectoryNavigatorService } from '../../core/services/files/directory-navigator.service';
+import { DirectoryNavigatorService } from '../../core/services/files/directory-navigator/directory-navigator.service';
 import { MatIconModule } from '@angular/material/icon';
 import { InlineQueryDTO } from '../../core/dtos/inline-query-dto';
 import { InlineSearchService } from '../../core/services/search/inline-search.service';
 import { FileModel } from './models/FileModel';
 import { fileDTOToModel } from './models/converters/FileDTOToModel';
+import { TopHeaderComponent } from "./top-header/top-header.component";
+import { PinnedFilesHeaderComponent } from "./pinned-files-header/pinned-files-header.component";
 
 // TODO:
 // put search bar in Shared and then make a simpler one in features to manage its own state
@@ -22,7 +24,7 @@ import { fileDTOToModel } from './models/converters/FileDTOToModel';
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [SearchbarComponent, FileResultComponent, CommonModule, SidebarComponent, CurrentDirectoryBarComponent, FilesDisplayComponent, MatIconModule],
+  imports: [SearchbarComponent, FileResultComponent, CommonModule, SidebarComponent, CurrentDirectoryBarComponent, FilesDisplayComponent, MatIconModule, TopHeaderComponent, PinnedFilesHeaderComponent],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss',
   providers: []
@@ -44,12 +46,6 @@ export class HomePageComponent implements OnInit {
       this.driveFiles = x.map(x => fileDTOToModel(x))
     );
   }
-
-  async onNavigateBackDirectoryClick() {
-    let parent = await this.directoryService.getParentDirectory()
-    await this.directoryService.setCurrentDir(parent);
-  }
-
 
   @HostListener('window:keydown', ['$event'])
   async handleKeydown(event: KeyboardEvent) {

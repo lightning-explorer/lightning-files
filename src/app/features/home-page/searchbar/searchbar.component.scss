@@ -90,5 +90,6 @@
 }
 
 .search-results.inactive {
+    pointer-events: none;
     background-color: transparent;
 }

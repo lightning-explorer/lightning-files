@@ -21,7 +21,7 @@
     height: 100%;
     border: none;
     outline: none;
-
+    text-overflow: ellipsis;
     caret-color: var(--secondary-color);
     flex-grow: 1;
 }

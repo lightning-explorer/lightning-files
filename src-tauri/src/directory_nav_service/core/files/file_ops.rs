@@ -1,5 +1,4 @@
 use std::path::Path;
-use crate::directory_nav_service::util::metadata_inspector::is_hidden;
 
 use super::super::super::util::path_ops;
 
@@ -51,9 +50,4 @@ pub async fn open_file(file_path:&str)-> Result<(),String>{
     .spawn()
     .map_err(|x| x.to_string())?;
     Ok(())
-}
-
-#[tauri::command]
-pub fn is_file_hidden(file_path:&str)->bool{
-    is_hidden(Path::new(file_path))
 }

@@ -3,6 +3,7 @@ mod dtos {
 }
 mod models {
     pub mod drive_model;
+    pub mod get_files_model;
 }
 mod core {
     pub mod files {

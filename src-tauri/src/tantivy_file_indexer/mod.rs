@@ -50,6 +50,7 @@ pub mod services {
     }
     pub mod app_save {
         pub mod service;
+        pub mod tauri_exports;
         mod core {
             pub mod helper;
         }
@@ -57,4 +58,5 @@ pub mod services {
 }
 mod models {
     pub mod search_params_model;
+
 }

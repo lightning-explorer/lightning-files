@@ -3,23 +3,11 @@
     <app-sidebar></app-sidebar>
 
     <div class="main-layout">
-        <div class="heading">
 
-            <button>
-                <mat-icon>keyboard_arrow_left</mat-icon>
-            </button> 
+        <app-top-header />
+        <app-pinned-files-header />
 
-            <button (click)="onNavigateBackDirectoryClick()">
-                <mat-icon>keyboard_arrow_up</mat-icon>
-            </button>
-
-            <app-current-directory-bar />
-
-                <app-searchbar/>
-
-
-
-        </div>
+        <div class="divider"></div>
 
         <app-files-display [files]="driveFiles" />
 

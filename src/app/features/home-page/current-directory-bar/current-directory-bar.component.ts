@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator.service';
+import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator/directory-navigator.service';
 import { debounceTime } from 'rxjs';
+import { truncateText } from '../../../core/other/util/text-truncator';
+import { simplifyPath } from './util/overflow-checker';
 
 @Component({
   selector: 'app-current-directory-bar',
@@ -11,19 +13,21 @@ import { debounceTime } from 'rxjs';
   templateUrl: './current-directory-bar.component.html',
   styleUrl: './current-directory-bar.component.scss'
 })
-export class CurrentDirectoryBarComponent implements OnInit {
+export class CurrentDirectoryBarComponent implements AfterViewInit {
 
   @ViewChild('textInput') textInput!: ElementRef;
   directory = "";
+  truncatedDirectory = "";
   hasChanged = false;
   inputControl = new FormControl();
 
-
   constructor(private directoryService: DirectoryNavigatorService) { }
 
-  ngOnInit(): void {
-    this.directoryService.currentDir$.subscribe(x =>
-      this.directory = x
+  ngAfterViewInit(): void {
+    this.directoryService.currentDir$.subscribe(x => {
+      this.directory = x;
+      this.truncatedDirectory = simplifyPath(x);
+    }
     )
   }
 

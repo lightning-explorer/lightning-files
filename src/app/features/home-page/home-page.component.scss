@@ -14,26 +14,6 @@
     overflow-x: hidden;
 }
 
-.heading {
-    display: flex;
-    flex-direction: row;
-    margin-right: 1em;
-}
-
-.heading button {
-    border: 0px;
-    border-radius: 50px;
-    transition:
-        background-color 0.15s ease,
-        color 0.01s ease;
-}
-
-.heading button:hover {
-    letter-spacing: 3px;
-    background-color: var(--secondary-color);
-    color: var(--primary-color);
-}
-
 .search-container {
     position: relative;
 }
@@ -72,4 +52,15 @@ h1 {
 
 .padding {
     margin-top: 6em;
+}
+
+.divider {
+    display: block;
+    border-radius: 10px;
+    height: 5px;
+    align-self: center;
+    width: 90%;
+    background-color: var(--secondary-color);
+    margin-top: .4em;
+    margin-bottom: .4em;
 }

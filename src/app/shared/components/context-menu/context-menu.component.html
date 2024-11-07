@@ -1,0 +1,9 @@
+<div *ngIf="isVisible" [style.left.px]="xPos" [style.top.px]="yPos" class="custom-context-menu">
+    <ul>
+
+        <div *ngFor="let button of buttons">
+            <button (click)="onClick($event, button.action)">{{button.name}}</button>
+        </div>
+
+    </ul>
+</div>

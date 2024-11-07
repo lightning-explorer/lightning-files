@@ -1,9 +1,10 @@
 use directory_nav_service::service::*;
 use tantivy_file_indexer::{
-    service_container::AppServiceContainer, services::local_crawler::tauri_exports::*,
-    services::local_db::tables::files::tauri_exports::*, services::search_index::tauri_exports::*,
+    service_container::AppServiceContainer, services::app_save::tauri_exports::*,
+    services::local_crawler::tauri_exports::*, services::local_db::tables::files::tauri_exports::*,
+    services::search_index::tauri_exports::*,
 };
-use tauri::{AppHandle, Manager, WebviewAttributes};
+use tauri::{AppHandle, Emitter, Manager, Window, WindowEvent};
 mod directory_nav_service;
 mod shared;
 mod tantivy_file_indexer;
@@ -33,14 +34,18 @@ pub fn run() {
             search_files_inline,
             search_index_query,
             add_dirs_to_crawler_queue,
-            get_num_stored_files
+            get_num_stored_files,
+            save_json_local,
+            load_json_local
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
+
 async fn initialize_app(handle: AppHandle) {
-    let index_files = false;
+    let index_files = true;
+
     let service_container = AppServiceContainer::new_async(&handle).await;
     let crawler_service = service_container.crawler_service.clone();
     let db_service = service_container.sqlx_service.clone();

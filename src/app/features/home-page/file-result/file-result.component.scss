@@ -18,6 +18,13 @@
     background-color: var(--fourth-color);
 }
 
+.content-left {
+    align-items: center;
+    display: flex;
+    width: 100%;
+    gap: .5em;
+}
+
 .icon {
     width: 200px;
 }

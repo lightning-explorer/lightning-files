@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FileModel } from '../../models/FileModel';
-import { DirectoryNavigatorService } from '../../../../core/services/files/directory-navigator.service';
+import { DirectoryNavigatorService } from '../../../../core/services/files/directory-navigator/directory-navigator.service';
 
 @Injectable()
 /**
@@ -8,6 +8,7 @@ import { DirectoryNavigatorService } from '../../../../core/services/files/direc
  */
 export class SelectService {
   selectedIndices = new Set<number>();
+  selectedItems: FileModel[] = [];
 
   lastSelectedIndex: number | null = null;
 
@@ -64,5 +65,16 @@ export class SelectService {
 
   selectIndex(index: number) {
     this.selectedIndices.add(index);
+  }
+
+  populateSelected(files: FileModel[]) {
+    const sortedIndices = Array.from(this.selectedIndices).sort((a, b) => a - b);
+    let res: FileModel[] = [];
+    sortedIndices.forEach(x => {
+      const item = files.at(x)
+      if (item)
+        res.push(item);
+    });
+    this.selectedItems = res;
   }
 }

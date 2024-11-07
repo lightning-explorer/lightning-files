@@ -1,7 +1,7 @@
 <div class="InputContainer">
-    <input class="input" name="text" type="text" autocomplete="off" [(ngModel)]="directory" (click)="selectText()"
-        #textInput [formControl]="inputControl" (ngModelChange)="onInputChange()" (blur)="onBlur()" 
-        (keydown.enter)="onEnterPressed()"/>
 
+    <input class="input" name="text" type="text" autocomplete="off" [(ngModel)]="truncatedDirectory" (click)="selectText()"
+        #textInput [formControl]="inputControl" (ngModelChange)="onInputChange()" (blur)="onBlur()"
+        (keydown.enter)="onEnterPressed()" />
 
 </div>

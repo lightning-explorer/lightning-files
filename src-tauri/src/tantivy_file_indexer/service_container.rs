@@ -1,5 +1,8 @@
 use super::services::{
-    app_save::service::{AppSavePath, AppSaveService},
+    app_save::{
+        self,
+        service::{AppSavePath, AppSaveService},
+    },
     local_crawler::service::FileCrawlerService,
     local_db::service::SqlxService,
     search_index::service::SearchIndexService,
@@ -38,10 +41,11 @@ impl AppServiceContainer {
         )
         .await;
 
-        handle.manage(files_display_state.clone());
-        handle.manage(search_service.clone());
-        handle.manage(sqlx_service.clone());
-        handle.manage(crawler_service.clone());
+        handle.manage(Arc::clone(&files_display_state));
+        handle.manage(Arc::clone(&search_service));
+        handle.manage(Arc::clone(&sqlx_service));
+        handle.manage(Arc::clone(&crawler_service));
+        handle.manage(Arc::clone(&app_save_service));
 
         Self {
             search_service,

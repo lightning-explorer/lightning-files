@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { DriveModel } from '../../../core/models/drive-model';
 import { CommonModule } from '@angular/common';
 import { IconifyIconModule } from '../../../shared/components/IconifyIcons/icon.module';
-import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator.service';
+import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator/directory-navigator.service';
 
 @Component({
   selector: 'app-drive-result',

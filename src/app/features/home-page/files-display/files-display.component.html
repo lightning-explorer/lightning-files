@@ -1,14 +1,25 @@
 <div class="content" [@fadeAnimation]="animationState">
-    <cdk-virtual-scroll-viewport itemSize="50" style="height: 100%; width: 100%;">
-        <div *cdkVirtualFor="let file of files; let i = index" class="item">
-            <app-file-result [file]="file" [draggable]="true" (dragstart)="onDragStart($event, i, file)"
-                (dragover)="onDragOver($event)" (drop)="onDrop($event, file)" [selected]="selectedIndices.has(i)"
-                (click)="onFileClick(i, $event)" (dblclick)="onFileDoubleClick(file)" />
-        </div>
-    </cdk-virtual-scroll-viewport>
+
+    <div *ngIf="files.length==0; else elseBlock" class="no-files">
+        <label><b>{{currentDirectory}}</b> is empty</label>
+    </div>
+
+    <ng-template #elseBlock>
+        <cdk-virtual-scroll-viewport itemSize="50" style="height: 100%; width: 100%;">
+
+            <div *cdkVirtualFor="let file of files; let i = index" class="item">
+                <app-file-result [file]="file" [draggable]="true" (dragstart)="onDragStart($event, i, file)"
+                    (dragover)="onDragOver($event)" (drop)="onDrop($event, file)" [selected]="selectedIndices.has(i)"
+                    (click)="onFileClick(i, $event)" (dblclick)="onFileDoubleClick(file)"
+                    (contextmenu)="this.onFileRightClick(file, $event)" />
+            </div>
+
+        </cdk-virtual-scroll-viewport>
+    </ng-template>
+
 </div>
 
-<app-move-items-popup #moveItemsPopup/>
+<app-move-items-popup #moveItemsPopup />
 
 <div class="drag-preview" #dragPreview>
     <div *ngFor="let item of selectedItems | slice:0:5">
@@ -18,3 +29,5 @@
         ...and {{ selectedItems.length - 5 }} more
     </div>
 </div>
+
+<app-context-menu #contextMenu />

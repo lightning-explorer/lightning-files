@@ -1,5 +1,6 @@
-use std::{collections::HashMap, path::PathBuf, sync::Arc};
+use std::{collections::HashMap, path::PathBuf, sync::Arc, time::Instant};
 
+use chrono::Utc;
 use tokio::sync::RwLock;
 
 use crate::{
@@ -7,10 +8,15 @@ use crate::{
     tantivy_file_indexer::services::app_save::service::AppSaveService,
 };
 
+type NumFiles = u32;
+type RecentlyAddedDir = (PathBuf, NumFiles, chrono::DateTime<Utc>);
+
 const DEFAULT_PRIORITY: Priority = 1;
 const SAVE_NAME: &str = "files_queue";
 pub struct CrawlerQueue {
     queue: Arc<RwLock<PopularitySet<PathBuf>>>,
+    // Keep track of recently indexed directories so that if they get added again, they can be ignored
+    recently_indexed: Arc<RwLock<Vec<RecentlyAddedDir>>>,
     save_service: Arc<AppSaveService>,
 }
 
@@ -26,6 +32,7 @@ impl CrawlerQueue {
         }
         Self {
             save_service,
+            recently_indexed: Arc::new(RwLock::new(Vec::new())),
             queue,
         }
     }
@@ -83,4 +90,30 @@ impl CrawlerQueue {
     async fn queue_as_vec(&self) -> Vec<(PathBuf, Priority)> {
         self.queue.read().await.as_vec()
     }
+
+    async fn add_to_recents(&self, dir:&PathBuf, num_files:NumFiles){
+        let mut recents = self.recently_indexed.write().await;
+        recents.push((dir.to_path_buf(),num_files, Utc::now()));
+    }
+    /* 
+    async fn remove_from_recents(&self, dir:&PathBuf){
+        let mut recents = self.recently_indexed.write().await;
+        let index_of = recents.iter().position(|x| &x.0 == &dir);
+        if let Some(index) = index_of{
+            recents.remove(index);
+        }
+    }
+
+    async fn processed_recently(&self, dir:&PathBuf):bool{
+        let recent: Option<&RecentlyAddedDir> = self.recently_indexed.read().await.iter().find(|x| &x.0 == dir);
+        match recent{
+            Some(recent)=>{
+                let now = Utc::now();
+
+                true
+            },
+            None => false
+        }
+    }
+    */
 }

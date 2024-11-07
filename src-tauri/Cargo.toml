@@ -29,7 +29,7 @@ tantivy = "0.22.0"
 walkdir = "2.3"
 refind = "0.1.2"
 rayon = "1.5"
-chrono = "0.4"
+chrono = { version = "0.4", features = ["serde"] }
 futures = "0.3.31"
 sqlx = { version = "0.6", features = ["sqlite", "macros", "runtime-tokio-native-tls"] }
 crossbeam = "0.8"

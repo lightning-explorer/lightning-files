@@ -15,7 +15,18 @@
             <div *ngFor="let button of buttons">
                 <button (click)="onButtonClick(button.action)">{{button.text}}</button>
             </div>
+
+
+
+            <div *ngFor="let button of radioButtons">
+                <app-radio-button (onToggle)="button.onToggle($event)" [isChecked]="button.isChecked">
+                    {{button.text}}
+                </app-radio-button>
+            </div>
+
         </div>
+
+        
 
     </div>
 

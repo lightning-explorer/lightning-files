@@ -10,14 +10,17 @@ import { SelectService } from './services/select.service';
 import { DragDropService } from './services/dragdrop.service';
 import { ModalPopupComponent } from "../../../shared/components/modal-popup/modal-popup.component";
 import { MoveItemsPopupComponent } from "./components/move-items-popup/move-items-popup.component";
-import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator.service';
+import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator/directory-navigator.service';
 import { DriveService } from '../../../core/services/files/drive.service';
+import { FileContextMenuService } from './services/context-menu.service';
+import { ContextMenuComponent } from "../../../shared/components/context-menu/context-menu.component";
+import { PinService } from '../../../core/services/files/pin.service';
 
 @Component({
   selector: 'app-files-display',
   standalone: true,
-  imports: [CommonModule, FileResultComponent, ScrollingModule, ModalPopupComponent, MoveItemsPopupComponent],
-  providers: [SelectService, DragDropService],
+  imports: [CommonModule, FileResultComponent, ScrollingModule, ModalPopupComponent, MoveItemsPopupComponent, ContextMenuComponent],
+  providers: [SelectService, DragDropService, FileContextMenuService],
   templateUrl: './files-display.component.html',
   styleUrl: './files-display.component.scss',
   animations: [
@@ -35,6 +38,7 @@ export class FilesDisplayComponent implements OnInit, OnChanges {
   @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
   @ViewChild('dragPreview') dragPreview!: ElementRef;
   @ViewChild('moveItemsPopup') moveItemsPopup!: MoveItemsPopupComponent;
+  @ViewChild('contextMenu') contextMenu!: ContextMenuComponent;
   @Input() files: FileModel[] = [];
 
   currentDirectory: string = "";
@@ -43,13 +47,16 @@ export class FilesDisplayComponent implements OnInit, OnChanges {
   get selectedIndices(): Set<number> {
     return this.selectService.selectedIndices;
   }
-  selectedItems: FileModel[] = [];
+  get selectedItems() {
+    return this.selectService.selectedItems;
+  }
 
   constructor(private inlineSearchService: InlineSearchService,
     private dragService: DragDropService,
     private selectService: SelectService,
     private directoryService: DirectoryNavigatorService,
-    private driveService: DriveService) { }
+    private contextMenuService: FileContextMenuService,
+  ) { }
 
   ngOnInit(): void {
     this.inlineSearchService.firstOccurenceOfQueryIndex$.subscribe(x =>
@@ -94,13 +101,17 @@ export class FilesDisplayComponent implements OnInit, OnChanges {
     this.selectService.onFileDoubleClick(file);
   }
 
+  onFileRightClick(file: FileModel, event: MouseEvent) {
+    this.contextMenuService.openMenu(this.contextMenu, event, file);
+  }
+
   onDragStart(event: DragEvent, index: number, item: FileModel) {
-    this.populateSelected();
+    this.selectService.populateSelected(this.files);
     const selectedSet = new Set(this.selectedItems);
     if (!selectedSet.has(item)) {
       this.selectService.clearSelection();
       this.selectService.toggleSelection(index);
-      this.populateSelected();
+      this.selectService.populateSelected(this.files);
     }
     this.dragService.onDragStart(event, selectedSet, this.dragPreview);
   }
@@ -117,14 +128,5 @@ export class FilesDisplayComponent implements OnInit, OnChanges {
     }
   }
 
-  private populateSelected() {
-    const sortedIndices = Array.from(this.selectedIndices).sort((a, b) => a - b);
-    let res: FileModel[] = [];
-    sortedIndices.forEach(x => {
-      const item = this.files.at(x)
-      if (item)
-        res.push(item);
-    });
-    this.selectedItems = res;
-  }
+
 }

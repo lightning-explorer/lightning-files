@@ -1,8 +1,9 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
-import { FileDTOReceived } from "../../dtos/file-dto-received";
+import { FileDTOReceived } from "../../../dtos/file-dto-received";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { defaultParams, GetFilesParamsModel } from "./models/get-files-params";
 
 @Injectable({ 'providedIn': 'root' })
 export class DirectoryNavigatorService {
@@ -14,12 +15,15 @@ export class DirectoryNavigatorService {
 
     constructor() { }
 
-    async setCurrentDir(dir: string) {
+    async setCurrentDir(dir: string, params?:GetFilesParamsModel) {
         this.currentDirSubject.next(await this.formatPathIntoDir(dir, this.currentDirSubject.getValue()));
-        await this.setDriveFiles();
+        await this.setDriveFiles(params);
     }
 
-    async setDriveFiles() {
+    async setDriveFiles(params?:GetFilesParamsModel) {
+        if(!params)
+            params = defaultParams();
+        
         this.currentFilesSubject.next([]);
 
         const unlisten = await listen<FileDTOReceived>("file_dto", (event) => {
@@ -28,7 +32,7 @@ export class DirectoryNavigatorService {
         })
 
         try {
-            await invoke("get_files_as_dtos", { directory: this.currentDirSubject.getValue() });
+            await invoke("get_files_as_dtos", { directory: this.currentDirSubject.getValue(), params });
         }
         catch (err) {
             console.log("Error setting files", err)

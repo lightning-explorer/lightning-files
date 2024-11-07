@@ -1,15 +1,22 @@
 <div *ngIf="file">
-    <button class="content"  [ngClass]="{'selected':selected}" >
+    <button class="content" [ngClass]="{'selected':selected}">
 
-        <div class="name">
-
-            <app-highlightable-label [text]="file.Dto.Name" [highlight]="file.HighlightedText">
-            </app-highlightable-label>
-
-            <div class="metadata">
-                <p>{{file.Dto.FilePath}}</p>
+        <div class="content-left">
+            <div *ngIf="isPinned">
+                <iconify-icon icon="pin" size="1em" />
             </div>
 
+
+            <div class="name">
+
+                <app-highlightable-label [text]="file.Dto.Name" [highlight]="file.HighlightedText">
+                </app-highlightable-label>
+
+                <div class="metadata">
+                    <p>{{file.Dto.FilePath}}</p>
+                </div>
+
+            </div>
         </div>
 
         <div *ngIf="file.Dto.IsDirectory; else elseBlock">

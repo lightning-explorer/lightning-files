@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { TauriLifecycleService } from '../../core/services/tauri/lifecycle.service';
 
 @Component({
   selector: 'app-window-chrome',
@@ -9,7 +10,11 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
   styleUrl: './window-chrome.component.scss'
 })
 export class WindowChromeComponent {
-  closeApp() {
+
+  constructor(private lifecycleService: TauriLifecycleService) { }
+
+  async closeApp() {
+    await this.lifecycleService.onShutdown();
     getCurrentWindow().close();
   }
 

@@ -1,0 +1,19 @@
+.heading {
+    display: flex;
+    flex-direction: row;
+    margin-right: 1em;
+}
+
+.heading button {
+    border: 0px;
+    border-radius: 50px;
+    transition:
+        background-color 0.15s ease,
+        color 0.01s ease;
+}
+
+.heading button:hover {
+    letter-spacing: 3px;
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+}
