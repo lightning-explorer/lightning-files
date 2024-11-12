@@ -55,8 +55,14 @@ pub mod services {
             pub mod helper;
         }
     }
+    pub mod vevtor {
+        pub mod service;
+        mod models{
+            pub mod file_model;
+        }
+        mod core;
+    }
 }
 mod models {
     pub mod search_params_model;
-
 }
