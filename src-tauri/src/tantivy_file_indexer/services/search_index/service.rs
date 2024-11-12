@@ -1,7 +1,7 @@
 use crate::{
     shared::dtos::file_dto::FileDTO,
     tantivy_file_indexer::{
-        models::search_params_model::SearchParamsModel, services::local_db::service::SqlxService,
+        models::search_params_model::SearchParamsModel, services::{local_db::service::SqlxService, vevtor::service::VectorDbService},
     },
 };
 
@@ -19,10 +19,11 @@ pub struct SearchIndexService {
     pub schema: Schema,
     pub index_writer: Arc<Mutex<IndexWriter>>,
     index_reader: IndexReader,
+    vector_db_service:Arc<VectorDbService>
 }
 
 impl SearchIndexService {
-    pub fn new(config: &FileIndexerConfig) -> Self {
+    pub fn new(config: &FileIndexerConfig, vector_db_service:Arc<VectorDbService>) -> Self {
         let app_path = config.app_path.clone();
         let index_path = app_path.join("TantivyOut");
 
@@ -51,6 +52,7 @@ impl SearchIndexService {
             schema,
             index_writer: Arc::new(Mutex::new(index_writer)),
             index_reader,
+            vector_db_service
         }
     }
 
@@ -69,6 +71,7 @@ impl SearchIndexService {
         let (sender, receiver) = mpsc::channel(buffer_size);
 
         let index_writer_clone = self.index_writer.clone();
+        let vector_service_clone = Arc::clone(&self.vector_db_service);
 
         tokio::spawn(async move {
             index_worker::spawn_worker(
@@ -76,6 +79,7 @@ impl SearchIndexService {
                 index_writer_clone,
                 schema_clone,
                 db_service,
+                vector_service_clone,
                 batch_size,
             )
             .await;

@@ -5,7 +5,7 @@ import { FileResultComponent } from "../file-result/file-result.component";
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { FileModel } from '../models/FileModel';
-import { InlineSearchService } from '../../../core/services/search/inline-search.service';
+import { InlineSearchService } from '../../../core/services/search/text/inline-search.service';
 import { SelectService } from './services/select.service';
 import { DragDropService } from './services/dragdrop.service';
 import { ModalPopupComponent } from "../../../shared/components/modal-popup/modal-popup.component";

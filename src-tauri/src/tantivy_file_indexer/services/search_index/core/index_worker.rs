@@ -9,7 +9,10 @@ use super::super::models::index_worker::file_input::FileInputModel;
 use crate::tantivy_file_indexer::{
     converters::date_converter::unix_time_to_tantivy_datetime,
     dtos::file_dto_input::FileDTOInput,
-    services::local_db::{service::SqlxService, tables::files::models::FileModel},
+    services::{
+        local_db::{service::SqlxService, tables::files::models::FileModel},
+        vevtor::service::VectorDbService,
+    },
 };
 use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
 use tokio::sync::{mpsc, Mutex};
@@ -22,12 +25,15 @@ pub async fn spawn_worker(
     writer: Arc<Mutex<IndexWriter>>,
     schema: Arc<Schema>,
     db_service: Arc<SqlxService>,
+    vector_db_service: Arc<VectorDbService>,
     batch_size: usize,
 ) {
     let mut batches_processed: usize = 0;
-    // Each call to 'next' will return every file/directory path as a DTO
+
     while let Some(model) = receiver.recv().await {
         let seen_paths: HashSet<String> = model.dtos.iter().map(|x| x.file_path.clone()).collect();
+
+        vector_db_process(&model, &vector_db_service, &seen_paths).await;
 
         let dtos_len = model.dtos.len();
         batches_processed += dtos_len;
@@ -63,6 +69,22 @@ pub async fn spawn_worker(
         }
     }
     println!("receiver channel closed");
+}
+
+async fn vector_db_process(
+    model: &FileInputModel,
+    vector_db_service: &Arc<VectorDbService>,
+    seen_paths: &HashSet<String>,
+) {
+    /*
+       For each of the files in 'model' whose 'path' wasnt seen, then tell the Qdrant database to remove them based on their ID.
+    */
+    let unseen_dtos: Vec<&FileDTOInput> = model
+        .dtos
+        .iter()
+        .filter(|x| !seen_paths.contains(&x.file_path))
+        .collect();
+    vector_db_service.embed_files(&model.dtos).await;
 }
 
 // THIS one is the bottleneck

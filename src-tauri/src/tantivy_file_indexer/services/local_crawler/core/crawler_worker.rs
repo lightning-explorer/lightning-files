@@ -1,6 +1,5 @@
 use crossbeam::queue::SegQueue;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::time::Instant;
 use std::{path::PathBuf, sync::Arc, time::UNIX_EPOCH};
 use tokio::time::{self, Duration};
 use tokio::{
@@ -8,6 +7,7 @@ use tokio::{
     task::JoinSet,
 };
 
+use crate::tantivy_file_indexer::services::vevtor::service::VectorDbService;
 use crate::tantivy_file_indexer::{
     dtos::file_dto_input::FileDTOInput,
     services::search_index::models::index_worker::file_input::FileInputModel, util::file_id_helper,
@@ -72,6 +72,7 @@ pub async fn spawn_worker(
                 }
 
                 let model = create_model(path, &dir_entries).await;
+
                 //let time = Instant::now();
                 // Apparent bottleneck:
                 if let Err(err) = sender.send(model).await {

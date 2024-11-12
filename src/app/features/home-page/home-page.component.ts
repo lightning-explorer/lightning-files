@@ -1,5 +1,5 @@
 import { Component, HostListener, OnInit } from '@angular/core';
-import { SearchEngineService } from '../../core/services/search/search-engine.service';
+import { SearchEngineService } from '../../core/services/search/text/search-engine.service';
 import { SearchbarComponent } from "./searchbar/searchbar.component";
 import { FileDTOReceived } from '../../core/dtos/file-dto-received';
 import { FileResultComponent } from "./file-result/file-result.component";
@@ -12,7 +12,7 @@ import { FilesDisplayComponent } from "./files-display/files-display.component";
 import { DirectoryNavigatorService } from '../../core/services/files/directory-navigator/directory-navigator.service';
 import { MatIconModule } from '@angular/material/icon';
 import { InlineQueryDTO } from '../../core/dtos/inline-query-dto';
-import { InlineSearchService } from '../../core/services/search/inline-search.service';
+import { InlineSearchService } from '../../core/services/search/text/inline-search.service';
 import { FileModel } from './models/FileModel';
 import { fileDTOToModel } from './models/converters/FileDTOToModel';
 import { TopHeaderComponent } from "./top-header/top-header.component";

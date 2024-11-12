@@ -7,6 +7,7 @@ mod schemas {
     pub mod file_schema;
 }
 mod dtos {
+    pub mod vector_search_result;
     pub mod file_dto_input;
 }
 mod util {
@@ -57,7 +58,8 @@ pub mod services {
     }
     pub mod vevtor {
         pub mod service;
-        mod models{
+        pub mod tauri_exports;
+        pub mod models{
             pub mod file_model;
         }
         mod core;
@@ -65,4 +67,5 @@ pub mod services {
 }
 mod models {
     pub mod search_params_model;
+    pub mod vector_search_params_model;
 }

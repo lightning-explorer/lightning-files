@@ -4,6 +4,7 @@ use crate::tantivy_file_indexer::services::app_save::service::AppSaveService;
 use crate::tantivy_file_indexer::services::local_db::service::SqlxService;
 use crate::tantivy_file_indexer::services::search_index::models::index_worker::file_input::FileInputModel;
 use crate::tantivy_file_indexer::services::search_index::service::SearchIndexService;
+use crate::tantivy_file_indexer::services::vevtor::service::VectorDbService;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -15,6 +16,7 @@ pub struct FileCrawlerService {
     queue: Arc<CrawlerQueue>,
     search_service: Arc<SearchIndexService>,
     db_service: Arc<SqlxService>,
+    vector_db_service: Arc<VectorDbService>
 }
 
 impl FileCrawlerService {
@@ -24,6 +26,7 @@ impl FileCrawlerService {
         search_service: Arc<SearchIndexService>,
         db_service: Arc<SqlxService>,
         app_save_service: Arc<AppSaveService>,
+        vector_db_service: Arc<VectorDbService>
     ) -> Self {
         let queue = Arc::new(CrawlerQueue::new_async(vec![], app_save_service.clone()).await);
         Self {
@@ -32,6 +35,7 @@ impl FileCrawlerService {
             search_service,
             db_service,
             queue,
+            vector_db_service
         }
     }
 
@@ -39,6 +43,7 @@ impl FileCrawlerService {
         let queue = self.queue.clone();
         let max_concurrent_tasks = self.max_concurrent_tasks;
         let crawler_save_after_iters = self.crawler_save_after_iters;
+        let vevtor_clone = Arc::clone(&self.vector_db_service);
 
         tokio::task::spawn(async move {
             super::core::crawler_worker::spawn_worker(

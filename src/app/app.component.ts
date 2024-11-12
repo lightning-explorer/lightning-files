@@ -20,7 +20,8 @@ export class AppComponent implements OnInit {
   async ngOnInit() {
     const window = getCurrentWindow();
 
-    await this.lifecycleService.onStartup();
+    // TODO: Revisit this code as it causes the backend to panic if the frontend initializes before it does
+    // await this.lifecycleService.onStartup();
   }
 
 }

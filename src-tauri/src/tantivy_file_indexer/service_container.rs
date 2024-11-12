@@ -1,11 +1,9 @@
 use super::services::{
-    app_save::{
-        self,
-        service::{AppSavePath, AppSaveService},
-    },
+    app_save::service::{AppSavePath, AppSaveService},
     local_crawler::service::FileCrawlerService,
     local_db::service::SqlxService,
     search_index::service::SearchIndexService,
+    vevtor::service::VectorDbService,
 };
 use std::sync::{Arc, RwLock};
 
@@ -18,6 +16,7 @@ pub struct AppServiceContainer {
     pub search_service: Arc<SearchIndexService>,
     pub sqlx_service: Arc<SqlxService>,
     pub crawler_service: Arc<FileCrawlerService>,
+    pub vector_db_service: Arc<VectorDbService>,
 }
 
 impl AppServiceContainer {
@@ -29,15 +28,20 @@ impl AppServiceContainer {
 
         let files_display_state = Self::initialize_files_display_state();
         let config = Self::create_file_indexer_config(&app_save_service);
-        let search_service = Self::initialize_search_service(&config);
+        let vector_db_service = Self::initialize_vector_service();
+        let search_service = Self::initialize_search_service(&config, &vector_db_service);
+
+        // TODO: Remove this:
+        vector_db_service.delete_all_collections().await;
 
         let sqlx_service = Self::initialize_sqlx_service(&app_save_service).await;
         let crawler_service = Self::initialize_crawler_service(
             8,
             512,
-            search_service.clone(),
-            sqlx_service.clone(),
-            app_save_service.clone(),
+            Arc::clone(&search_service),
+            Arc::clone(&sqlx_service),
+            Arc::clone(&app_save_service),
+            Arc::clone(&vector_db_service),
         )
         .await;
 
@@ -45,12 +49,15 @@ impl AppServiceContainer {
         handle.manage(Arc::clone(&search_service));
         handle.manage(Arc::clone(&sqlx_service));
         handle.manage(Arc::clone(&crawler_service));
+        handle.manage(Arc::clone(&vector_db_service));
+
         handle.manage(Arc::clone(&app_save_service));
 
         Self {
             search_service,
             sqlx_service,
             crawler_service,
+            vector_db_service,
         }
     }
 
@@ -66,8 +73,9 @@ impl AppServiceContainer {
         Arc::new(RwLock::new(FilesDisplayState::new()))
     }
 
-    fn initialize_search_service(config: &FileIndexerConfig) -> Arc<SearchIndexService> {
-        Arc::new(SearchIndexService::new(config))
+    fn initialize_search_service(config: &FileIndexerConfig, vector_db_service:&Arc<VectorDbService>) -> Arc<SearchIndexService> {
+        let clone = Arc::clone(vector_db_service);
+        Arc::new(SearchIndexService::new(config, clone))
     }
 
     fn initialize_app_save_service(save_dir: AppSavePath, app_name: &str) -> Arc<AppSaveService> {
@@ -78,12 +86,17 @@ impl AppServiceContainer {
         Arc::new(SqlxService::new_async(app_save_service).await)
     }
 
+    fn initialize_vector_service() -> Arc<VectorDbService> {
+        Arc::new(VectorDbService::new())
+    }
+
     async fn initialize_crawler_service(
         max_concurrent: usize,
         save_after_iters: usize,
         search_service: Arc<SearchIndexService>,
         sqlx_service: Arc<SqlxService>,
         save_service: Arc<AppSaveService>,
+        vevtor_service: Arc<VectorDbService>,
     ) -> Arc<FileCrawlerService> {
         Arc::new(
             FileCrawlerService::new_async(
@@ -92,6 +105,7 @@ impl AppServiceContainer {
                 search_service,
                 sqlx_service,
                 save_service,
+                vevtor_service,
             )
             .await,
         )
