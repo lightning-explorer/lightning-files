@@ -1,7 +1,7 @@
 use crate::{
     shared::dtos::file_dto::FileDTO,
     tantivy_file_indexer::{
-        models::search_params_model::SearchParamsModel, services::{local_db::service::SqlxService, vevtor::service::VectorDbService},
+        models::search_params_model::SearchParamsModel, services::{local_db::service::LocalDbService, vevtor::service::VectorDbService},
     },
 };
 
@@ -63,7 +63,7 @@ impl SearchIndexService {
      */
     pub fn spawn_indexer(
         &self,
-        db_service: Arc<SqlxService>,
+        db_service: Arc<LocalDbService>,
         batch_size: usize,
         buffer_size: usize,
     ) -> Sender<FileInputModel> {

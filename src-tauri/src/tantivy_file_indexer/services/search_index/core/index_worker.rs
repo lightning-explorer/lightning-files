@@ -10,7 +10,7 @@ use crate::tantivy_file_indexer::{
     converters::date_converter::unix_time_to_tantivy_datetime,
     dtos::file_dto_input::FileDTOInput,
     services::{
-        local_db::{service::SqlxService, tables::files::models::FileModel},
+        local_db::{service::LocalDbService, tables::files::entities::file_model},
         vevtor::service::VectorDbService,
     },
 };
@@ -25,7 +25,7 @@ pub async fn spawn_worker(
     mut receiver: mpsc::Receiver<FileInputModel>,
     writer: Arc<Mutex<IndexWriter>>,
     schema: Arc<Schema>,
-    db_service: Arc<SqlxService>,
+    db_service: Arc<LocalDbService>,
     vector_db_service: Arc<VectorDbService>,
     batch_size: usize,
 ) {
@@ -112,12 +112,12 @@ async fn process_files(
     dtos: Vec<FileDTOInput>,
     writer: Arc<Mutex<IndexWriter>>,
     schema: Arc<Schema>,
-    db_service: Arc<SqlxService>,
+    db_service: Arc<LocalDbService>,
 ) -> Result<(), String> {
     let writer = writer.lock().await;
     // Remove from index and add document within a single lock
 
-    let mut db_file_models: Vec<FileModel> = Vec::new();
+    let mut db_file_models: Vec<file_model::Model> = Vec::new();
 
     for dto in dtos.into_iter() {
         writer.delete_term(tantivy::Term::from_field_text(
@@ -138,7 +138,7 @@ async fn process_files(
         // Create model for DTO but dont add it to DB
         let path_clone = dto.file_path.clone();
         let parent_path = get_parent_path(path_clone);
-        let file_model = FileModel {
+        let file_model = file_model::Model {
             path: dto.file_path,
             parent_path,
         };
@@ -160,7 +160,7 @@ async fn remove_unseen_entries(
     stale_paths: HashSet<String>,
     writer: Arc<Mutex<IndexWriter>>,
     schema: &Schema,
-    db_service: &SqlxService,
+    db_service: &LocalDbService,
 ) -> Result<usize, String> {
     if let Err(err) = remove_files_from_index(&stale_paths, writer.clone(), schema).await {
         return Err(err.to_string());
@@ -173,7 +173,7 @@ async fn remove_unseen_entries(
 }
 
 async fn get_stored_paths(
-    db_service: &SqlxService,
+    db_service: &LocalDbService,
     directory: &PathBuf,
 ) -> Result<HashSet<String>, String> {
     db_service
