@@ -38,10 +38,7 @@ impl AppServiceContainer {
         let crawler_service = Self::initialize_crawler_service(
             8,
             512,
-            Arc::clone(&search_service),
-            Arc::clone(&sqlx_service),
             Arc::clone(&app_save_service),
-            Arc::clone(&vector_db_service),
         )
         .await;
 
@@ -73,7 +70,10 @@ impl AppServiceContainer {
         Arc::new(RwLock::new(FilesDisplayState::new()))
     }
 
-    fn initialize_search_service(config: &FileIndexerConfig, vector_db_service:&Arc<VectorDbService>) -> Arc<SearchIndexService> {
+    fn initialize_search_service(
+        config: &FileIndexerConfig,
+        vector_db_service: &Arc<VectorDbService>,
+    ) -> Arc<SearchIndexService> {
         let clone = Arc::clone(vector_db_service);
         Arc::new(SearchIndexService::new(config, clone))
     }
@@ -93,21 +93,10 @@ impl AppServiceContainer {
     async fn initialize_crawler_service(
         max_concurrent: usize,
         save_after_iters: usize,
-        search_service: Arc<SearchIndexService>,
-        sqlx_service: Arc<SqlxService>,
         save_service: Arc<AppSaveService>,
-        vevtor_service: Arc<VectorDbService>,
     ) -> Arc<FileCrawlerService> {
         Arc::new(
-            FileCrawlerService::new_async(
-                max_concurrent,
-                save_after_iters,
-                search_service,
-                sqlx_service,
-                save_service,
-                vevtor_service,
-            )
-            .await,
+            FileCrawlerService::new_async(max_concurrent, save_after_iters, save_service).await,
         )
     }
 }

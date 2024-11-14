@@ -2,7 +2,7 @@ use std::{
     collections::HashSet,
     path::{Path, PathBuf},
     sync::Arc,
-    time::{Duration, Instant},
+    time::Duration,
 };
 
 use super::super::models::index_worker::file_input::FileInputModel;
@@ -16,6 +16,7 @@ use crate::tantivy_file_indexer::{
 };
 use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
 use tokio::sync::{mpsc, Mutex};
+use vevtor::Indexable;
 
 /**
  * waits around for the MPSC channel to send it files to index, in which it will index them
@@ -32,8 +33,13 @@ pub async fn spawn_worker(
 
     while let Some(model) = receiver.recv().await {
         let seen_paths: HashSet<String> = model.dtos.iter().map(|x| x.file_path.clone()).collect();
+        let stored_paths = get_stored_paths(&db_service, &model.directory_from)
+            .await
+            .expect("Failed to get stored paths");
+        let stale_paths = get_stale_paths(seen_paths, stored_paths);
 
-        vector_db_process(&model, &vector_db_service, &seen_paths).await;
+        // Ensure that the vector database gets updated
+        vector_db_process(&model, &vector_db_service, &stale_paths).await;
 
         let dtos_len = model.dtos.len();
         batches_processed += dtos_len;
@@ -49,14 +55,8 @@ pub async fn spawn_worker(
             println!("Error processing files: {}", err)
         }
 
-        if let Err(err) = remove_unseen_entries(
-            model.directory_from,
-            seen_paths,
-            Arc::clone(&writer),
-            &schema,
-            &db_service,
-        )
-        .await
+        if let Err(err) =
+            remove_unseen_entries(stale_paths, Arc::clone(&writer), &schema, &db_service).await
         {
             println!("Error removing stale entries: {}", err);
         }
@@ -71,20 +71,40 @@ pub async fn spawn_worker(
     println!("receiver channel closed");
 }
 
+/**
+ * Removes the items in the vector database that don't exist anymore as well as adds the items that do exist
+ */
 async fn vector_db_process(
     model: &FileInputModel,
     vector_db_service: &Arc<VectorDbService>,
-    seen_paths: &HashSet<String>,
+    stale_paths: &HashSet<String>,
 ) {
-    /*
-       For each of the files in 'model' whose 'path' wasnt seen, then tell the Qdrant database to remove them based on their ID.
-    */
-    let unseen_dtos: Vec<&FileDTOInput> = model
-        .dtos
-        .iter()
-        .filter(|x| !seen_paths.contains(&x.file_path))
-        .collect();
-    vector_db_service.embed_files(&model.dtos).await;
+    let paths = vector_db_service.files_to_models(
+        &model
+            .dtos
+            .iter()
+            .filter(|x| !stale_paths.contains(&x.file_path))
+            .collect(),
+    );
+    let stale_paths = vector_db_service.files_to_models(
+        &model
+            .dtos
+            .iter()
+            .filter(|x| stale_paths.contains(&x.file_path))
+            .collect(),
+    );
+
+    // TODO: remove print
+    println!(
+        "removing {} stale entries from vector database",
+        stale_paths.len()
+    );
+
+    vector_db_service
+        .delete_by_id(stale_paths.iter().map(|file| file.get_id()).collect())
+        .await;
+
+    vector_db_service.embed_files(paths).await;
 }
 
 // THIS one is the bottleneck
@@ -132,22 +152,16 @@ async fn process_files(
     Ok(())
 }
 
+fn get_stale_paths(seen_paths: HashSet<String>, stored_paths: HashSet<String>) -> HashSet<String> {
+    stored_paths.difference(&seen_paths).cloned().collect()
+}
+
 async fn remove_unseen_entries(
-    directory: PathBuf,
-    seen_paths: HashSet<String>,
+    stale_paths: HashSet<String>,
     writer: Arc<Mutex<IndexWriter>>,
     schema: &Schema,
     db_service: &SqlxService,
 ) -> Result<usize, String> {
-    let stored_paths = db_service
-        .files_table()
-        .get_paths_from_dir(&directory.to_string_lossy())
-        .await
-        .map_err(|e| e.to_string())?;
-
-    let stale_paths: HashSet<_> = stored_paths.difference(&seen_paths).cloned().collect();
-    let stale_paths_len = stale_paths.len();
-
     if let Err(err) = remove_files_from_index(&stale_paths, writer.clone(), schema).await {
         return Err(err.to_string());
     }
@@ -155,7 +169,18 @@ async fn remove_unseen_entries(
         return Err(err.to_string());
     }
 
-    Ok(stale_paths_len)
+    Ok(stale_paths.len())
+}
+
+async fn get_stored_paths(
+    db_service: &SqlxService,
+    directory: &PathBuf,
+) -> Result<HashSet<String>, String> {
+    db_service
+        .files_table()
+        .get_paths_from_dir(&directory.to_string_lossy())
+        .await
+        .map_err(|e| e.to_string())
 }
 
 async fn commit_and_retry(writer: Arc<Mutex<IndexWriter>>) -> Result<(), TantivyError> {

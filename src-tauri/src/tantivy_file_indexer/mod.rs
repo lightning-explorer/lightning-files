@@ -1,5 +1,4 @@
 pub mod service_container;
-pub mod service_container_traits;
 pub mod configs {
     pub mod file_indexer_config;
 }
@@ -39,6 +38,10 @@ pub mod services {
                 pub mod models;
                 pub mod tauri_exports;
             }
+            pub mod crawler_queue{
+                pub mod api;
+                pub mod models;
+            }
         }
     }
     pub mod local_crawler {
@@ -60,9 +63,8 @@ pub mod services {
         pub mod service;
         pub mod tauri_exports;
         pub mod models{
-            pub mod file_model;
+            pub mod embeddable_file_model;
         }
-        mod core;
     }
 }
 mod models {

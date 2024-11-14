@@ -1,13 +1,12 @@
+use vevtor::{VectorQueryModel, VevtorService};
+
 use crate::get_directory_path;
 use crate::tantivy_file_indexer::dtos::file_dto_input::FileDTOInput;
-use crate::tantivy_file_indexer::services::search_index::models::index_worker::file_input::FileInputModel;
 
-use super::core::indexer_api::models::search_query_models::VectorQueryModel;
-use super::core::indexer_api::service::VevtorService;
-use super::models::file_model;
+use super::models::embeddable_file_model::{self, EmbeddableFileModel};
 
 pub struct VectorDbService {
-    vevtor: VevtorService<file_model::FileModel>,
+    vevtor: VevtorService<embeddable_file_model::EmbeddableFileModel>,
 }
 
 impl VectorDbService {
@@ -21,8 +20,26 @@ impl VectorDbService {
         self.vevtor.delete_all_collections().await;
     }
 
-    pub async fn embed_files(&self, dtos: &Vec<FileDTOInput>) {
-        let files = Self::file_dtos_to_models(dtos);
+    pub async fn list_collections(&self) -> Vec<String> {
+        self.vevtor.list_collections().await
+    }
+
+    pub async fn delete_by_id(&self, items: Vec<u64>) {
+        self.vevtor
+            .delete_by_id(
+                items
+                    .into_iter()
+                    .map(|x| ("files".to_string(), x))
+                    .collect(),
+            )
+            .await;
+    }
+
+    pub fn files_to_models(&self, dtos: &Vec<&FileDTOInput>) -> Vec<EmbeddableFileModel> {
+        Self::file_dtos_to_models(dtos)
+    }
+
+    pub async fn embed_files(&self, files: Vec<EmbeddableFileModel>) {
         self.vevtor.add_files(files).await;
     }
 
@@ -30,7 +47,7 @@ impl VectorDbService {
         &self,
         query: &str,
         collection: &str,
-    ) -> Result<Vec<(file_model::FileModel, f32)>, String> {
+    ) -> Result<Vec<(embeddable_file_model::EmbeddableFileModel, f32)>, String> {
         self.vevtor
             .search(
                 &VectorQueryModel {
@@ -42,10 +59,9 @@ impl VectorDbService {
             .await
     }
 
-    fn file_dtos_to_models(dtos: &Vec<FileDTOInput>) -> Vec<file_model::FileModel> {
-        dtos
-            .iter()
-            .map(|dto| file_model::FileModel {
+    fn file_dtos_to_models(dtos: &Vec<&FileDTOInput>) -> Vec<embeddable_file_model::EmbeddableFileModel> {
+        dtos.iter()
+            .map(|dto| embeddable_file_model::EmbeddableFileModel {
                 name: dto.name.clone(),
                 parent_dir: get_directory_path(&dto.file_path),
                 collection: "files".to_string(),

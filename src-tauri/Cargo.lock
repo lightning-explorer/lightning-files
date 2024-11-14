@@ -917,9 +917,7 @@ dependencies = [
  "chrono",
  "crossbeam",
  "dirs",
- "fastembed",
  "futures",
- "qdrant-client",
  "rayon",
  "refind",
  "serde",
@@ -930,8 +928,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-shell",
  "tokio",
- "tonic",
- "twox-hash",
+ "vevtor",
  "walkdir",
  "winapi",
 ]
@@ -2064,6 +2061,19 @@ name = "indenter"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce23b50ad8242c51a442f3ff322d56b02f08852c77e4c0b4d3fd684abc89c683"
+
+[[package]]
+name = "indexable_macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "qdrant-client",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn 1.0.109",
+ "twox-hash",
+]
 
 [[package]]
 name = "indexmap"
@@ -5912,6 +5922,21 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "vevtor"
+version = "0.1.0"
+dependencies = [
+ "fastembed",
+ "indexable_macro",
+ "qdrant-client",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tonic",
+ "twox-hash",
+ "uuid",
+]
 
 [[package]]
 name = "vswhom"

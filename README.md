@@ -27,3 +27,7 @@ Should be able to:
 * Size
 * File type
 
+# Refactor:
+* decouple the big mod file and have individual components manage their own mod file
+* use Diesel ORM instead of SQLX
+* better organize model files
