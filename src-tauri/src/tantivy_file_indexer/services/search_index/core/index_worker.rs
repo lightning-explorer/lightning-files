@@ -10,7 +10,7 @@ use crate::tantivy_file_indexer::{
     converters::date_converter::unix_time_to_tantivy_datetime,
     dtos::file_dto_input::FileDTOInput,
     services::{
-        local_db::{service::LocalDbService, tables::files::entities::file_model},
+        local_db::{service::LocalDbService, tables::files::{self, entities::file_model}},
         vevtor::service::VectorDbService,
     },
 };
@@ -117,7 +117,7 @@ async fn process_files(
     let writer = writer.lock().await;
     // Remove from index and add document within a single lock
 
-    let mut db_file_models: Vec<file_model::Model> = Vec::new();
+    let mut db_file_models: Vec<files::entities::file_model::FileModel> = Vec::new();
 
     for dto in dtos.into_iter() {
         writer.delete_term(tantivy::Term::from_field_text(
@@ -138,7 +138,7 @@ async fn process_files(
         // Create model for DTO but dont add it to DB
         let path_clone = dto.file_path.clone();
         let parent_path = get_parent_path(path_clone);
-        let file_model = file_model::Model {
+        let file_model = files::entities::file_model::FileModel {
             path: dto.file_path,
             parent_path,
         };

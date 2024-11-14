@@ -6,8 +6,8 @@ mod schemas {
     pub mod file_schema;
 }
 mod dtos {
-    pub mod vector_search_result;
     pub mod file_dto_input;
+    pub mod vector_search_result;
 }
 mod util {
     pub mod file_id_helper;
@@ -17,57 +17,11 @@ mod converters {
     pub mod doc_to_dto;
 }
 pub mod services {
-    pub mod search_index {
-        mod core {
-            pub mod index_worker;
-            pub mod querier;
-        }
-        pub mod models {
-            pub mod index_worker {
-                pub mod file_input;
-            }
-        }
-        pub mod service;
-        pub mod tauri_exports;
-    }
-    pub mod local_db {
-        pub mod service;
-        pub mod tables {
-            pub mod files {
-                pub mod api;
-                pub mod entities{
-                    pub mod file_model;
-                }
-                pub mod tauri_exports;
-            }
-            pub mod crawler_queue{
-                pub mod api;
-                pub mod models;
-            }
-        }
-    }
-    pub mod local_crawler {
-        pub mod service;
-        mod core {
-            pub mod crawler_queue;
-            pub mod crawler_worker;
-        }
-        pub mod tauri_exports;
-    }
-    pub mod app_save {
-        pub mod service;
-        pub mod tauri_exports;
-        mod core {
-            pub mod helper;
-        }
-    }
-    pub mod vevtor {
-        pub mod service;
-        pub mod tauri_exports;
-        pub mod models{
-            pub mod embeddable_file_model;
-        }
-    }
+    pub mod app_save;
+    pub mod local_crawler;
+    pub mod local_db;
+    pub mod search_index;
+    pub mod vevtor;
 }
 mod models {
     pub mod search_params_model;

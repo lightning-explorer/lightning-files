@@ -1,64 +1,86 @@
-use super::entities::file_model;
-use sea_orm::ActiveValue::Set;
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter};
-use std::collections::HashSet;
+use std::{borrow::Cow, collections::HashSet, sync::Arc};
 
+use super::entities::file_model::FileModel;
+use sqlx::{Pool, Sqlite};
+use tokio::sync::Mutex;
+type RowsAffected = u64;
 pub struct FilesTable {
-    connection: DatabaseConnection,
+    pool: Arc<Mutex<Pool<Sqlite>>>,
 }
 
 impl FilesTable {
-    pub async fn new_async(connection: DatabaseConnection) -> Self {
-        Self { connection }
+    pub async fn new_async(pool: Arc<Mutex<Pool<Sqlite>>>) -> Self {
+        let pool_clone = pool.clone();
+        let pool_locked = pool_clone.lock().await;
+        sqlx::query(
+            "CREATE TABLE IF NOT EXISTS files (
+                    path TEXT PRIMARY KEY,
+                    parent_path TEXT,
+                    FOREIGN KEY (parent_path) REFERENCES files(path)
+                ) WITHOUT ROWID;", // last_modified INTEGER NOT NULL
+        )
+        .execute(&*pool_locked)
+        .await
+        .unwrap();
+        Self { pool }
     }
 
-    pub async fn upsert_many(&self, models: &[file_model::Model]) -> Result<(), sea_orm::DbErr> {
-        let new_files: Vec<file_model::ActiveModel> = models
-            .iter()
-            .map(|model| file_model::ActiveModel {
-                path: Set(model.path.to_owned()),
-                parent_path: Set(model.parent_path.to_owned()),
-            })
-            .collect();
+    pub async fn upsert_many(&self, models: &Vec<FileModel>) -> Result<(), sqlx::Error> {
+        let pool = self.pool.lock().await;
+        let mut transaction = pool.begin().await?;
 
-        // Insert all models in a single batch insert
-        file_model::Entity::insert_many(new_files)
-            .exec(&self.connection)
-            .await?;
+        for model in models {
+            sqlx::query("INSERT OR IGNORE INTO files (path) VALUES (?)")
+                .bind(&model.path)
+                .execute(&mut *transaction)
+                .await?;
+        }
 
+        transaction.commit().await?;
         Ok(())
     }
 
-    pub async fn remove_paths<'a, I, S>(&self, paths: I) -> Result<(), sea_orm::DbErr>
+    pub async fn remove_paths<'a, I, S>(&self, paths: I) -> Result<RowsAffected, sqlx::Error>
     where
         I: IntoIterator<Item = S>,
         S: AsRef<str> + 'a,
     {
-        let paths: Vec<String> = paths.into_iter().map(|p| p.as_ref().to_string()).collect();
+        let paths: Vec<Cow<'a, str>> = paths
+            .into_iter()
+            .map(|p| Cow::from(p.as_ref().to_string()))
+            .collect();
 
         if paths.is_empty() {
-            return Ok(());
+            return Ok(0);
         }
 
-        file_model::Entity::delete_many()
-            .filter(file_model::Column::Path.is_in(paths))
-            .exec(&self.connection)
-            .await?;
+        let pool = self.pool.lock().await;
+        let placeholders = paths.iter().map(|_| "?").collect::<Vec<_>>().join(", ");
+        let query = format!("DELETE FROM files WHERE path IN ({})", placeholders);
+        let mut query_builder = sqlx::query(&query);
+        for path in &paths {
+            query_builder = query_builder.bind(path);
+        }
 
-        Ok(())
+        let result = query_builder.execute(&*pool).await?;
+        Ok(result.rows_affected())
     }
 
-    pub async fn get_paths_from_dir(&self, dir: &str) -> Result<HashSet<String>, sea_orm::DbErr> {
-        let files = file_model::Entity::find()
-            .filter(file_model::Column::ParentPath.eq(dir))
-            .all(&self.connection)
+    pub async fn get_paths_from_dir(&self, dir: &str) -> Result<HashSet<String>, sqlx::Error> {
+        let pool = self.pool.lock().await;
+        let rows = sqlx::query_as::<_, FileModel>("SELECT * FROM files WHERE parent_path = ?")
+            .bind(dir)
+            .fetch_all(&*pool)
             .await?;
-        let set: HashSet<String> = files.into_iter().map(|x| x.path.to_string()).collect();
+        let set: HashSet<String> = rows.into_iter().map(|x| x.path.to_string()).collect();
         Ok(set)
     }
 
-    pub async fn count_files(&self) -> Result<u64, sea_orm::DbErr> {
-        let count = file_model::Entity::find().count(&self.connection).await?;
-        Ok(count)
+    pub async fn count_files(&self) -> Result<u64, sqlx::Error> {
+        let pool = self.pool.lock().await;
+        let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM files")
+            .fetch_one(&*pool)
+            .await?;
+        Ok(row.0 as u64)
     }
 }
