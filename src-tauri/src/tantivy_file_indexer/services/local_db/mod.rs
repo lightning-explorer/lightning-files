@@ -9,6 +9,14 @@ pub mod tables {
     }
     pub mod crawler_queue {
         pub mod api;
-        pub mod models;
+        pub mod entities{
+
+        }
+    }
+    pub mod recently_indexed_dirs{
+        pub mod api;
+        pub mod entities{
+            pub mod recently_indexed_dir_model;
+        }
     }
 }

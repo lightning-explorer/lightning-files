@@ -32,7 +32,7 @@ export class SearchbarComponent implements OnInit {
     this.inputControl.valueChanges.pipe(
       debounceTime(100)
     ).subscribe(value =>
-      this.vectorSearch(value)
+      this.search(value)
     )
 
   }

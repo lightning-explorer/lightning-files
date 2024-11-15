@@ -20,6 +20,8 @@ pub struct CrawlerQueue {
     save_service: Arc<AppSaveService>,
 }
 
+// Rather than locally writing to JSON, write to the database.
+
 pub type Priority = u32;
 impl CrawlerQueue {
     /**

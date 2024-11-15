@@ -78,7 +78,9 @@ impl AppServiceContainer {
         Arc::new(AppSaveService::new(save_dir, app_name))
     }
 
-    async fn initialize_sqlx_service(app_save_service: &Arc<AppSaveService>) -> Arc<LocalDbService> {
+    async fn initialize_sqlx_service(
+        app_save_service: &Arc<AppSaveService>,
+    ) -> Arc<LocalDbService> {
         Arc::new(LocalDbService::new_async(app_save_service).await)
     }
 
