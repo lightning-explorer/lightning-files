@@ -2,7 +2,7 @@ use directory_nav_service::service::*;
 use tantivy_file_indexer::{
     service_container::AppServiceContainer, services::app_save::tauri_exports::*,
     services::local_crawler::tauri_exports::*, services::local_db::tables::files::tauri_exports::*,
-    services::search_index::tauri_exports::*, services::vevtor::tauri_exports::*,
+    services::search_index::tauri_exports::*, services::vector_db::tauri_exports::*,
 };
 use tauri::{AppHandle, Emitter, Manager, Window, WindowEvent};
 mod directory_nav_service;

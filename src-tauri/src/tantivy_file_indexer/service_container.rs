@@ -3,7 +3,7 @@ use super::services::{
     local_crawler::service::FileCrawlerService,
     local_db::service::LocalDbService,
     search_index::service::SearchIndexService,
-    vevtor::service::VectorDbService,
+    vector_db::service::VectorDbService,
 };
 use std::sync::{Arc, RwLock};
 

@@ -1,22 +1,19 @@
-use std::{
-    collections::HashSet,
-    path::{Path, PathBuf},
-    sync::Arc,
-    time::Duration,
-};
+use std::{collections::HashSet, path::Path, sync::Arc, time::Duration};
 
 use super::super::models::index_worker::file_input::FileInputModel;
 use crate::tantivy_file_indexer::{
     converters::date_converter::unix_time_to_tantivy_datetime,
     dtos::file_dto_input::FileDTOInput,
     services::{
-        local_db::{service::LocalDbService, tables::files::{self, entities::file_model}},
-        vevtor::service::VectorDbService,
+        local_db::{
+            service::LocalDbService,
+            tables::files::{self},
+        },
+        vector_db::workers::processor::VectorDbProcessor,
     },
 };
 use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
 use tokio::sync::{mpsc, Mutex};
-use vevtor::Indexable;
 
 /**
  * waits around for the MPSC channel to send it files to index, in which it will index them
@@ -26,7 +23,7 @@ pub async fn spawn_worker(
     writer: Arc<Mutex<IndexWriter>>,
     schema: Arc<Schema>,
     db_service: Arc<LocalDbService>,
-    vector_db_service: Arc<VectorDbService>,
+    vector_db_processor: Arc<VectorDbProcessor>,
     batch_size: usize,
 ) {
     let mut batches_processed: usize = 0;
@@ -39,7 +36,9 @@ pub async fn spawn_worker(
         let stale_paths = get_stale_paths(seen_paths, stored_paths);
 
         // Ensure that the vector database gets updated
-        vector_db_process(&model, &vector_db_service, &stale_paths).await;
+        vector_db_processor
+            .process_files(&model, &stale_paths)
+            .await;
 
         let dtos_len = model.dtos.len();
         batches_processed += dtos_len;
@@ -71,42 +70,6 @@ pub async fn spawn_worker(
     println!("receiver channel closed");
 }
 
-/**
- * Removes the items in the vector database that don't exist anymore as well as adds the items that do exist
- */
-async fn vector_db_process(
-    model: &FileInputModel,
-    vector_db_service: &Arc<VectorDbService>,
-    stale_paths: &HashSet<String>,
-) {
-    let paths = vector_db_service.files_to_models(
-        &model
-            .dtos
-            .iter()
-            .filter(|x| !stale_paths.contains(&x.file_path))
-            .collect(),
-    );
-    let stale_paths = vector_db_service.files_to_models(
-        &model
-            .dtos
-            .iter()
-            .filter(|x| stale_paths.contains(&x.file_path))
-            .collect(),
-    );
-
-    // TODO: remove print
-    println!(
-        "removing {} stale entries from vector database",
-        stale_paths.len()
-    );
-
-    vector_db_service
-        .delete_by_id(stale_paths.iter().map(|file| file.get_id()).collect())
-        .await;
-
-    vector_db_service.embed_files(paths).await;
-}
-
 // THIS one is the bottleneck
 async fn process_files(
     dtos: Vec<FileDTOInput>,
@@ -117,7 +80,7 @@ async fn process_files(
     let writer = writer.lock().await;
     // Remove from index and add document within a single lock
 
-    let mut db_file_models: Vec<files::entities::file_model::FileModel> = Vec::new();
+    let mut db_file_models: Vec<files::entities::file::Model> = Vec::new();
 
     for dto in dtos.into_iter() {
         writer.delete_term(tantivy::Term::from_field_text(
@@ -138,7 +101,7 @@ async fn process_files(
         // Create model for DTO but dont add it to DB
         let path_clone = dto.file_path.clone();
         let parent_path = get_parent_path(path_clone);
-        let file_model = files::entities::file_model::FileModel {
+        let file_model = files::entities::file::Model {
             path: dto.file_path,
             parent_path,
         };
@@ -174,7 +137,7 @@ async fn remove_unseen_entries(
 
 async fn get_stored_paths(
     db_service: &LocalDbService,
-    directory: &PathBuf,
+    directory: &Path,
 ) -> Result<HashSet<String>, String> {
     db_service
         .files_table()

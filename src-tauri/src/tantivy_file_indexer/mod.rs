@@ -21,7 +21,7 @@ pub mod services {
     pub mod local_crawler;
     pub mod local_db;
     pub mod search_index;
-    pub mod vevtor;
+    pub mod vector_db;
 }
 mod models {
     pub mod search_params_model;

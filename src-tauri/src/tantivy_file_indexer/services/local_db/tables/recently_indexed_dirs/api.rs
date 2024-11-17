@@ -1,34 +1,27 @@
-use std::{borrow::Cow, collections::HashSet, sync::Arc};
+use sea_orm::DatabaseConnection;
 
-use super::entities::recently_indexed_dir_model::RecentlyIndexedDirModel;
-use sqlx::{Pool, Sqlite};
-type RowsAffected = u64;
+use crate::tantivy_file_indexer::services::local_db::table_creator::generate_table_lenient;
+
+use super::entities::recently_indexed_dir;
+
 pub struct RecentlyIndexedDirectoriesTable {
-    pool: Arc<Pool<Sqlite>>,
+    db: DatabaseConnection,
 }
 
 impl RecentlyIndexedDirectoriesTable {
-    pub async fn new_async(pool: Arc<Pool<Sqlite>>) -> Self {
-        sqlx::query(
-            "CREATE TABLE IF NOT EXISTS recent_indexed (
-                    path TEXT PRIMARY KEY,
-                    indexed_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
-                ) WITHOUT ROWID;", // last_modified INTEGER NOT NULL
-        )
-        .execute(&*pool)
-        .await
-        .unwrap();
+    pub async fn new_async(db: DatabaseConnection) -> Self {
+        generate_table_lenient(&db, recently_indexed_dir::Entity).await;
 
-        Self { pool }
+        Self { db }
     }
 
-    pub async fn insert(&self, model: RecentlyIndexedDirModel) {
+    pub async fn insert(&self, model: recently_indexed_dir::Model) {
         todo!();
     }
 
     pub async fn check_if_recent(&self, dir_path: String) -> bool {
         todo!();
-        self.refresh();
+        self.refresh().await;
         // refresh, then check
     }
 

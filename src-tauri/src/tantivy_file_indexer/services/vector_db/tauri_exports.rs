@@ -15,7 +15,7 @@ pub async fn vector_db_query(
     service: State<'_, Arc<VectorDbService>>,
 ) -> Result<Vec<VectorSearchResult>, String> {
     service
-        .query(&params.query.as_str(), &params.collection.as_str())
+        .query(params.query.as_str(), params.collection.as_str())
         .await
         .map(|x| {
             x.into_iter()

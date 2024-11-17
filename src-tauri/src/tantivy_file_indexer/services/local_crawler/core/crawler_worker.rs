@@ -7,7 +7,7 @@ use tokio::{
     task::JoinSet,
 };
 
-use crate::tantivy_file_indexer::services::vevtor::service::VectorDbService;
+use crate::tantivy_file_indexer::services::vector_db::service::VectorDbService;
 use crate::tantivy_file_indexer::{
     dtos::file_dto_input::FileDTOInput,
     services::search_index::models::index_worker::file_input::FileInputModel, util::file_id_helper,
