@@ -23,7 +23,7 @@ impl FilesTable {
                 parent_path: Set(model.parent_path.to_owned()),
             })
             .collect();
-        // Insert all models in a single batch insert
+
         file::Entity::insert_many(new_files).exec(&self.db).await?;
         Ok(())
     }

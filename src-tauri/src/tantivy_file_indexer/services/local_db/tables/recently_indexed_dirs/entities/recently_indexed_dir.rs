@@ -4,7 +4,7 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key)]
     pub path: String,
-    pub time: u64, // unix time
+    pub time: u64, // UNIX time
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
