@@ -44,6 +44,7 @@ impl RecentlyIndexedDirectoriesTable {
             .await?
             .is_some();
         Ok(exists)
+
     }
 
     /**
@@ -65,3 +66,4 @@ impl RecentlyIndexedDirectoriesTable {
         Ok(delete.rows_affected)
     }
 }
+ 
