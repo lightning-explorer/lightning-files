@@ -4,7 +4,8 @@ use directory_nav_service::service::*;
 use tantivy_file_indexer::{
     service_container::AppServiceContainer, services::app_save::tauri_exports::*,
     services::local_crawler::tauri_exports::*, services::local_db::tables::files::tauri_exports::*,
-    services::search_index::tauri_exports::*, services::vector_db::tauri_exports::*,
+    services::local_db::tauri_exports::*, services::search_index::tauri_exports::*,
+    services::vector_db::tauri_exports::*,
 };
 use tauri::{AppHandle, Emitter, Manager, Window, WindowEvent};
 mod directory_nav_service;
@@ -40,6 +41,8 @@ pub fn run() {
             save_json_local,
             load_json_local,
             vector_db_query,
+
+            view_crawler_queue,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -58,7 +61,9 @@ async fn initialize_app(handle: AppHandle) {
             .spawn_indexer(db_service, 128, 4);
 
         crawler_service.spawn_crawler(sender);
-        crawler_service.push_dirs_default(vec![Path::new("C:\\").to_path_buf()]).await;
+        crawler_service
+            .push_dirs_default(vec![Path::new("C:\\").to_path_buf()])
+            .await;
     }
 
     handle.manage(service_container);

@@ -28,7 +28,7 @@ pub async fn spawn_worker(
     let worker_queue = Arc::clone(&queue);
 
     loop {
-        if let Some(path) = queue.pop().await {
+        if let Some((path, priority)) = queue.pop().await {
             let dir_entries = Arc::clone(&dir_entries);
             let semaphore = Arc::clone(&semaphore);
             let sender = sender.clone();
@@ -43,14 +43,14 @@ pub async fn spawn_worker(
 
                 if path.is_dir() {
                     if let Ok(mut dir) = tokio::fs::read_dir(&path).await {
+                        // Allow priority to increase over time (Nested items lose their importance compared to parent items)
+
                         while let Ok(Some(entry)) = dir.next_entry().await {
                             let entry_path = entry.path();
                             if entry_path.is_dir() {
-                                //let time = Instant::now();
-
-                                queue.push_default(entry_path).await;
-
-                                //println!("dir queue push took {:?}", time.elapsed());
+                                // Rather than pushing a default priority here, we want the number to be the parent's priority +1
+                                // This indicates that the child items are less important and can be processed after the higher-level directories
+                                queue.push(entry_path, priority + 1).await;
                             }
                             if let Ok(dto) = create_dto(&entry).await {
                                 //let time = Instant::now();

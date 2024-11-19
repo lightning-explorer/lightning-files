@@ -11,5 +11,6 @@ export class FileCrawlerService {
         await invoke<void>("add_dirs_to_crawler_queue", { directories }).then(() => { }).catch(err =>
             console.log(err)
         )
+        console.log(`Frontend validation: added ${directories.length} to the crawler queue`);
     }
 }

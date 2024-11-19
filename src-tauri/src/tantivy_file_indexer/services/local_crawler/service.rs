@@ -48,7 +48,6 @@ impl FileCrawlerService {
     }
 
     pub async fn push_dirs_default(&self, paths: Vec<PathBuf>) {
-        // 1 being the default priority
-        self.push_dirs(paths.into_iter().map(|path| (path, 1)).collect()).await;
+        self.queue.push_defaults(&paths).await;
     }
 }

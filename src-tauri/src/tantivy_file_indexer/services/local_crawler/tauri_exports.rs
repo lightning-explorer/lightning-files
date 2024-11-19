@@ -15,7 +15,7 @@ pub async fn add_dirs_to_crawler_queue(
         .push_dirs(
             directories
                 .into_iter()
-                .map(|entry| (Path::new(&entry.path).to_path_buf(), entry.priority))
+                .map(|entry| (Path::new(&entry.dir_path).to_path_buf(), entry.priority))
                 .collect(),
         )
         .await;

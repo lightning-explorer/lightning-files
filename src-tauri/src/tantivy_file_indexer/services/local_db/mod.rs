@@ -1,4 +1,5 @@
 pub mod service;
+pub mod tauri_exports;
 mod table_creator;
 pub mod tables {
     pub mod files {

@@ -5,6 +5,14 @@ description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
 
+[features]
+# Logginf features
+speed_profile = []
+debugging = []
+
+# Default features
+default = ["speed_profile", "debugging"]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]

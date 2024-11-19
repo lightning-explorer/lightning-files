@@ -9,7 +9,8 @@ SQLite database and store stuff there.
  */
 
 use sea_orm::{
-    sea_query::OnConflict, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder, Set, TransactionTrait
+    sea_query::OnConflict, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait,
+    QueryFilter, QueryOrder, Set, TransactionTrait,
 };
 
 use crate::tantivy_file_indexer::services::local_db::table_creator::generate_table_lenient;
@@ -28,8 +29,6 @@ impl CrawlerQueueTable {
     }
 
     pub async fn upsert_many(&self, models: &[indexed_dir::Model]) -> Result<(), sea_orm::DbErr> {
-        //println!("debug models: {:?}", models);
-
         let entries: Vec<indexed_dir::ActiveModel> = models
             .iter()
             .map(|model| indexed_dir::ActiveModel {
@@ -37,16 +36,16 @@ impl CrawlerQueueTable {
                 priority: Set(model.priority.to_owned()),
             })
             .collect();
+        // Remove this along with the error handling
         let entries_dbg = format!("{:?}", entries);
-
-        //println!("debug entries: {:?}", entries);
 
         // To get rid of all this error handling, just add ? after the await and remove the rest
         indexed_dir::Entity::insert_many(entries)
             .on_conflict(
                 // Allow upserts
                 OnConflict::column(indexed_dir::Column::Path)
-                    .update_columns([indexed_dir::Column::Priority]).to_owned()
+                    .update_columns([indexed_dir::Column::Priority])
+                    .to_owned(),
             )
             .exec(&self.db)
             .await
@@ -68,7 +67,8 @@ impl CrawlerQueueTable {
 
         // Fetch the entry with the highest priority (biggest number)
         if let Some(next_entry) = indexed_dir::Entity::find()
-            .order_by_desc(indexed_dir::Column::Priority) // Order by priority descending
+            .order_by_asc(indexed_dir::Column::Priority)
+            // Order by ascending to ensure that lower numbers are nearer to the top (The lower the number, the higher the priority)
             .one(&txn)
             .await?
         {
@@ -93,5 +93,9 @@ impl CrawlerQueueTable {
     pub async fn count_dirs(&self) -> Result<u64, sea_orm::DbErr> {
         let count = indexed_dir::Entity::find().count(&self.db).await?;
         Ok(count)
+    }
+
+    pub async fn view_all(&self)-> Result<Vec<indexed_dir::Model>, sea_orm::DbErr>{
+        indexed_dir::Entity::find().all(&self.db).await
     }
 }
