@@ -42,7 +42,15 @@ impl CrawlerQueue {
         println!("Length of queue: {}", self.get_len().await);
 
         match self.db.crawler_queue_table().pop().await {
-            Ok(model) => model.map(|x| Path::new(&x.path).to_path_buf()),
+            Ok(model) => model.map(|x| {
+                if x.priority > 1 {
+                    println!(
+                        "Took item {} from queue with priority {}",
+                        x.path, x.priority
+                    );
+                }
+                Path::new(&x.path).to_path_buf()
+            }),
             Err(_) => None,
         }
     }

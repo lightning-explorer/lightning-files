@@ -1,4 +1,4 @@
-use std::{collections::HashSet, sync::Arc};
+use std::{collections::HashSet, sync::Arc, time::Instant};
 
 use vevtor::{Indexable, Indexer, VevtorService};
 
@@ -56,7 +56,9 @@ impl VectorDbIndexer {
             )
             .await;
 
-        self.embed_files(paths).await;
+        let time = Instant::now();
+        self.indexer.index(paths).await;
+        println!("Vector index operation took {:?}", time.elapsed());
     }
 
     fn file_dtos_to_models(&self, dtos: &Vec<&FileDTOInput>) -> Vec<EmbeddableFileModel> {
@@ -67,9 +69,5 @@ impl VectorDbIndexer {
                 collection: "files".to_string(),
             })
             .collect()
-    }
-
-    pub async fn embed_files(&self, files: Vec<EmbeddableFileModel>) {
-        self.indexer.index(files).await;
     }
 }
