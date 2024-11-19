@@ -35,7 +35,10 @@ impl RecentlyIndexedDirectoriesTable {
     }
 
     pub async fn is_recent(&self, dir_path: String) -> Result<bool, sea_orm::DbErr> {
-        self.refresh().await?;
+        let items_removed = self.refresh().await?;
+        if items_removed > 0 {
+            println!("refresh removed {} old indexed directories", items_removed);
+        }
         // because the refresh already happened, if an item with the path is found, it means that it is indeed recent,
         // otherwise, it would have been removed
         let exists = recently_indexed_dir::Entity::find()
@@ -44,7 +47,6 @@ impl RecentlyIndexedDirectoriesTable {
             .await?
             .is_some();
         Ok(exists)
-
     }
 
     /**
@@ -66,4 +68,3 @@ impl RecentlyIndexedDirectoriesTable {
         Ok(delete.rows_affected)
     }
 }
- 

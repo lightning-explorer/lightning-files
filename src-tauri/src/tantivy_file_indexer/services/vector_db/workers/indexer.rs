@@ -13,18 +13,18 @@ use crate::{
     },
 };
 
-pub struct VectorDbProcessor {
+pub struct VectorDbIndexer {
     vector: Arc<VevtorService>,
     indexer: Indexer<EmbeddableFileModel>,
 }
 
-impl VectorDbProcessor {
+impl VectorDbIndexer {
     pub fn new(vector: Arc<VevtorService>, batch_size: usize, buffer_size: usize) -> Self {
         let indexer = vector.spawn_index_worker::<EmbeddableFileModel>(batch_size, buffer_size);
         Self { vector, indexer }
     }
 
-    pub async fn process_files(&self, model: &FileInputModel, stale_paths: &HashSet<String>) {
+    pub async fn index_files(&self, model: &FileInputModel, stale_paths: &HashSet<String>) {
         let vector = Arc::clone(&self.vector);
         let paths = self.file_dtos_to_models(
             &model

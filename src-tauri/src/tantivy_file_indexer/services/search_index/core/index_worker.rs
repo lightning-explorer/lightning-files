@@ -9,7 +9,7 @@ use crate::tantivy_file_indexer::{
             service::LocalDbService,
             tables::files::{self},
         },
-        vector_db::workers::processor::VectorDbProcessor,
+        vector_db::workers::indexer::VectorDbIndexer,
     },
 };
 use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
@@ -23,7 +23,7 @@ pub async fn spawn_worker(
     writer: Arc<Mutex<IndexWriter>>,
     schema: Arc<Schema>,
     db_service: Arc<LocalDbService>,
-    vector_db_processor: Arc<VectorDbProcessor>,
+    vector_db_indexer: Arc<VectorDbIndexer>,
     batch_size: usize,
 ) {
     let mut batches_processed: usize = 0;
@@ -36,9 +36,7 @@ pub async fn spawn_worker(
         let stale_paths = get_stale_paths(seen_paths, stored_paths);
 
         // Ensure that the vector database gets updated
-        vector_db_processor
-            .process_files(&model, &stale_paths)
-            .await;
+        vector_db_indexer.index_files(&model, &stale_paths).await;
 
         let dtos_len = model.dtos.len();
         batches_processed += dtos_len;

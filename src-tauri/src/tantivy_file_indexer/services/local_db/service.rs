@@ -1,7 +1,7 @@
 use crate::tantivy_file_indexer::services::app_save::service::AppSaveService;
 
 use super::tables::{
-    files::api::FilesTable, recently_indexed_dirs::api::RecentlyIndexedDirectoriesTable,
+    crawler_queue::api::CrawlerQueueTable, files::api::FilesTable, recently_indexed_dirs::api::RecentlyIndexedDirectoriesTable
 };
 use sea_orm::DatabaseConnection;
 use sqlx::sqlite::SqlitePool;
@@ -9,6 +9,7 @@ use sqlx::sqlite::SqlitePool;
 pub struct LocalDbService {
     files_table: FilesTable,
     recently_indexed_dirs_table: RecentlyIndexedDirectoriesTable,
+    crawler_queue_table:CrawlerQueueTable
 }
 
 impl LocalDbService { 
@@ -24,10 +25,12 @@ impl LocalDbService {
         let files_table = FilesTable::new_async(db.clone()).await;
         let recently_indexed_dirs_table =
             RecentlyIndexedDirectoriesTable::new_async(db.clone()).await;
+        let crawler_queue_table = CrawlerQueueTable::new_async(db.clone()).await;
 
         Self {
             files_table,
             recently_indexed_dirs_table,
+            crawler_queue_table,
         }
     }
 

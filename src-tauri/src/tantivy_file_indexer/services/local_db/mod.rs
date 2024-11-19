@@ -11,7 +11,7 @@ pub mod tables {
     pub mod crawler_queue {
         pub mod api;
         pub mod entities{
-
+            pub mod indexed_dir;
         }
     }
     pub mod recently_indexed_dirs{

@@ -4,7 +4,7 @@ use vevtor::{VectorQueryModel, VevtorService};
 
 use super::{
     models::embeddable_file_model::{self},
-    workers::processor::{self, VectorDbProcessor},
+    workers::indexer::{self, VectorDbIndexer},
 };
 
 pub struct VectorDbService {
@@ -42,8 +42,8 @@ impl VectorDbService {
             .await
     }
 
-    pub fn spawn_processor(&self, batch_size: usize, buffer_size: usize) -> VectorDbProcessor {
+    pub fn spawn_indexer(&self, batch_size: usize, buffer_size: usize) -> VectorDbIndexer {
         let vevtor_clone = Arc::clone(&self.vevtor);
-        processor::VectorDbProcessor::new(vevtor_clone, batch_size, buffer_size)
+        indexer::VectorDbIndexer::new(vevtor_clone, batch_size, buffer_size)
     }
 }

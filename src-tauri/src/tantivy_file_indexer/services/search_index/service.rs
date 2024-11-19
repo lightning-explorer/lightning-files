@@ -60,6 +60,8 @@ impl SearchIndexService {
      * Returns a `Sender` that a crawler can use to send over files.
      
      * The `batch_size` indicates how many files are processed before the index writer make a commit
+     * 
+     * Note that right now, when the indexer is spawned, the vector indexer gets spawned as well
      */
     pub fn spawn_indexer(
         &self,
@@ -71,7 +73,7 @@ impl SearchIndexService {
         let (sender, receiver) = mpsc::channel(buffer_size);
 
         let index_writer_clone = self.index_writer.clone();
-        let vector_processor = Arc::new(self.vector_db_service.spawn_processor(batch_size, buffer_size));
+        let vector_processor = Arc::new(self.vector_db_service.spawn_indexer(batch_size, buffer_size));
 
         tokio::spawn(async move {
             index_worker::spawn_worker(
