@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use directory_nav_service::service::*;
 use tantivy_file_indexer::{
     service_container::AppServiceContainer, services::app_save::tauri_exports::*,
@@ -48,7 +50,7 @@ async fn initialize_app(handle: AppHandle) {
 
     let service_container = AppServiceContainer::new_async(&handle).await;
     let crawler_service = service_container.crawler_service.clone();
-    let db_service = service_container.sqlx_service.clone();
+    let db_service = service_container.local_db_service.clone();
 
     if index_files {
         let sender = service_container
@@ -56,7 +58,7 @@ async fn initialize_app(handle: AppHandle) {
             .spawn_indexer(db_service, 128, 4);
 
         crawler_service.spawn_crawler(sender);
-        crawler_service.load_or(vec!["C:\\"]).await;
+        crawler_service.push_dirs_default(vec![Path::new("C:\\").to_path_buf()]).await;
     }
 
     handle.manage(service_container);

@@ -14,7 +14,7 @@ use crate::FilesDisplayState;
 
 pub struct AppServiceContainer {
     pub search_service: Arc<SearchIndexService>,
-    pub sqlx_service: Arc<LocalDbService>,
+    pub local_db_service: Arc<LocalDbService>,
     pub crawler_service: Arc<FileCrawlerService>,
     pub vector_db_service: Arc<VectorDbService>,
 }
@@ -34,13 +34,13 @@ impl AppServiceContainer {
         // TODO: Remove this:
         vector_db_service.delete_all_collections().await;
 
-        let sqlx_service = Self::initialize_sqlx_service(&app_save_service).await;
+        let local_db_service = Self::initialize_sqlx_service(&app_save_service).await;
         let crawler_service =
-            Self::initialize_crawler_service(8, 512, Arc::clone(&app_save_service)).await;
+            Self::initialize_crawler_service(8, 512, Arc::clone(&local_db_service)).await;
 
         handle.manage(Arc::clone(&files_display_state));
         handle.manage(Arc::clone(&search_service));
-        handle.manage(Arc::clone(&sqlx_service));
+        handle.manage(Arc::clone(&local_db_service));
         handle.manage(Arc::clone(&crawler_service));
         handle.manage(Arc::clone(&vector_db_service));
 
@@ -48,7 +48,7 @@ impl AppServiceContainer {
 
         Self {
             search_service,
-            sqlx_service,
+            local_db_service,
             crawler_service,
             vector_db_service,
         }
@@ -91,10 +91,10 @@ impl AppServiceContainer {
     async fn initialize_crawler_service(
         max_concurrent: usize,
         save_after_iters: usize,
-        save_service: Arc<AppSaveService>,
+        db_service:Arc<LocalDbService>
     ) -> Arc<FileCrawlerService> {
         Arc::new(
-            FileCrawlerService::new_async(max_concurrent, save_after_iters, save_service).await,
+            FileCrawlerService::new_async(max_concurrent, save_after_iters, db_service).await,
         )
     }
 }

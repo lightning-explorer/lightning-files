@@ -1,8 +1,8 @@
 use tokio::sync::mpsc;
 
-use crate::tantivy_file_indexer::services::app_save::service::AppSaveService;
+use crate::tantivy_file_indexer::services::local_db::service::LocalDbService;
 use crate::tantivy_file_indexer::services::search_index::models::index_worker::file_input::FileInputModel;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use super::core::crawler_queue::{CrawlerQueue, Priority};
@@ -11,22 +11,19 @@ pub struct FileCrawlerService {
     max_concurrent_tasks: usize,
     crawler_save_after_iters: usize,
     queue: Arc<CrawlerQueue>,
-
 }
 
 impl FileCrawlerService {
     pub async fn new_async(
         max_concurrent_tasks: usize,
         crawler_save_after_iters: usize,
-        app_save_service: Arc<AppSaveService>,
+        local_db_service: Arc<LocalDbService>,
     ) -> Self {
-        let queue = Arc::new(CrawlerQueue::new_async(vec![], app_save_service.clone()).await);
+        let queue = Arc::new(CrawlerQueue::new(Arc::clone(&local_db_service)));
         Self {
             max_concurrent_tasks,
             crawler_save_after_iters,
-
             queue,
-
         }
     }
 
@@ -46,25 +43,12 @@ impl FileCrawlerService {
         });
     }
 
-    pub async fn push_dirs(&self, paths: Vec<(&str, Priority)>) {
-        let dirs = paths
-            .iter()
-            .map(|x| (Path::new(x.0).to_path_buf(), x.1))
-            .collect();
-        self.process_dirs(dirs).await;
+    pub async fn push_dirs(&self, paths: Vec<(PathBuf, Priority)>) {
+        self.queue.push_many(&paths).await;
     }
 
-    pub async fn load_or(&self, fallback_directories: Vec<&str>) {
-        let dirs: Vec<PathBuf> = fallback_directories
-            .iter()
-            .map(|x| Path::new(x).to_path_buf())
-            .collect();
-        self.queue.load_or(dirs).await;
-    }
-
-    async fn process_dirs(&self, paths: Vec<(PathBuf, Priority)>) {
-        for path in paths {
-            self.queue.push(path.0, path.1).await;
-        }
+    pub async fn push_dirs_default(&self, paths: Vec<PathBuf>) {
+        // 1 being the default priority
+        self.push_dirs(paths.into_iter().map(|path| (path, 1)).collect()).await;
     }
 }

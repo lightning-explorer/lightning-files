@@ -37,4 +37,12 @@ impl LocalDbService {
     pub fn files_table(&self) -> &FilesTable {
         &self.files_table
     }
+
+    pub fn recently_indexed_dirs_table(&self) -> &RecentlyIndexedDirectoriesTable {
+        &self.recently_indexed_dirs_table
+    }
+
+    pub fn crawler_queue_table(&self) -> &CrawlerQueueTable {
+        &self.crawler_queue_table
+    }
 }

@@ -8,6 +8,7 @@ mod schemas {
 mod dtos {
     pub mod file_dto_input;
     pub mod vector_search_result;
+    pub mod add_to_crawler_queue;
 }
 mod util {
     pub mod file_id_helper;

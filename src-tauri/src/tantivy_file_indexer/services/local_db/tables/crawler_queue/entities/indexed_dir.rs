@@ -2,12 +2,12 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "indexed")]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    #[sea_orm(primary_key, auto_increment = false)]
     pub path: String,
     /**
-     Where a higher number means that the directory is more important
-     */
-    pub priority:u32,
+    Where a higher number means that the directory is more important
+    */
+    pub priority: u32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

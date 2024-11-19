@@ -1,4 +1,4 @@
-use std::{collections::HashSet, path::Path, sync::Arc, time::Duration};
+use std::{collections::HashSet, path::Path, sync::Arc, time::{Duration, Instant}};
 
 use super::super::models::index_worker::file_input::FileInputModel;
 use crate::tantivy_file_indexer::{
@@ -36,7 +36,11 @@ pub async fn spawn_worker(
         let stale_paths = get_stale_paths(seen_paths, stored_paths);
 
         // Ensure that the vector database gets updated
+        let time = Instant::now();
+
         vector_db_indexer.index_files(&model, &stale_paths).await;
+        
+        println!("Search Index Worker: Vector Db Indexer index files operation took {:?}", time.elapsed());
 
         let dtos_len = model.dtos.len();
         batches_processed += dtos_len;
@@ -65,7 +69,7 @@ pub async fn spawn_worker(
             batches_processed = 0;
         }
     }
-    println!("receiver channel closed");
+    println!("File index worker receiver channel closed");
 }
 
 // THIS one is the bottleneck

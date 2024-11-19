@@ -2,9 +2,9 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "recently_indexed")]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    #[sea_orm(primary_key, auto_increment = false)]
     pub path: String,
-    pub time: u64, // UNIX time
+    pub time: i64, // UNIX time
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

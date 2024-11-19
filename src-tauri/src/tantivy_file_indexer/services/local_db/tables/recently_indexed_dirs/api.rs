@@ -1,5 +1,7 @@
 use chrono::Utc;
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
+use sea_orm::{
+    sea_query::OnConflict, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set,
+};
 
 use crate::tantivy_file_indexer::services::local_db::table_creator::generate_table_lenient;
 
@@ -29,18 +31,18 @@ impl RecentlyIndexedDirectoriesTable {
             .collect();
 
         recently_indexed_dir::Entity::insert_many(entries)
+            .on_conflict(
+                // Allow upserts
+                OnConflict::column(recently_indexed_dir::Column::Path)
+                    .update_columns([recently_indexed_dir::Column::Time])
+                    .to_owned(),
+            )
             .exec(&self.db)
             .await?;
         Ok(())
     }
 
-    pub async fn is_recent(&self, dir_path: String) -> Result<bool, sea_orm::DbErr> {
-        let items_removed = self.refresh().await?;
-        if items_removed > 0 {
-            println!("refresh removed {} old indexed directories", items_removed);
-        }
-        // because the refresh already happened, if an item with the path is found, it means that it is indeed recent,
-        // otherwise, it would have been removed
+    pub async fn contains_dir(&self, dir_path: String) -> Result<bool, sea_orm::DbErr> {
         let exists = recently_indexed_dir::Entity::find()
             .filter(recently_indexed_dir::Column::Path.eq(dir_path))
             .one(&self.db)
@@ -51,14 +53,16 @@ impl RecentlyIndexedDirectoriesTable {
 
     /**
     Returns the number of files that were removed
+
+    `cutoff_time` is a value in minutes
     */
-    async fn refresh(&self) -> Result<u64, sea_orm::DbErr> {
+    pub async fn refresh(&self, cutoff_time: i64) -> Result<u64, sea_orm::DbErr> {
         // removes old entries
         // Todo: add more sophisticated logic
         let now = Utc::now().timestamp();
 
         // Calculate the cutoff time (5 minutes ago)
-        let cutoff_time = now - (5 * 60);
+        let cutoff_time = now - (cutoff_time * 60);
 
         let delete = recently_indexed_dir::Entity::delete_many()
             .filter(recently_indexed_dir::Column::Time.lt(cutoff_time))

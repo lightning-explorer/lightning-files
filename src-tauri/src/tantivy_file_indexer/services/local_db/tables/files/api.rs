@@ -2,7 +2,7 @@ use crate::tantivy_file_indexer::services::local_db::table_creator::generate_tab
 use std::collections::HashSet;
 
 use super::entities::file::{self};
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, Set};
+use sea_orm::{sea_query::OnConflict, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, Set};
 
 pub struct FilesTable {
     db: DatabaseConnection,
@@ -24,7 +24,15 @@ impl FilesTable {
             })
             .collect();
 
-        file::Entity::insert_many(new_files).exec(&self.db).await?;
+        file::Entity::insert_many(new_files)
+            .on_conflict(
+                // Allow upserts
+                OnConflict::column(file::Column::Path)
+                    .update_columns([file::Column::ParentPath])
+                    .to_owned(),
+            )
+            .exec(&self.db)
+            .await?;
         Ok(())
     }
 

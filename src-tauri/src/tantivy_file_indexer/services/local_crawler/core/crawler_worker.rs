@@ -7,7 +7,6 @@ use tokio::{
     task::JoinSet,
 };
 
-use crate::tantivy_file_indexer::services::vector_db::service::VectorDbService;
 use crate::tantivy_file_indexer::{
     dtos::file_dto_input::FileDTOInput,
     services::search_index::models::index_worker::file_input::FileInputModel, util::file_id_helper,
@@ -60,9 +59,7 @@ pub async fn spawn_worker(
                                 let count = files_processed.fetch_add(1, Ordering::Relaxed) + 1;
                                 if count >= save_queue_after {
                                     files_processed.store(0, Ordering::Relaxed);
-                                    if let Err(err) = queue.save().await {
-                                        eprintln!("Failed to save queue: {}", err);
-                                    }
+                                    // Since queue is stored in the database, no need to save it here
                                 }
 
                                 //println!("create dto took {:?}", time.elapsed());
@@ -81,10 +78,10 @@ pub async fn spawn_worker(
                 //println!("files send {:?}", time.elapsed());
             });
         } else {
-            if tasks.is_empty() {
-                println!("Worker done processing");
-                break;
-            }
+            //if tasks.is_empty() {
+            //    println!("Worker done processing");
+            //    break;
+            //}
             time::sleep(Duration::from_millis(100)).await;
         }
 

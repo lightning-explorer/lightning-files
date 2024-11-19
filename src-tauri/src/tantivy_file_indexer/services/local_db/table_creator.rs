@@ -16,14 +16,11 @@ where
 /**
 Simply prints an error if something goes wrong
 */
-pub async fn generate_table_lenient<E>(
-    db: &DatabaseConnection,
-    entity: E,
-)
+pub async fn generate_table_lenient<E>(db: &DatabaseConnection, entity: E)
 where
     E: EntityTrait,
 {
-    if let Err(err) =  generate_table(db, entity).await {
+    if let Err(err) = generate_table(db, entity).await {
         println!("Warning: Error generating table: {}", err);
     }
 }
