@@ -40,9 +40,14 @@ pub async fn spawn_worker(
             .expect("Failed to get stored paths");
         let stale_paths = get_stale_paths(seen_paths, stored_paths);
 
+        
         // Ensure that the vector database gets updated
+        #[cfg(feature = "speed_profile")]
         let time = Instant::now();
+
         vector_db_indexer.index_files(&model, &stale_paths).await;
+
+        #[cfg(feature = "speed_profile")]
         println!(
             "Search Index Worker: Vector Db Indexer index files operation took {:?}",
             time.elapsed()
@@ -90,8 +95,11 @@ async fn process_files(
 
     let mut db_file_models: Vec<files::entities::file::Model> = Vec::new();
 
-    let time = Instant::now();
-    let num_of_dtos = dtos.len();
+    #[cfg(feature = "speed_profile")]
+    {
+        let time = Instant::now();
+        let num_of_dtos = dtos.len();
+    }
     for dto in dtos.into_iter() {
         writer.delete_term(tantivy::Term::from_field_text(
             schema
@@ -117,16 +125,21 @@ async fn process_files(
         };
         db_file_models.push(file_model);
     }
+    #[cfg(feature = "speed_profile")]
     println!(
         "Index Worker - Process Files: Tantivy writer adding {} entries took {:?}",
         num_of_dtos,
         time.elapsed()
     );
 
+    #[cfg(feature = "speed_profile")]
     let time = Instant::now();
+
     if let Err(err) = db_service.files_table().upsert_many(&db_file_models).await {
         return Err(format!("Error upserting file models: {}", err));
     }
+
+    #[cfg(feature = "speed_profile")]
     println!(
         "Index Worker - Process Files: DB upsert took {:?}",
         time.elapsed()

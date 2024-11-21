@@ -41,7 +41,7 @@ impl VectorDbIndexer {
                 .collect(),
         );
 
-        // TODO: remove print
+        #[cfg(feature="vector_db")]
         println!(
             "removing {} stale entries from vector database",
             stale_paths.len()
@@ -55,9 +55,12 @@ impl VectorDbIndexer {
                     .collect(),
             )
             .await;
-
+        #[cfg(feature="speed_profile")]    
         let time = Instant::now();
+
         self.indexer.index(paths).await;
+
+        #[cfg(feature="speed_profile")]    
         println!("Vector index operation took {:?}", time.elapsed());
     }
 

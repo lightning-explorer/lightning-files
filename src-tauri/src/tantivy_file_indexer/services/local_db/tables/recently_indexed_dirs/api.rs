@@ -2,6 +2,7 @@ use chrono::Utc;
 use sea_orm::{
     sea_query::OnConflict, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set,
 };
+use sqlx::{Sqlite, Transaction};
 
 use crate::tantivy_file_indexer::services::local_db::table_creator::generate_table_lenient;
 
@@ -21,24 +22,31 @@ impl RecentlyIndexedDirectoriesTable {
     pub async fn upsert_many(
         &self,
         models: &[recently_indexed_dir::Model],
-    ) -> Result<(), sea_orm::DbErr> {
-        let entries: Vec<recently_indexed_dir::ActiveModel> = models
-            .iter()
-            .map(|model| recently_indexed_dir::ActiveModel {
-                path: Set(model.path.to_owned()),
-                time: Set(model.time.to_owned()),
-            })
-            .collect();
+    ) -> Result<(), sqlx::Error> {
+        // Start a transaction
+        let mut transaction: Transaction<'_, Sqlite> =
+            self.db.get_sqlite_connection_pool().begin().await?;
 
-        recently_indexed_dir::Entity::insert_many(entries)
-            .on_conflict(
-                // Allow upserts
-                OnConflict::column(recently_indexed_dir::Column::Path)
-                    .update_columns([recently_indexed_dir::Column::Time])
-                    .to_owned(),
-            )
-            .exec(&self.db)
-            .await?;
+        // Raw SQL is needed because SQLite is picky about on conflict operations
+        // Prepare raw SQL for upsert
+        let query = r#"
+            INSERT INTO recently_indexed (path, time)
+            VALUES (?, ?)
+            ON CONFLICT(path) DO UPDATE SET
+                time = excluded.time;
+        "#;
+
+        // Execute the query for each model
+        for model in models {
+            sqlx::query(query)
+                .bind(&model.path)
+                .bind(&model.time)
+                .execute(&mut *transaction)
+                .await?;
+        }
+
+        // Commit the transaction
+        transaction.commit().await?;
         Ok(())
     }
 

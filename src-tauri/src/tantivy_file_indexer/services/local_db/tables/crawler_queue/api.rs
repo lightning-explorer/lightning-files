@@ -12,6 +12,7 @@ use sea_orm::{
     sea_query::OnConflict, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait,
     QueryFilter, QueryOrder, Set, TransactionTrait,
 };
+use sqlx::{Sqlite, Transaction};
 
 use crate::tantivy_file_indexer::services::local_db::table_creator::generate_table_lenient;
 
@@ -28,33 +29,31 @@ impl CrawlerQueueTable {
         Self { db }
     }
 
-    pub async fn upsert_many(&self, models: &[indexed_dir::Model]) -> Result<(), sea_orm::DbErr> {
-        let entries: Vec<indexed_dir::ActiveModel> = models
-            .iter()
-            .map(|model| indexed_dir::ActiveModel {
-                path: Set(model.path.to_owned()),
-                priority: Set(model.priority.to_owned()),
-            })
-            .collect();
-        // Remove this along with the error handling
-        let entries_dbg = format!("{:?}", entries);
+    pub async fn upsert_many(&self, models: &[indexed_dir::Model]) -> Result<(), sqlx::Error> {
+        // Start a transaction
+        let mut transaction: Transaction<'_, Sqlite> =
+            self.db.get_sqlite_connection_pool().begin().await?;
 
-        // To get rid of all this error handling, just add ? after the await and remove the rest
-        indexed_dir::Entity::insert_many(entries)
-            .on_conflict(
-                // Allow upserts
-                OnConflict::column(indexed_dir::Column::Path)
-                    .update_columns([indexed_dir::Column::Priority])
-                    .to_owned(),
-            )
-            .exec(&self.db)
-            .await
-            .map_err(|err| {
-                sea_orm::DbErr::Custom(format!(
-                    "Error upserting: {}. Here are the models: {:?}. Here are the entries: {:?}",
-                    err, models, entries_dbg
-                ))
-            })?;
+        // Raw SQL is needed because SQLite is picky about on conflict operations
+        // Prepare raw SQL for upsert
+        let query = r#"
+            INSERT INTO indexed (path, priority)
+            VALUES (?, ?)
+            ON CONFLICT(path) DO UPDATE SET
+                priority = excluded.priority;
+        "#;
+
+        // Execute the query for each model
+        for model in models {
+            sqlx::query(query)
+                .bind(&model.path)
+                .bind(&model.priority)
+                .execute(&mut *transaction)
+                .await?;
+        }
+
+        // Commit the transaction
+        transaction.commit().await?;
         Ok(())
     }
 
@@ -95,7 +94,7 @@ impl CrawlerQueueTable {
         Ok(count)
     }
 
-    pub async fn view_all(&self)-> Result<Vec<indexed_dir::Model>, sea_orm::DbErr>{
+    pub async fn view_all(&self) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
         indexed_dir::Entity::find().all(&self.db).await
     }
 }

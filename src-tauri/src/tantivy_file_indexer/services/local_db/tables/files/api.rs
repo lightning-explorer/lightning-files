@@ -2,7 +2,8 @@ use crate::tantivy_file_indexer::services::local_db::table_creator::generate_tab
 use std::collections::HashSet;
 
 use super::entities::file::{self};
-use sea_orm::{sea_query::OnConflict, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, Set};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter};
+use sqlx::{Sqlite, Transaction};
 
 pub struct FilesTable {
     db: DatabaseConnection,
@@ -15,24 +16,31 @@ impl FilesTable {
         Self { db }
     }
 
-    pub async fn upsert_many(&self, models: &[file::Model]) -> Result<(), sea_orm::DbErr> {
-        let new_files: Vec<file::ActiveModel> = models
-            .iter()
-            .map(|model| file::ActiveModel {
-                path: Set(model.path.to_owned()),
-                parent_path: Set(model.parent_path.to_owned()),
-            })
-            .collect();
+    pub async fn upsert_many(&self, models: &[file::Model]) -> Result<(), sqlx::Error> {
+        // Start a transaction
+        let mut transaction: Transaction<'_, Sqlite> =
+            self.db.get_sqlite_connection_pool().begin().await?;
 
-        file::Entity::insert_many(new_files)
-            .on_conflict(
-                // Allow upserts
-                OnConflict::column(file::Column::Path)
-                    .update_columns([file::Column::ParentPath])
-                    .to_owned(),
-            )
-            .exec(&self.db)
-            .await?;
+        // Raw SQL is needed because SQLite is picky about on conflict operations
+        // Prepare raw SQL for upsert
+        let query = r#"
+            INSERT INTO files (path, parent_path)
+            VALUES (?, ?)
+            ON CONFLICT(path) DO UPDATE SET
+                parent_path = excluded.parent_path;
+        "#;
+
+        // Execute the query for each model
+        for model in models {
+            sqlx::query(query)
+                .bind(&model.path)
+                .bind(&model.parent_path)
+                .execute(&mut *transaction)
+                .await?;
+        }
+
+        // Commit the transaction
+        transaction.commit().await?;
         Ok(())
     }
 

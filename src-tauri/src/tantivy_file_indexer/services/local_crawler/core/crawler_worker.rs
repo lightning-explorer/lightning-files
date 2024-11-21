@@ -1,5 +1,6 @@
 use crossbeam::queue::SegQueue;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::time::Instant;
 use std::{path::PathBuf, sync::Arc, time::UNIX_EPOCH};
 use tokio::time::{self, Duration};
 use tokio::{
@@ -70,12 +71,14 @@ pub async fn spawn_worker(
 
                 let model = create_model(path, &dir_entries).await;
 
-                //let time = Instant::now();
+                #[cfg(feature="speed_profile")]    
+                let time = Instant::now();
                 // Apparent bottleneck:
                 if let Err(err) = sender.send(model).await {
                     eprintln!("Error sending FileInputModel to indexer: {}", err);
                 }
-                //println!("files send {:?}", time.elapsed());
+                #[cfg(feature="speed_profile")]    
+                println!("files send {:?}", time.elapsed());
             });
         } else {
             //if tasks.is_empty() {
