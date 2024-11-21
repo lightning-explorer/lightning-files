@@ -128,11 +128,11 @@ async fn process_files(
 
     let mut db_file_models: Vec<files::entities::file::Model> = Vec::new();
 
-    #[cfg(feature = "speed_profile")]
-    {
-        let time = Instant::now();
-        let num_of_dtos = dtos.len();
-    }
+    // Only used in speed_profile feature
+    let time = Instant::now();
+    let num_of_dtos = dtos.len();
+    //
+
     for dto in dtos.into_iter() {
         writer.delete_term(tantivy::Term::from_field_text(
             schema

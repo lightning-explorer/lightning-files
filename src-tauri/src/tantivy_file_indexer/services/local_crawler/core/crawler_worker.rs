@@ -1,5 +1,4 @@
 use crossbeam::queue::SegQueue;
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Instant;
 use std::{path::PathBuf, sync::Arc, time::UNIX_EPOCH};
 use tokio::time::{self, Duration};
@@ -8,6 +7,7 @@ use tokio::{
     task::JoinSet,
 };
 
+use crate::tantivy_file_indexer::services::local_crawler::analyzer::service::FileCrawlerAnalyzerService;
 use crate::tantivy_file_indexer::{
     dtos::file_dto_input::FileDTOInput,
     services::search_index::models::index_worker::file_input::FileInputModel, util::file_id_helper,
@@ -15,11 +15,29 @@ use crate::tantivy_file_indexer::{
 
 use super::crawler_queue::CrawlerQueue;
 
-// Note that the crawler does not handle database operations
 pub async fn spawn_worker(
     sender: mpsc::Sender<FileInputModel>,
     max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,
+) {
+    spawn_worker_internal(sender, max_concurrent_tasks, queue, None).await;
+}
+
+pub async fn spawn_worker_with_analyzer(
+    sender: mpsc::Sender<FileInputModel>,
+    max_concurrent_tasks: usize,
+    queue: Arc<CrawlerQueue>,
+    analyzer: Arc<FileCrawlerAnalyzerService>,
+) {
+    spawn_worker_internal(sender, max_concurrent_tasks, queue, Some(analyzer)).await;
+}
+
+// Note that the crawler does not handle database operations
+pub async fn spawn_worker_internal(
+    sender: mpsc::Sender<FileInputModel>,
+    max_concurrent_tasks: usize,
+    queue: Arc<CrawlerQueue>,
+    analyzer: Option<Arc<FileCrawlerAnalyzerService>>,
 ) {
     let dir_entries = Arc::new(SegQueue::new());
     let semaphore = Arc::new(Semaphore::new(max_concurrent_tasks));
@@ -27,11 +45,15 @@ pub async fn spawn_worker(
     let worker_queue = Arc::clone(&queue);
 
     loop {
+        if let Some(ref analyzer) = analyzer {
+            analyzer.record_timestamp().await;
+        }
         if let Some((path, priority)) = queue.pop().await {
             let dir_entries = Arc::clone(&dir_entries);
             let semaphore = Arc::clone(&semaphore);
             let sender = sender.clone();
             let queue = Arc::clone(&worker_queue);
+            let analyzer_clone = analyzer.clone();
 
             tasks.spawn(async move {
                 let _permit = semaphore
@@ -41,21 +63,17 @@ pub async fn spawn_worker(
 
                 if path.is_dir() {
                     if let Ok(mut dir) = tokio::fs::read_dir(&path).await {
-                        // Allow priority to increase over time (Nested items lose their importance compared to parent items)
-
                         while let Ok(Some(entry)) = dir.next_entry().await {
                             let entry_path = entry.path();
                             if entry_path.is_dir() {
-                                // Rather than pushing a default priority here, we want the number to be the parent's priority +1
-                                // This indicates that the child items are less important and can be processed after the higher-level directories
                                 queue.push(entry_path, priority + 1).await;
                             }
                             if let Ok(dto) = create_dto(&entry).await {
-                                //let time = Instant::now();
-
                                 dir_entries.push(dto);
-
-                                //println!("create dto took {:?}", time.elapsed());
+                            }
+                            // A directory or a file counts as a file being processed
+                            if let Some(ref analyzer) = analyzer_clone {
+                                analyzer.add_one_to_files_processed();
                             }
                         }
                     }
@@ -63,20 +81,19 @@ pub async fn spawn_worker(
 
                 let model = create_model(path, &dir_entries).await;
 
-                #[cfg(feature="speed_profile")]    
+                #[cfg(feature = "speed_profile")]
                 let time = Instant::now();
-                // Apparent bottleneck:
+
                 if let Err(err) = sender.send(model).await {
                     eprintln!("Error sending FileInputModel to indexer: {}", err);
                 }
-                #[cfg(feature="speed_profile")]    
-                println!("files send {:?}", time.elapsed());
+                #[cfg(feature = "speed_profile")]
+                println!(
+                    "Crawler sending files to indexer took: {:?}",
+                    time.elapsed()
+                );
             });
         } else {
-            //if tasks.is_empty() {
-            //    println!("Worker done processing");
-            //    break;
-            //}
             time::sleep(Duration::from_millis(100)).await;
         }
 

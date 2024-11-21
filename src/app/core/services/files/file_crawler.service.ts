@@ -27,10 +27,29 @@ export class FileCrawlerService {
         });
     }
 
-    async viewCrawlerPriorityCounts(): Promise<Record<number, number>>{
-        return await invoke<Record<number, number>>("view_crawler_priority_counts").catch(err => {
+    async viewCrawlerPriorityCounts(): Promise<Array<{ priority: number; count: number }>> {
+        const record = await invoke<Record<number, number>>("view_crawler_priority_counts").catch(err => {
             console.log(err);
-            return [];
+            return undefined;
         });
+        if (record) {
+            return Object.entries(record).map(([priority, count]) => (
+                { priority: Number(priority), count }
+            ));
+        }
+        return [];
+    }
+
+    async getCrawlerAnalyzerData(): Promise<Array<{ label: string, data: string }>> {
+        const record = await invoke<Record<string, string>>("get_crawler_analyzer_data").catch(err => {
+            console.log(err);
+            return undefined;
+        });
+        if (record) {
+            return Object.entries(record).map(([label, data]) => (
+                { label, data }
+            ));
+        }
+        return [];
     }
 }

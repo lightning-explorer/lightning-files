@@ -15,8 +15,9 @@ import { interval, Subject, switchMap, takeUntil } from 'rxjs';
 export class SettingsPageComponent implements OnInit {
   crawlerQueue: IndexedDirModel[] = [];
   crawlerPriorityCounts: Array<{ priority: number; count: number }> = [];
+  crawlerAnalyzerData: Array<{ label:string, data:string }> = [];
 
-  private readonly refreshIntervalMs = 2000; // 2 seconds
+  private readonly refreshIntervalMs = 4000; // 4 seconds
   private destroy$ = new Subject<void>();
 
   constructor(private router: Router, private fileCrawlerService: FileCrawlerService) { }
@@ -31,10 +32,8 @@ export class SettingsPageComponent implements OnInit {
   }
 
   private async refreshCrawlerData() {
-    const priorityCounts = await this.fileCrawlerService.viewCrawlerPriorityCounts();
-    this.crawlerPriorityCounts = Object.entries(priorityCounts).map(([priority, count]) => (
-      { priority: Number(priority), count }
-    ));
+    this.crawlerPriorityCounts = await this.fileCrawlerService.viewCrawlerPriorityCounts();
+    this.crawlerAnalyzerData = await this.fileCrawlerService.getCrawlerAnalyzerData();
   }
 
   leaveSettingsButtonClick() {
