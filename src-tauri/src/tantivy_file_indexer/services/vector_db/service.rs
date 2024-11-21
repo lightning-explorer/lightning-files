@@ -15,11 +15,13 @@ impl VectorDbService {
     pub fn new() -> Self {
         let url = "http://127.0.0.1:6334";
         let vevtor = Arc::new(VevtorService::new(url));
+
         Self { vevtor }
     }
 
-    pub async fn delete_all_collections(&self) {
+    pub async fn delete_all_collections(&self) -> Result<(),&str> {
         self.vevtor.delete_all_collections().await;
+        Ok(())
     }
 
     pub async fn list_collections(&self) -> Vec<String> {

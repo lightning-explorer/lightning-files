@@ -23,6 +23,11 @@ use crate::tantivy_file_indexer::{
 use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
 use tokio::sync::{mpsc, Mutex};
 
+/*
+TODO: make it so that rather than an mpsc receiver, we use a custom receiver that pulls in the files from a database table.
+Otherwise, files that are queried to be indexed will get lost when the program closes.
+*/
+
 /**
  * waits around for the MPSC channel to send it files to index, in which it will index them
  */

@@ -1,4 +1,5 @@
-use crossbeam::queue::SegQueue;
+
+use futures::{stream, StreamExt};
 use std::time::Instant;
 use std::{path::PathBuf, sync::Arc, time::UNIX_EPOCH};
 use tokio::time::{self, Duration};
@@ -39,23 +40,36 @@ pub async fn spawn_worker_internal(
     queue: Arc<CrawlerQueue>,
     analyzer: Option<Arc<FileCrawlerAnalyzerService>>,
 ) {
-    let dir_entries = Arc::new(SegQueue::new());
-    let semaphore = Arc::new(Semaphore::new(max_concurrent_tasks));
+    let semaphore = Arc::new(Semaphore::new(16));
     let mut tasks = JoinSet::new();
     let worker_queue = Arc::clone(&queue);
+
+    // for logging
+    let mut subworker_id: u32 = 0;
 
     loop {
         if let Some(ref analyzer) = analyzer {
             analyzer.record_timestamp().await;
         }
         if let Some((path, priority)) = queue.pop().await {
-            let dir_entries = Arc::clone(&dir_entries);
             let semaphore = Arc::clone(&semaphore);
             let sender = sender.clone();
             let queue = Arc::clone(&worker_queue);
             let analyzer_clone = analyzer.clone();
 
+            subworker_id += 1;
+
             tasks.spawn(async move {
+
+                #[cfg(feature = "file_crawler_logs")]
+                println!(
+                    "File crawler subworker has been spawned to process entries in directory. ID: {}",
+                    subworker_id
+                );
+            
+
+                let mut dir_entries = Vec::new();
+
                 let _permit = semaphore
                     .acquire_owned()
                     .await
@@ -66,11 +80,13 @@ pub async fn spawn_worker_internal(
                         while let Ok(Some(entry)) = dir.next_entry().await {
                             let entry_path = entry.path();
                             if entry_path.is_dir() {
-                                queue.push(entry_path, priority + 1).await;
+                                queue.push(entry_path.clone(), priority + 1).await;
                             }
-                            if let Ok(dto) = create_dto(&entry).await {
-                                dir_entries.push(dto);
-                            }
+
+                            //if let Ok(dto) = create_dto(&entry).await {
+                            dir_entries.push(entry_path);
+                            //}
+
                             // A directory or a file counts as a file being processed
                             if let Some(ref analyzer) = analyzer_clone {
                                 analyzer.add_one_to_files_processed();
@@ -79,7 +95,17 @@ pub async fn spawn_worker_internal(
                     }
                 }
 
-                let model = create_model(path, &dir_entries).await;
+                #[cfg(feature = "speed_profile")]
+                let time = Instant::now();
+
+                // DTOs get created here
+                let model = create_model(path, dir_entries).await;
+
+                #[cfg(feature = "speed_profile")]
+                println!(
+                    "Crawler creating FileInputModel for batch of files/directories took: {:?}",
+                    time.elapsed()
+                );
 
                 #[cfg(feature = "speed_profile")]
                 let time = Instant::now();
@@ -92,8 +118,17 @@ pub async fn spawn_worker_internal(
                     "Crawler sending files to indexer took: {:?}",
                     time.elapsed()
                 );
+
+                #[cfg(feature = "file_crawler_logs")]
+                println!(
+                    "File crawler subworker has finished. ID: {}",
+                    subworker_id
+                );
+                
             });
         } else {
+            #[cfg(feature = "file_crawler_logs")]
+            println!("File crawler has nothing to do. Sleeping");
             time::sleep(Duration::from_millis(100)).await;
         }
 
@@ -105,20 +140,30 @@ pub async fn spawn_worker_internal(
     }
 }
 
-async fn create_model(directory_from: PathBuf, entries: &SegQueue<FileDTOInput>) -> FileInputModel {
-    let mut dtos = Vec::<FileDTOInput>::new();
-    while let Some(entry) = entries.pop() {
-        dtos.push(entry);
-    }
+async fn create_model(directory_from: PathBuf, entries: Vec<PathBuf>) -> FileInputModel {
+    let dtos: Vec<FileDTOInput> = create_dtos_batch(entries)
+        .await
+        .into_iter()
+        .flatten()
+        .collect();
     FileInputModel {
         dtos,
         directory_from,
     }
 }
 
+async fn create_dtos_batch(entries: Vec<PathBuf>) -> Vec<Result<FileDTOInput, String>> {
+    stream::iter(entries)
+        .map(|entry| create_dto(entry))
+        .buffer_unordered(16)
+        .collect()
+        .await
+}
+
 // This function takes around 60ms to complete so look at this
-async fn create_dto(entry: &tokio::fs::DirEntry) -> Result<FileDTOInput, String> {
-    let metadata = entry.metadata().await.map_err(|x| x.to_string())?;
+// After some testing and removing 'metadata', the function still takes about the same amount of time
+async fn create_dto(entry: PathBuf) -> Result<FileDTOInput, String> {
+    let metadata = entry.metadata().map_err(|x| x.to_string())?;
 
     let modified_time = metadata.modified().map_err(|x| x.to_string())?;
 
@@ -127,17 +172,23 @@ async fn create_dto(entry: &tokio::fs::DirEntry) -> Result<FileDTOInput, String>
         .expect("Time went backwards")
         .as_secs();
 
-    let file_id = if entry.path().is_dir() {
+    // metadata.is_dir() might be slightly more efficient than calling it on 'entry'
+    let file_id = if metadata.is_dir() {
         //for directories, use the directory path since getting their ID is more difficult
-        entry.path().to_string_lossy().to_string()
+        entry.to_string_lossy().to_string()
     } else {
-        file_id_helper::get_file_id(entry.path().to_path_buf())?
+        file_id_helper::get_file_id(entry.clone())?
     };
 
+    let name = entry
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string();
     let dto = FileDTOInput {
         file_id,
-        name: entry.file_name().to_string_lossy().to_string(),
-        file_path: entry.path().to_string_lossy().to_string(),
+        name,
+        file_path: entry.to_string_lossy().to_string(),
         metadata: "test metadata".to_string(),
         date_modified: unix_timestamp,
         popularity: 1.0,
