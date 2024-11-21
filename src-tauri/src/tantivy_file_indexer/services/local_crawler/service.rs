@@ -9,20 +9,17 @@ use super::core::crawler_queue::{CrawlerQueue, Priority};
 
 pub struct FileCrawlerService {
     max_concurrent_tasks: usize,
-    crawler_save_after_iters: usize,
     queue: Arc<CrawlerQueue>,
 }
 
 impl FileCrawlerService {
     pub async fn new_async(
         max_concurrent_tasks: usize,
-        crawler_save_after_iters: usize,
         local_db_service: Arc<LocalDbService>,
     ) -> Self {
         let queue = Arc::new(CrawlerQueue::new(Arc::clone(&local_db_service)));
         Self {
             max_concurrent_tasks,
-            crawler_save_after_iters,
             queue,
         }
     }
@@ -30,13 +27,11 @@ impl FileCrawlerService {
     pub fn spawn_crawler(&self, sender: mpsc::Sender<FileInputModel>) {
         let queue = self.queue.clone();
         let max_concurrent_tasks = self.max_concurrent_tasks;
-        let crawler_save_after_iters = self.crawler_save_after_iters;
 
         tokio::task::spawn(async move {
             super::core::crawler_worker::spawn_worker(
                 sender,
                 max_concurrent_tasks,
-                crawler_save_after_iters,
                 queue,
             )
             .await;

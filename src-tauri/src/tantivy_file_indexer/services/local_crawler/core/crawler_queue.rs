@@ -35,13 +35,13 @@ impl CrawlerQueue {
     }
 
     pub async fn pop(&self) -> Option<(PathBuf, Priority)> {
-        #[cfg(feature="file_crawler")]    
+        #[cfg(feature="file_crawler_logs")]    
         println!("Length of queue: {}", self.get_len().await);
 
         match self.db.crawler_queue_table().pop().await {
             Ok(model) => model.map(|x| {
                 if x.priority > 1 {
-                    #[cfg(feature="file_crawler")]
+                    #[cfg(feature="file_crawler_logs")]
                     println!(
                         "Took item {} from queue with priority {}",
                         x.path, x.priority
@@ -71,7 +71,7 @@ impl CrawlerQueue {
         match &self.db.recently_indexed_dirs_table().refresh(5).await {
             Ok(val) => {
                 if val > &0 {
-                    #[cfg(feature="file_crawler")]    
+                    #[cfg(feature="file_crawler_logs")]    
                     println!("Found {} old directories in recently indexed and removed them to allow re-indexing", val);
                 }
             }
@@ -86,7 +86,7 @@ impl CrawlerQueue {
 
         // Optional logging:
         if entries.is_empty() {
-            #[cfg(feature="file_crawler")]    
+            #[cfg(feature="file_crawler_logs")]    
             println!("Crawler Queue: All directories that were attempted to be added have already been indexed recently");
         }
 

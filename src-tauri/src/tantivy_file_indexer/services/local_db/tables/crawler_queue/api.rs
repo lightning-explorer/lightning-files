@@ -8,9 +8,11 @@ SQLite database and store stuff there.
  * that have ALREADY been indexed
  */
 
+use std::collections::HashMap;
+
 use sea_orm::{
-    sea_query::OnConflict, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait,
-    QueryFilter, QueryOrder, Set, TransactionTrait,
+    prelude::Expr, sea_query::OnConflict, ColumnTrait, DatabaseConnection, EntityTrait,
+    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, TransactionTrait,
 };
 use sqlx::{Sqlite, Transaction};
 
@@ -94,7 +96,37 @@ impl CrawlerQueueTable {
         Ok(count)
     }
 
-    pub async fn view_all(&self) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
-        indexed_dir::Entity::find().all(&self.db).await
+    pub async fn view_all_limit(
+        &self,
+        limit: u64,
+    ) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
+        indexed_dir::Entity::find().limit(limit).all(&self.db).await
+    }
+
+    /**
+    ### Example output:
+
+    Priority 1: 2 items
+
+    Priority 2: 1 items
+
+    Priority 3: 3 items
+     */
+    pub async fn get_priority_counts(&self) -> Result<HashMap<u32, i64>, sea_orm::DbErr> {
+        use indexed_dir::Entity as IndexedDir;
+
+        let results = IndexedDir::find()
+            .select_only() // Only select specific columns
+            .column(indexed_dir::Column::Priority) // Select the priority column
+            .column_as(Expr::col(indexed_dir::Column::Priority).count(), "count") // Count occurrences
+            .group_by(indexed_dir::Column::Priority) // Group by priority
+            .into_tuple::<(u32, i64)>() // Convert the result into (priority, count) tuples
+            .all(&self.db)
+            .await?;
+
+        // Convert the results into a HashMap for easier use
+        let priority_counts = results.into_iter().collect::<HashMap<u32, i64>>();
+
+        Ok(priority_counts)
     }
 }

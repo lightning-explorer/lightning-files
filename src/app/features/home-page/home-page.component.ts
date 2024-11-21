@@ -24,7 +24,7 @@ import { PinnedFilesHeaderComponent } from "./pinned-files-header/pinned-files-h
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [SearchbarComponent, FileResultComponent, CommonModule, SidebarComponent, CurrentDirectoryBarComponent, FilesDisplayComponent, MatIconModule, TopHeaderComponent, PinnedFilesHeaderComponent],
+  imports: [CommonModule, SidebarComponent, FilesDisplayComponent, MatIconModule, TopHeaderComponent, PinnedFilesHeaderComponent],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss',
   providers: []

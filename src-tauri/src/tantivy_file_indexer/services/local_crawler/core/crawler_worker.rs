@@ -19,13 +19,11 @@ use super::crawler_queue::CrawlerQueue;
 pub async fn spawn_worker(
     sender: mpsc::Sender<FileInputModel>,
     max_concurrent_tasks: usize,
-    save_queue_after: usize,
     queue: Arc<CrawlerQueue>,
 ) {
     let dir_entries = Arc::new(SegQueue::new());
     let semaphore = Arc::new(Semaphore::new(max_concurrent_tasks));
     let mut tasks = JoinSet::new();
-    let files_processed = Arc::new(AtomicUsize::new(0));
     let worker_queue = Arc::clone(&queue);
 
     loop {
@@ -34,7 +32,6 @@ pub async fn spawn_worker(
             let semaphore = Arc::clone(&semaphore);
             let sender = sender.clone();
             let queue = Arc::clone(&worker_queue);
-            let files_processed = Arc::clone(&files_processed);
 
             tasks.spawn(async move {
                 let _permit = semaphore
@@ -57,11 +54,6 @@ pub async fn spawn_worker(
                                 //let time = Instant::now();
 
                                 dir_entries.push(dto);
-                                let count = files_processed.fetch_add(1, Ordering::Relaxed) + 1;
-                                if count >= save_queue_after {
-                                    files_processed.store(0, Ordering::Relaxed);
-                                    // Since queue is stored in the database, no need to save it here
-                                }
 
                                 //println!("create dto took {:?}", time.elapsed());
                             }

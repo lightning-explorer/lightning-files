@@ -4,11 +4,12 @@ import { DriveService } from '../../../core/services/files/drive.service';
 import { DriveModel } from '../../../core/models/drive-model';
 import { CommonModule } from '@angular/common';
 import { DriveResultComponent } from "../drive-result/drive-result.component";
+import { ToolbarComponent } from "./toolbar/toolbar.component";
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [ButtonWIconComponent, CommonModule, DriveResultComponent],
+  imports: [ButtonWIconComponent, CommonModule, DriveResultComponent, ToolbarComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })

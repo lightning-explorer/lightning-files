@@ -36,7 +36,7 @@ impl AppServiceContainer {
 
         let local_db_service = Self::initialize_sqlx_service(&app_save_service).await;
         let crawler_service =
-            Self::initialize_crawler_service(8, 512, Arc::clone(&local_db_service)).await;
+            Self::initialize_crawler_service(8, Arc::clone(&local_db_service)).await;
 
         handle.manage(Arc::clone(&files_display_state));
         handle.manage(Arc::clone(&search_service));
@@ -90,11 +90,10 @@ impl AppServiceContainer {
 
     async fn initialize_crawler_service(
         max_concurrent: usize,
-        save_after_iters: usize,
         db_service:Arc<LocalDbService>
     ) -> Arc<FileCrawlerService> {
         Arc::new(
-            FileCrawlerService::new_async(max_concurrent, save_after_iters, db_service).await,
+            FileCrawlerService::new_async(max_concurrent, db_service).await,
         )
     }
 }

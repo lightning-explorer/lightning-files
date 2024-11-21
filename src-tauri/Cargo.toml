@@ -8,11 +8,12 @@ edition = "2021"
 [features]
 # Logginf features
 speed_profile = []
-file_crawler = []
-vector_db = []
+file_crawler_logs = []
+vector_db_logs = []
+index_worker_logs = []
 
 # Default features
-default = ["file_crawler"]
+default = ["file_crawler_logs"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

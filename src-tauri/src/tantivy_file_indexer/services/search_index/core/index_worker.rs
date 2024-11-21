@@ -1,7 +1,10 @@
 use std::{
     collections::HashSet,
     path::Path,
-    sync::Arc,
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    },
     time::{Duration, Instant},
 };
 
@@ -31,7 +34,9 @@ pub async fn spawn_worker(
     vector_db_indexer: Arc<VectorDbIndexer>,
     batch_size: usize,
 ) {
-    let mut batches_processed: usize = 0;
+    // Keep track of how many files (not directories) have been indexed so that the changes can be committed
+    let files_processed = Arc::new(AtomicUsize::new(0));
+    let mut subworker_id: u32 = 0;
 
     while let Some(model) = receiver.recv().await {
         let seen_paths: HashSet<String> = model.dtos.iter().map(|x| x.file_path.clone()).collect();
@@ -40,45 +45,73 @@ pub async fn spawn_worker(
             .expect("Failed to get stored paths");
         let stale_paths = get_stale_paths(seen_paths, stored_paths);
 
-        
-        // Ensure that the vector database gets updated
-        #[cfg(feature = "speed_profile")]
-        let time = Instant::now();
+        // Clone Arcs to pass into the threads
+        let vector_db_indexer_clone = Arc::clone(&vector_db_indexer);
+        let writer_clone = Arc::clone(&writer);
+        let schema_clone = Arc::clone(&schema);
+        let db_service_clone = Arc::clone(&db_service);
+        let files_processed_clone = Arc::clone(&files_processed);
 
-        vector_db_indexer.index_files(&model, &stale_paths).await;
+        subworker_id += 1;
 
-        #[cfg(feature = "speed_profile")]
-        println!(
-            "Search Index Worker: Vector Db Indexer index files operation took {:?}",
-            time.elapsed()
-        );
+        tokio::spawn(async move {
+            #[cfg(feature = "index_worker_logs")]
+            println!(
+                "File index worker subworker has been spawned. ID: {}",
+                subworker_id
+            );
 
-        let dtos_len = model.dtos.len();
-        batches_processed += dtos_len;
+            #[cfg(feature = "speed_profile")]
+            let time = Instant::now();
 
-        if let Err(err) = process_files(
-            model.dtos,
-            Arc::clone(&writer),
-            Arc::clone(&schema),
-            Arc::clone(&db_service),
-        )
-        .await
-        {
-            println!("Error processing files: {}", err)
-        }
+            // Ensure that the vector database gets updated
+            vector_db_indexer_clone
+                .index_files(&model, &stale_paths)
+                .await;
 
-        if let Err(err) =
-            remove_unseen_entries(stale_paths, Arc::clone(&writer), &schema, &db_service).await
-        {
-            println!("Error removing stale entries: {}", err);
-        }
+            #[cfg(feature = "speed_profile")]
+            println!(
+                "Search Index Worker: Vector Db Indexer index files operation took {:?}",
+                time.elapsed()
+            );
 
-        if batches_processed >= batch_size {
-            if let Err(err) = commit_and_retry(writer.clone()).await {
-                println!("Error committing files: {}", err);
+            let dtos_len = model.dtos.len();
+            files_processed_clone.fetch_add(dtos_len, Ordering::Relaxed);
+
+            if let Err(err) = process_files(
+                model.dtos,
+                Arc::clone(&writer_clone),
+                Arc::clone(&schema_clone),
+                Arc::clone(&db_service_clone),
+            )
+            .await
+            {
+                println!("Error processing files: {}", err)
             }
-            batches_processed = 0;
-        }
+
+            if let Err(err) = remove_unseen_entries(
+                stale_paths,
+                Arc::clone(&writer_clone),
+                &schema_clone,
+                &db_service_clone,
+            )
+            .await
+            {
+                println!("Error removing stale entries: {}", err);
+            }
+
+            if files_processed_clone.load(Ordering::Relaxed) >= batch_size {
+                if let Err(err) = commit_and_retry(Arc::clone(&writer_clone)).await {
+                    println!("Error committing files: {}", err);
+                }
+                files_processed_clone.store(0, Ordering::Relaxed);
+            }
+            #[cfg(feature = "index_worker_logs")]
+            println!(
+                "File index worker subworker has finished. ID: {}",
+                subworker_id
+            );
+        });
     }
     println!("File index worker receiver channel closed");
 }

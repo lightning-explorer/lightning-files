@@ -41,7 +41,7 @@ impl VectorDbIndexer {
                 .collect(),
         );
 
-        #[cfg(feature="vector_db")]
+        #[cfg(feature="vector_db_logs")]
         println!(
             "removing {} stale entries from vector database",
             stale_paths.len()

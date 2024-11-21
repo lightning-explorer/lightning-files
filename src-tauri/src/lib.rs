@@ -41,8 +41,8 @@ pub fn run() {
             save_json_local,
             load_json_local,
             vector_db_query,
-
             view_crawler_queue,
+            view_crawler_priority_counts
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -58,12 +58,14 @@ async fn initialize_app(handle: AppHandle) {
     if index_files {
         let sender = service_container
             .search_service
-            .spawn_indexer(db_service, 128, 4);
+            .spawn_indexer(db_service, 128, 8);
 
         crawler_service.spawn_crawler(sender);
         crawler_service
             .push_dirs_default(vec![Path::new("C:\\").to_path_buf()])
             .await;
+    } else {
+        println!("index_files in initialize_app is set to false. No files will be indexed and no file crawlers will be spawned.")
     }
 
     handle.manage(service_container);

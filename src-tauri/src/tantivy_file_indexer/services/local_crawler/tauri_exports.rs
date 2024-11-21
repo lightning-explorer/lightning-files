@@ -19,7 +19,7 @@ pub async fn add_dirs_to_crawler_queue(
                 .collect(),
         )
         .await;
-    #[cfg(feature="file_crawler")]    
+    #[cfg(feature="file_crawler_logs")]    
     println!("Added {} directories to the crawler queue", len);
     Ok(())
 }
