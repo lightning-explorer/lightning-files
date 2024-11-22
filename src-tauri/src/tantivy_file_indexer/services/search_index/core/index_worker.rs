@@ -16,8 +16,7 @@ use crate::tantivy_file_indexer::{
         local_db::{
             service::LocalDbService,
             tables::files::{self},
-        },
-        vector_db::workers::indexer::VectorDbIndexer,
+        }, search_index::traits::file_sender_receiver::FileIndexerReceiver, vector_db::workers::indexer::VectorDbIndexer
     },
 };
 use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
@@ -31,14 +30,14 @@ Otherwise, files that are queried to be indexed will get lost when the program c
 /**
  * waits around for the MPSC channel to send it files to index, in which it will index them
  */
-pub async fn spawn_worker(
-    mut receiver: mpsc::Receiver<FileInputModel>,
+pub async fn spawn_worker<T>(
+    mut receiver: T,
     writer: Arc<Mutex<IndexWriter>>,
     schema: Arc<Schema>,
     db_service: Arc<LocalDbService>,
     vector_db_indexer: Arc<VectorDbIndexer>,
     batch_size: usize,
-) {
+) where T: FileIndexerReceiver<FileInputModel> {
     // Keep track of how many files (not directories) have been indexed so that the changes can be committed
     let files_processed = Arc::new(AtomicUsize::new(0));
     let mut subworker_id: u32 = 0;

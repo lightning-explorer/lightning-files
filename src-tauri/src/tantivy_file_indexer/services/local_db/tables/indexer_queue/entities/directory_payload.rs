@@ -1,7 +1,7 @@
 use sea_orm::entity::prelude::*;
 use serde::Serialize;
 
-use super::indexable_file::{self, IndexableFile};
+use super::indexable_file::IndexableFile;
 
 // Corresponds to the FileInputModel struct
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize)]

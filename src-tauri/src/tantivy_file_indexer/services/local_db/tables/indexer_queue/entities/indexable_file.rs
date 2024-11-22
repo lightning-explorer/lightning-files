@@ -11,8 +11,3 @@ pub struct IndexableFile {
     pub popularity: f64,
 }
 
-impl PartialEq for IndexableFile {
-    fn eq(&self, other: &Self) -> bool {
-        self.file_id == other.file_id
-    }
-}

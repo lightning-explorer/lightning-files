@@ -9,6 +9,7 @@ use tokio::{
 };
 
 use crate::tantivy_file_indexer::services::local_crawler::analyzer::service::FileCrawlerAnalyzerService;
+use crate::tantivy_file_indexer::services::search_index::traits::file_sender_receiver::FileIndexerSender;
 use crate::tantivy_file_indexer::{
     dtos::file_dto_input::FileDTOInput,
     services::search_index::models::index_worker::file_input::FileInputModel, util::file_id_helper,
@@ -34,12 +35,12 @@ pub async fn spawn_worker_with_analyzer(
 }
 
 // Note that the crawler does not handle database operations
-pub async fn spawn_worker_internal(
-    sender: mpsc::Sender<FileInputModel>,
+pub async fn spawn_worker_internal<T>(
+    sender: T,
     max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,
     analyzer: Option<Arc<FileCrawlerAnalyzerService>>,
-) {
+) where T: FileIndexerSender<FileInputModel> + Clone + Send + Sync + 'static{
     let semaphore = Arc::new(Semaphore::new(16));
     let mut tasks = JoinSet::new();
     let worker_queue = Arc::clone(&queue);
