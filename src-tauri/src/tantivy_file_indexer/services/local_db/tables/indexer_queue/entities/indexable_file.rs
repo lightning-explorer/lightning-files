@@ -1,15 +1,8 @@
-use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize, DeriveEntityModel, PartialEq)]
-#[sea_orm(table_name = "indexer_files")]
+#[derive(Clone, Deserialize, Serialize, Debug)]
 #[serde(rename_all = "PascalCase")]
-pub struct Model {
-    #[sea_orm(primary_key, auto_increment = true)]
-    pub id: i32,
-
-    pub directory_from: String,
-
+pub struct IndexableFile {
     pub file_id: String,
     pub name: String,
     pub file_path: String,
@@ -18,11 +11,8 @@ pub struct Model {
     pub popularity: f64,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {}
-impl RelationTrait for Relation {
-    fn def(&self) -> RelationDef {
-        panic!("No relations")
+impl PartialEq for IndexableFile {
+    fn eq(&self, other: &Self) -> bool {
+        self.file_id == other.file_id
     }
 }
-impl ActiveModelBehavior for ActiveModel {}

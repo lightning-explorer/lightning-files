@@ -1,7 +1,7 @@
 use sea_orm::entity::prelude::*;
 use serde::Serialize;
 
-use super::indexable_file;
+use super::indexable_file::{self, IndexableFile};
 
 // Corresponds to the FileInputModel struct
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize)]
@@ -11,22 +11,26 @@ pub struct Model {
     // TODO: consider changing to a different ID in the future, as this one may cause conflicts
     #[sea_orm(primary_key, auto_increment = false)]
     pub directory_from: String,
-    pub files: Vec<indexable_file::Model>,
+    #[sea_orm(column_type = "Json")]
+    pub files: serde_json::Value,
+}
+
+impl Model {
+    pub fn get_files(&self) -> Vec<IndexableFile> {
+        serde_json::from_value(self.files.clone()).unwrap_or_default()
+    }
+
+    pub fn set_files(&mut self, files: Vec<IndexableFile>) {
+        self.files = serde_json::to_value(files).unwrap();
+    }
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
-pub enum Relation {
-    IndexableFile,
-}
+pub enum Relation {}
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
-        match self {
-            Self::IndexableFile => Entity::belongs_to(super::indexable_file::Entity)
-                .from(Column::DirectoryFrom)
-                .to(super::indexable_file::Column::DirectoryFrom)
-                .into(),
-        }
+        panic!("No relations")
     }
 }
 impl ActiveModelBehavior for ActiveModel {}

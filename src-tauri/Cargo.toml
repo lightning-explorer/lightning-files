@@ -48,7 +48,7 @@ sea-schema = "0.16.0"
 
 sqlx = { version = "0.8.2", features = ["sqlite", "macros", "runtime-tokio-native-tls"] }
 # stuff for vevtor:
-vevtor = { path = "C:\\Users\\grieger\\vevtor" }
+vevtor = { path = "C:\\Users\\grays\\OneDrive\\Desktop\\angular\\Rust\\vevtor" }
 
 [package.metadata.tauri.windows]
 requiresAdmin = true
