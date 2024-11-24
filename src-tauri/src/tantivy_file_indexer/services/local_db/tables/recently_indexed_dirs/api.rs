@@ -1,40 +1,82 @@
-use std::{borrow::Cow, collections::HashSet, sync::Arc};
+use chrono::Utc;
+use sea_orm::{
+    sea_query::OnConflict, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set,
+};
+use sqlx::{Sqlite, Transaction};
 
-use super::entities::recently_indexed_dir_model::RecentlyIndexedDirModel;
-use sqlx::{Pool, Sqlite};
-type RowsAffected = u64;
+use crate::tantivy_file_indexer::services::local_db::table_creator::generate_table_lenient;
+
+use super::entities::recently_indexed_dir;
+
 pub struct RecentlyIndexedDirectoriesTable {
-    pool: Arc<Pool<Sqlite>>,
+    db: DatabaseConnection,
 }
 
-impl RecentlyIndexedDirectoriesTable{
+impl RecentlyIndexedDirectoriesTable {
+    pub async fn new_async(db: DatabaseConnection) -> Self {
+        generate_table_lenient(&db, recently_indexed_dir::Entity).await;
 
-    pub async fn new_async(pool: Arc<Pool<Sqlite>>) -> Self {
-        sqlx::query(
-            "CREATE TABLE IF NOT EXISTS recent_indexed (
-                    path TEXT PRIMARY KEY,
-                    indexed_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
-                ) WITHOUT ROWID;" // last_modified INTEGER NOT NULL
-        )
-        .execute(&*pool)
-        .await
-        .unwrap();
-        
-        Self { pool }
+        Self { db }
     }
 
-    pub async fn insert(&self, model:RecentlyIndexedDirModel){
-        todo!();
+    pub async fn upsert_many(
+        &self,
+        models: &[recently_indexed_dir::Model],
+    ) -> Result<(), sqlx::Error> {
+        // Start a transaction
+        let mut transaction: Transaction<'_, Sqlite> =
+            self.db.get_sqlite_connection_pool().begin().await?;
+
+        // Raw SQL is needed because SQLite is picky about on conflict operations
+        // Prepare raw SQL for upsert
+        let query = r#"
+            INSERT INTO recently_indexed (path, time)
+            VALUES (?, ?)
+            ON CONFLICT(path) DO UPDATE SET
+                time = excluded.time;
+        "#;
+
+        // Execute the query for each model
+        for model in models {
+            sqlx::query(query)
+                .bind(&model.path)
+                .bind(&model.time)
+                .execute(&mut *transaction)
+                .await?;
+        }
+
+        // Commit the transaction
+        transaction.commit().await?;
+        Ok(())
     }
 
-    pub async fn check_if_recent(&self, dir_path:String)->bool{
-        todo!();
-        self.refresh();
-        // refresh, then check
-    }
-    
-    async fn refresh(&self){
-        
+    pub async fn contains_dir(&self, dir_path: String) -> Result<bool, sea_orm::DbErr> {
+        let exists = recently_indexed_dir::Entity::find()
+            .filter(recently_indexed_dir::Column::Path.eq(dir_path))
+            .one(&self.db)
+            .await?
+            .is_some();
+        Ok(exists)
     }
 
+    /**
+    Returns the number of files that were removed
+
+    `cutoff_time` is a value in minutes
+    */
+    pub async fn refresh(&self, cutoff_time: i64) -> Result<u64, sea_orm::DbErr> {
+        // removes old entries
+        // Todo: add more sophisticated logic
+        let now = Utc::now().timestamp();
+
+        // Calculate the cutoff time (5 minutes ago)
+        let cutoff_time = now - (cutoff_time * 60);
+
+        let delete = recently_indexed_dir::Entity::delete_many()
+            .filter(recently_indexed_dir::Column::Time.lt(cutoff_time))
+            .exec(&self.db)
+            .await?;
+
+        Ok(delete.rows_affected)
+    }
 }

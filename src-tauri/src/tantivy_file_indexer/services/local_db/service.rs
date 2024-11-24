@@ -1,15 +1,18 @@
 use crate::tantivy_file_indexer::services::app_save::service::AppSaveService;
 
 use super::tables::{
-    files::api::FilesTable, recently_indexed_dirs::api::RecentlyIndexedDirectoriesTable,
+    crawler_queue::api::CrawlerQueueTable, files::api::FilesTable,
+    indexer_queue::api::IndexerQueueTable,
+    recently_indexed_dirs::api::RecentlyIndexedDirectoriesTable,
 };
-use sqlx::{sqlite::SqlitePool, Pool, Sqlite};
-use std::sync::Arc;
+use sea_orm::DatabaseConnection;
+use sqlx::sqlite::SqlitePool;
 
 pub struct LocalDbService {
-    pool: Arc<Pool<Sqlite>>,
     files_table: FilesTable,
     recently_indexed_dirs_table: RecentlyIndexedDirectoriesTable,
+    crawler_queue_table: CrawlerQueueTable,
+    indexer_queue_table: IndexerQueueTable,
 }
 
 impl LocalDbService {
@@ -18,26 +21,33 @@ impl LocalDbService {
         let db_path = save_service.create_path("file_index.db");
         let db_url = format!("sqlite://{}", db_path.to_string_lossy());
 
-        let pool = Arc::new(SqlitePool::connect(&db_url).await.unwrap());
+        // Starts out as a SQLX pool, but 'into' is called to turn it into a Sea ORM database connection
+        let db: DatabaseConnection = SqlitePool::connect(&db_url).await.unwrap().into();
 
         // initialize the tables
-        let files_table = FilesTable::new_async(Arc::clone(&pool)).await;
+        let files_table = FilesTable::new_async(db.clone()).await;
         let recently_indexed_dirs_table =
-            RecentlyIndexedDirectoriesTable::new_async(Arc::clone(&pool)).await;
+            RecentlyIndexedDirectoriesTable::new_async(db.clone()).await;
+        let crawler_queue_table = CrawlerQueueTable::new_async(db.clone()).await;
+        let indexer_queue_table = IndexerQueueTable::new_async(db.clone()).await;
 
-        Self { pool, files_table, recently_indexed_dirs_table }
+        Self {
+            files_table,
+            recently_indexed_dirs_table,
+            crawler_queue_table,
+            indexer_queue_table,
+        }
     }
 
     pub fn files_table(&self) -> &FilesTable {
         &self.files_table
     }
-    /**
-     * Runs a command on the database to reclaim unused memory
-     */
-    pub async fn vacuum(&self) -> Result<(), String> {
-        match sqlx::query("VACUUM").execute(&*self.pool).await {
-            Ok(_) => Ok(()),
-            Err(err) => Err(err.to_string()),
-        }
+
+    pub fn recently_indexed_dirs_table(&self) -> &RecentlyIndexedDirectoriesTable {
+        &self.recently_indexed_dirs_table
+    }
+
+    pub fn crawler_queue_table(&self) -> &CrawlerQueueTable {
+        &self.crawler_queue_table
     }
 }

@@ -6,6 +6,7 @@
   margin: 0px;
   --background-color: #{$background-color-light};
   --background-secondary: #{$background-secondary-light};
+  --background-darker: #{$background-darker-light};
   --background-ambient: #{$background-ambient-light};
   --primary-color: #{$primary-color-light};
   --primary-darker: #{$primary-darker-light};
@@ -21,6 +22,7 @@
 body.dark-mode {
   --background-color: #{$background-color-dark};
   --background-secondary: #{$background-secondary-dark};
+  --background-darker: #{$background-darker-dark};
   --background-ambient: #{$background-ambient-dark};
   --primary-color: #{$primary-color-dark};
   --primary-darker: #{$primary-darker-dark};

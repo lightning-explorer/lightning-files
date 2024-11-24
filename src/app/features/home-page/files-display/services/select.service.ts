@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FileModel } from '../../models/FileModel';
 import { DirectoryNavigatorService } from '../../../../core/services/files/directory-navigator/directory-navigator.service';
+import { FileCrawlerService } from '../../../../core/services/files/file_crawler.service';
 
 @Injectable()
 /**
@@ -12,7 +13,7 @@ export class SelectService {
 
   lastSelectedIndex: number | null = null;
 
-  constructor(private directoryService: DirectoryNavigatorService) { }
+  constructor(private directoryService: DirectoryNavigatorService, private fileCrawlerService: FileCrawlerService) { }
 
   onFileClick(index: number, event: MouseEvent) {
     if (event.shiftKey && this.lastSelectedIndex !== null) {
@@ -39,7 +40,11 @@ export class SelectService {
     if (await this.directoryService.isPathAFile(path)) {
       await this.directoryService.openFileCmd(path);
     } else {
+
       await this.directoryService.setCurrentDir(path);
+      // When the user clicks on a directory, go ahead and add that directory to the crawler queue.
+      // If the directory was indexed recently, then it will automatically get ignored
+      await this.fileCrawlerService.addDirectoriesToQueue([{ DirPath: path, Priority: 0 }]);
     }
   }
 
