@@ -9,7 +9,7 @@ use crate::tantivy_file_indexer::dtos::file_dto_input::FileDTOInput;
 #[serde(rename_all = "PascalCase")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = true)]
-    pub id:i32,
+    pub id: i32,
     pub directory_from: String,
     #[sea_orm(column_type = "Json")]
     pub files: serde_json::Value,
@@ -19,8 +19,6 @@ impl Model {
     pub fn get_files(&self) -> Vec<FileDTOInput> {
         serde_json::from_value(self.files.clone()).unwrap_or_default()
     }
-
-
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
