@@ -9,11 +9,11 @@ use crate::tantivy_file_indexer::{
 };
 
 pub struct DbConnectedReceiver {
-    indexer_table: Arc<IndexerQueueTable>,
+    indexer_table: IndexerQueueTable,
 }
 
 impl DbConnectedReceiver{
-    pub fn new(indexer_table: Arc<IndexerQueueTable>) -> Self {
+    pub fn new(indexer_table: IndexerQueueTable) -> Self {
         Self { indexer_table }
     }
 }

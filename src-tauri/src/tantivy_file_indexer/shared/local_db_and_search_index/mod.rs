@@ -6,7 +6,7 @@ pub mod traits {
     }
 }
 pub mod db_connected_channel {
-    mod receiver;
-    mod sender;
+    pub mod receiver;
+    pub mod sender;
     pub mod channel;
 }

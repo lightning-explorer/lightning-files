@@ -3,6 +3,7 @@ use sea_orm::{ActiveValue::NotSet, DatabaseConnection, EntityTrait, InsertResult
 
 use super::entities::directory_payload;
 
+#[derive(Clone)]
 pub struct IndexerQueueTable {
     db: DatabaseConnection,
 }

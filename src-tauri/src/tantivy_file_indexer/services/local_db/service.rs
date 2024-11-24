@@ -50,4 +50,8 @@ impl LocalDbService {
     pub fn crawler_queue_table(&self) -> &CrawlerQueueTable {
         &self.crawler_queue_table
     }
+
+    pub fn indexer_queue_table(&self) -> &IndexerQueueTable{
+        &self.indexer_queue_table
+    }
 }

@@ -1,11 +1,17 @@
 use tokio::sync::mpsc;
 
-use crate::tantivy_file_indexer::services::local_db::service::LocalDbService;
 use crate::tantivy_file_indexer::services::search_index::models::index_worker::file_input::FileInputModel;
+use crate::tantivy_file_indexer::{
+    services::local_db::service::LocalDbService,
+    shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerSender,
+};
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use super::{analyzer::service::FileCrawlerAnalyzerService, core::crawler_queue::{CrawlerQueue, Priority}};
+use super::{
+    analyzer::service::FileCrawlerAnalyzerService,
+    core::crawler_queue::{CrawlerQueue, Priority},
+};
 
 pub struct FileCrawlerService {
     max_concurrent_tasks: usize,
@@ -24,21 +30,25 @@ impl FileCrawlerService {
         }
     }
 
-    pub fn spawn_crawler(&self, sender: mpsc::Sender<FileInputModel>) {
+    pub fn spawn_crawler<T>(&self, sender: T)
+    where
+        T: FileIndexerSender,
+    {
         let queue = self.queue.clone();
         let max_concurrent_tasks = self.max_concurrent_tasks;
 
         tokio::task::spawn(async move {
-            super::core::crawler_worker::spawn_worker(
-                sender,
-                max_concurrent_tasks,
-                queue,
-            )
-            .await;
+            super::core::crawler_worker::spawn_worker(sender, max_concurrent_tasks, queue).await;
         });
     }
 
-    pub fn spawn_crawler_with_analyzer(&self, sender: mpsc::Sender<FileInputModel>, analyzer:Arc<FileCrawlerAnalyzerService>) {
+    pub fn spawn_crawler_with_analyzer<T>(
+        &self,
+        sender: T,
+        analyzer: Arc<FileCrawlerAnalyzerService>,
+    ) where
+        T: FileIndexerSender,
+    {
         let queue = self.queue.clone();
         let max_concurrent_tasks = self.max_concurrent_tasks;
 
@@ -47,7 +57,7 @@ impl FileCrawlerService {
                 sender,
                 max_concurrent_tasks,
                 queue,
-                analyzer
+                analyzer,
             )
             .await;
         });

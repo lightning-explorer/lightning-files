@@ -60,7 +60,7 @@ async fn initialize_app(handle: AppHandle) {
     if index_files {
         let sender = service_container
             .search_service
-            .spawn_indexer(db_service, 128, 8);
+            .spawn_indexer_db_connected(db_service, 128, 8);
 
         crawler_service.spawn_crawler_with_analyzer(sender, crawler_analyzer_service);
         crawler_service

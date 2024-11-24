@@ -1,7 +1,7 @@
 use crate::{
     shared::dtos::file_dto::FileDTO,
     tantivy_file_indexer::{
-        models::search_params_model::SearchParamsModel, services::{local_db::service::LocalDbService, vector_db::service::VectorDbService},
+        models::search_params_model::SearchParamsModel, services::{local_db::service::LocalDbService, vector_db::service::VectorDbService}, shared::local_db_and_search_index::db_connected_channel::{self, sender::DbConnectedSender},
     },
 };
 
@@ -56,6 +56,10 @@ impl SearchIndexService {
         }
     }
 
+    pub fn query(&self, params: &SearchParamsModel) -> Result<Vec<FileDTO>, tantivy::TantivyError> {
+        querier::advanced_query(&self.schema, &self.index_reader.searcher(), params)
+    }
+
     /**
      * Returns a `Sender` that a crawler can use to send over files.
      
@@ -63,12 +67,13 @@ impl SearchIndexService {
      * 
      * Note that right now, when the indexer is spawned, the vector indexer gets spawned as well
      */
-    pub fn spawn_indexer(
+    pub fn spawn_indexer_mpsc(
         &self,
         db_service: Arc<LocalDbService>,
         batch_size: usize,
         buffer_size: usize,
     ) -> Sender<FileInputModel> {
+        // TODO: Look at buffer_size, because why is the Tokio channel and the vector indexer getting the same size?
         let schema_clone = Arc::new(self.schema.clone());
         let (sender, receiver) = mpsc::channel(buffer_size);
 
@@ -90,7 +95,29 @@ impl SearchIndexService {
         sender
     }
 
-    pub fn query(&self, params: &SearchParamsModel) -> Result<Vec<FileDTO>, tantivy::TantivyError> {
-        querier::advanced_query(&self.schema, &self.index_reader.searcher(), params)
-    }
+    pub fn spawn_indexer_db_connected(&self,
+        db_service: Arc<LocalDbService>,
+        batch_size: usize,
+        buffer_size: usize)-> DbConnectedSender {
+            let schema_clone = Arc::new(self.schema.clone());
+            let indexer_table_clone = db_service.indexer_queue_table().clone();
+            let (sender, receiver) = db_connected_channel::channel::create(indexer_table_clone);
+    
+            let index_writer_clone = self.index_writer.clone();
+            let vector_processor = Arc::new(self.vector_db_service.spawn_indexer(batch_size, buffer_size));
+    
+            tokio::spawn(async move {
+                index_worker::spawn_worker(
+                    receiver,
+                    index_writer_clone,
+                    schema_clone,
+                    db_service,
+                    vector_processor,
+                    batch_size,
+                )
+                .await;
+            });
+    
+            sender
+        }
 }

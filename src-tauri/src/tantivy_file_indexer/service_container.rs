@@ -16,7 +16,7 @@ pub struct AppServiceContainer {
     pub search_service: Arc<SearchIndexService>,
     pub local_db_service: Arc<LocalDbService>,
     pub crawler_service: Arc<FileCrawlerService>,
-    pub crawler_analyzer_service: Arc<FileCrawlerAnalyzerService>
+    pub crawler_analyzer_service: Arc<FileCrawlerAnalyzerService>,
 }
 
 impl AppServiceContainer {
@@ -55,7 +55,7 @@ impl AppServiceContainer {
             search_service,
             local_db_service,
             crawler_service,
-            crawler_analyzer_service
+            crawler_analyzer_service,
         }
     }
 
