@@ -1,6 +1,9 @@
 pub mod service;
 mod table_creator;
 pub mod tauri_exports;
+pub mod traits{
+    pub mod into_dir_payload;
+}
 pub mod tables {
     pub mod files {
         pub mod api;
@@ -19,7 +22,6 @@ pub mod tables {
         pub mod api;
         pub mod entities {
             pub mod directory_payload;
-            pub mod indexable_file;
         }
     }
     pub mod recently_indexed_dirs {

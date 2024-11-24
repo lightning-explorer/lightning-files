@@ -49,7 +49,7 @@ impl CrawlerQueueTable {
         for model in models {
             sqlx::query(query)
                 .bind(&model.path)
-                .bind(&model.priority)
+                .bind(model.priority)
                 .execute(&mut *transaction)
                 .await?;
         }
@@ -96,6 +96,9 @@ impl CrawlerQueueTable {
         Ok(count)
     }
 
+    /**
+     Retrieve the top n entries from the database
+     */
     pub async fn view_all_limit(
         &self,
         limit: u64,

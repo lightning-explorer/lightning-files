@@ -16,8 +16,8 @@ use crate::tantivy_file_indexer::{
         local_db::{
             service::LocalDbService,
             tables::files::{self},
-        }, search_index::traits::file_sender_receiver::FileIndexerReceiver, vector_db::workers::indexer::VectorDbIndexer
-    },
+        }, vector_db::workers::indexer::VectorDbIndexer
+    }, shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerReceiver,
 };
 use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
 use tokio::sync::{mpsc, Mutex};

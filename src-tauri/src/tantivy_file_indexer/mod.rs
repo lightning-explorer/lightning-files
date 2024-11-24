@@ -6,9 +6,9 @@ mod schemas {
     pub mod file_schema;
 }
 mod dtos {
+    pub mod add_to_crawler_queue;
     pub mod file_dto_input;
     pub mod vector_search_result;
-    pub mod add_to_crawler_queue;
 }
 mod util {
     pub mod file_id_helper;
@@ -27,4 +27,14 @@ pub mod services {
 mod models {
     pub mod search_params_model;
     pub mod vector_search_params_model;
+}
+pub mod shared {
+    pub mod local_db_and_search_index {
+        pub mod traits {
+            pub mod file_sender_receiver;
+            pub mod implementations {
+                pub mod tokio_sender_receiver;
+            }
+        }
+    }
 }

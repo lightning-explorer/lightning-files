@@ -1,7 +1,9 @@
 use crate::tantivy_file_indexer::services::app_save::service::AppSaveService;
 
 use super::tables::{
-    crawler_queue::api::CrawlerQueueTable, files::api::FilesTable, recently_indexed_dirs::api::RecentlyIndexedDirectoriesTable
+    crawler_queue::api::CrawlerQueueTable, files::api::FilesTable,
+    indexer_queue::api::IndexerQueueTable,
+    recently_indexed_dirs::api::RecentlyIndexedDirectoriesTable,
 };
 use sea_orm::DatabaseConnection;
 use sqlx::sqlite::SqlitePool;
@@ -9,10 +11,11 @@ use sqlx::sqlite::SqlitePool;
 pub struct LocalDbService {
     files_table: FilesTable,
     recently_indexed_dirs_table: RecentlyIndexedDirectoriesTable,
-    crawler_queue_table:CrawlerQueueTable
+    crawler_queue_table: CrawlerQueueTable,
+    indexer_queue_table: IndexerQueueTable,
 }
 
-impl LocalDbService { 
+impl LocalDbService {
     // consider using a config here
     pub async fn new_async(save_service: &AppSaveService) -> Self {
         let db_path = save_service.create_path("file_index.db");
@@ -26,11 +29,13 @@ impl LocalDbService {
         let recently_indexed_dirs_table =
             RecentlyIndexedDirectoriesTable::new_async(db.clone()).await;
         let crawler_queue_table = CrawlerQueueTable::new_async(db.clone()).await;
+        let indexer_queue_table = IndexerQueueTable::new_async(db.clone()).await;
 
         Self {
             files_table,
             recently_indexed_dirs_table,
             crawler_queue_table,
+            indexer_queue_table,
         }
     }
 

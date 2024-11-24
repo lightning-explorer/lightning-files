@@ -6,7 +6,7 @@ pub trait FileIndexerReceiver<T> {
     async fn recv(&mut self) -> Option<T>;
 }
 
-pub trait FileIndexerSender<T>: Send
+pub trait FileIndexerSender<T>: Send + Clone + Sync + 'static
 where
     T: Send,
 {

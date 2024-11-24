@@ -4,12 +4,12 @@ use std::time::Instant;
 use std::{path::PathBuf, sync::Arc, time::UNIX_EPOCH};
 use tokio::time::{self, Duration};
 use tokio::{
-    sync::{mpsc, Semaphore},
+    sync::Semaphore,
     task::JoinSet,
 };
 
 use crate::tantivy_file_indexer::services::local_crawler::analyzer::service::FileCrawlerAnalyzerService;
-use crate::tantivy_file_indexer::services::search_index::traits::file_sender_receiver::FileIndexerSender;
+use crate::tantivy_file_indexer::shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerSender;
 use crate::tantivy_file_indexer::{
     dtos::file_dto_input::FileDTOInput,
     services::search_index::models::index_worker::file_input::FileInputModel, util::file_id_helper,
@@ -17,20 +17,20 @@ use crate::tantivy_file_indexer::{
 
 use super::crawler_queue::CrawlerQueue;
 
-pub async fn spawn_worker(
-    sender: mpsc::Sender<FileInputModel>,
+pub async fn spawn_worker<T>(
+    sender: T,
     max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,
-) {
+) where T: FileIndexerSender<FileInputModel> {
     spawn_worker_internal(sender, max_concurrent_tasks, queue, None).await;
 }
 
-pub async fn spawn_worker_with_analyzer(
-    sender: mpsc::Sender<FileInputModel>,
+pub async fn spawn_worker_with_analyzer<T>(
+    sender: T,
     max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,
     analyzer: Arc<FileCrawlerAnalyzerService>,
-) {
+) where T: FileIndexerSender<FileInputModel> {
     spawn_worker_internal(sender, max_concurrent_tasks, queue, Some(analyzer)).await;
 }
 
@@ -40,8 +40,8 @@ pub async fn spawn_worker_internal<T>(
     max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,
     analyzer: Option<Arc<FileCrawlerAnalyzerService>>,
-) where T: FileIndexerSender<FileInputModel> + Clone + Send + Sync + 'static{
-    let semaphore = Arc::new(Semaphore::new(16));
+) where T: FileIndexerSender<FileInputModel> {
+    let semaphore = Arc::new(Semaphore::new(max_concurrent_tasks));
     let mut tasks = JoinSet::new();
     let worker_queue = Arc::clone(&queue);
 

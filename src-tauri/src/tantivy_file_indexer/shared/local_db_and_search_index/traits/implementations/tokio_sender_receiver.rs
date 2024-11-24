@@ -2,9 +2,7 @@ use std::future::Future;
 
 use tokio::sync::mpsc::{self, error::SendError};
 
-use crate::tantivy_file_indexer::services::search_index::traits::file_sender_receiver::{
-    FileIndexerReceiver, FileIndexerSender,
-};
+use super::super::file_sender_receiver::{FileIndexerReceiver, FileIndexerSender};
 
 impl<T> FileIndexerSender<T> for mpsc::Sender<T>
 where
