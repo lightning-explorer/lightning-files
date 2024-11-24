@@ -33,6 +33,13 @@ impl IndexerQueueTable {
     }
 
     pub async fn pop(&self) -> Result<Option<directory_payload::Model>, sea_orm::DbErr> {
-        directory_payload::Entity::find().one(&self.db).await
+        if let Some(entry) = directory_payload::Entity::find().one(&self.db).await? {
+            // Delete the fetched entry:
+            _ = directory_payload::Entity::delete_by_id(entry.id)
+                .exec(&self.db)
+                .await?;
+            return Ok(Some(entry));
+        }
+        Ok(None)
     }
 }

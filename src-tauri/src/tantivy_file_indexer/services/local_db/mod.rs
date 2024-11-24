@@ -1,9 +1,6 @@
 pub mod service;
 mod table_creator;
 pub mod tauri_exports;
-pub mod traits{
-    pub mod into_dir_payload;
-}
 pub mod tables {
     pub mod files {
         pub mod api;

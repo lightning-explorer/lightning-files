@@ -20,9 +20,7 @@ impl Model {
         serde_json::from_value(self.files.clone()).unwrap_or_default()
     }
 
-    pub fn set_files(&mut self, files: Vec<FileDTOInput>) {
-        self.files = serde_json::to_value(files).unwrap();
-    }
+
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

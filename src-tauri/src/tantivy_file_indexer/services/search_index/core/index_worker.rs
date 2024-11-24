@@ -37,7 +37,7 @@ pub async fn spawn_worker<T>(
     db_service: Arc<LocalDbService>,
     vector_db_indexer: Arc<VectorDbIndexer>,
     batch_size: usize,
-) where T: FileIndexerReceiver<FileInputModel> {
+) where T: FileIndexerReceiver {
     // Keep track of how many files (not directories) have been indexed so that the changes can be committed
     let files_processed = Arc::new(AtomicUsize::new(0));
     let mut subworker_id: u32 = 0;

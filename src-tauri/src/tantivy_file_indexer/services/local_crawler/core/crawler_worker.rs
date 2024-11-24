@@ -21,7 +21,7 @@ pub async fn spawn_worker<T>(
     sender: T,
     max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,
-) where T: FileIndexerSender<FileInputModel> {
+) where T: FileIndexerSender {
     spawn_worker_internal(sender, max_concurrent_tasks, queue, None).await;
 }
 
@@ -30,7 +30,7 @@ pub async fn spawn_worker_with_analyzer<T>(
     max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,
     analyzer: Arc<FileCrawlerAnalyzerService>,
-) where T: FileIndexerSender<FileInputModel> {
+) where T: FileIndexerSender {
     spawn_worker_internal(sender, max_concurrent_tasks, queue, Some(analyzer)).await;
 }
 
@@ -40,7 +40,7 @@ pub async fn spawn_worker_internal<T>(
     max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,
     analyzer: Option<Arc<FileCrawlerAnalyzerService>>,
-) where T: FileIndexerSender<FileInputModel> {
+) where T: FileIndexerSender {
     let semaphore = Arc::new(Semaphore::new(max_concurrent_tasks));
     let mut tasks = JoinSet::new();
     let worker_queue = Arc::clone(&queue);

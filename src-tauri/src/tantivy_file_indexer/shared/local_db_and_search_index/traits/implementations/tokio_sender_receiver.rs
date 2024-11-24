@@ -2,19 +2,19 @@ use std::future::Future;
 
 use tokio::sync::mpsc::{self, error::SendError};
 
+use crate::tantivy_file_indexer::services::search_index::models::index_worker::file_input::FileInputModel;
+
 use super::super::file_sender_receiver::{FileIndexerReceiver, FileIndexerSender};
 
-impl<T> FileIndexerSender<T> for mpsc::Sender<T>
-where
-    T: Send + 'static,
+impl FileIndexerSender for mpsc::Sender<FileInputModel>
 {
-    fn send(&self, value: T) -> impl Future<Output = Result<(), SendError<T>>> + Send {
+    fn send(&self, value: FileInputModel) -> impl Future<Output = Result<(), SendError<FileInputModel>>> + Send {
         Box::pin(async move { self.send(value).await })
     }
 }
 
-impl<T> FileIndexerReceiver<T> for tokio::sync::mpsc::Receiver<T> {
-    async fn recv(&mut self) -> Option<T> {
+impl FileIndexerReceiver for tokio::sync::mpsc::Receiver<FileInputModel> {
+    async fn recv(&mut self) -> Option<FileInputModel> {
         self.recv().await
     }
 }

@@ -29,12 +29,5 @@ mod models {
     pub mod vector_search_params_model;
 }
 pub mod shared {
-    pub mod local_db_and_search_index {
-        pub mod traits {
-            pub mod file_sender_receiver;
-            pub mod implementations {
-                pub mod tokio_sender_receiver;
-            }
-        }
-    }
+    pub mod local_db_and_search_index;
 }

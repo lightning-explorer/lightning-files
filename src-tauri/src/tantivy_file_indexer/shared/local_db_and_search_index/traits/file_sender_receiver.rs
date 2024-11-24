@@ -2,13 +2,13 @@ use std::future::Future;
 
 use tokio::sync::mpsc::error::SendError;
 
-pub trait FileIndexerReceiver<T> {
-    async fn recv(&mut self) -> Option<T>;
+use crate::tantivy_file_indexer::services::search_index::models::index_worker::file_input::FileInputModel;
+
+pub trait FileIndexerReceiver {
+    async fn recv(&mut self) -> Option<FileInputModel>;
 }
 
-pub trait FileIndexerSender<T>: Send + Clone + Sync + 'static
-where
-    T: Send,
+pub trait FileIndexerSender: Send + Clone + Sync + 'static
 {
-    fn send(&self, value: T) -> impl Future<Output = Result<(), SendError<T>>> + Send;
+    fn send(&self, value: FileInputModel) -> impl Future<Output = Result<(), SendError<FileInputModel>>> + Send;
 }
