@@ -44,6 +44,7 @@ pub async fn spawn_worker<T>(
     // Keep track of how many files (not directories) have been indexed so that the changes can be committed
     let files_processed = Arc::new(AtomicUsize::new(0));
     let mut subworker_id: u32 = 0;
+    println!("NOTE: index_worker spawn function has been commented out. So the indexer queue is not getting processed");
 
     while let Some(model) = receiver.recv().await {
         let seen_paths: HashSet<String> = model.dtos.iter().map(|x| x.file_path.clone()).collect();
@@ -60,7 +61,7 @@ pub async fn spawn_worker<T>(
         let files_processed_clone = Arc::clone(&files_processed);
 
         subworker_id += 1;
-        println!("NOTE: index_worker spawn function has been commented out. So the indexer queue is not getting processed");
+
         // Test not spawning any indexers
         /*
         tokio::spawn(async move {

@@ -1,12 +1,6 @@
-
-use futures::{stream, StreamExt};
 use std::time::Instant;
 use std::{path::PathBuf, sync::Arc, time::UNIX_EPOCH};
-use tokio::time::{self, Duration};
-use tokio::{
-    sync::Semaphore,
-    task::JoinSet,
-};
+use tokio::sync::Notify;
 
 use crate::tantivy_file_indexer::services::local_crawler::analyzer::service::FileCrawlerAnalyzerService;
 use crate::tantivy_file_indexer::shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerSender;
@@ -17,148 +11,99 @@ use crate::tantivy_file_indexer::{
 
 use super::crawler_queue::CrawlerQueue;
 
-pub async fn spawn_worker<T>(
+pub async fn worker_task<T>(
     sender: T,
-    max_concurrent_tasks: usize,
-    queue: Arc<CrawlerQueue>,
-) where T: FileIndexerSender {
-    spawn_worker_internal(sender, max_concurrent_tasks, queue, None).await;
-}
-
-pub async fn spawn_worker_with_analyzer<T>(
-    sender: T,
-    max_concurrent_tasks: usize,
-    queue: Arc<CrawlerQueue>,
-    analyzer: Arc<FileCrawlerAnalyzerService>,
-) where T: FileIndexerSender {
-    spawn_worker_internal(sender, max_concurrent_tasks, queue, Some(analyzer)).await;
-}
-
-// Note that the crawler does not handle database operations
-pub async fn spawn_worker_internal<T>(
-    sender: T,
-    max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,
     analyzer: Option<Arc<FileCrawlerAnalyzerService>>,
-) where T: FileIndexerSender {
-    let semaphore = Arc::new(Semaphore::new(max_concurrent_tasks));
-    let mut tasks = JoinSet::new();
-    let worker_queue = Arc::clone(&queue);
-
-    // for logging
-    let mut subworker_id: u32 = 0;
-
+    notify: Arc<Notify>,
+    worker_id: u32,
+) where
+    T: FileIndexerSender,
+{
+    #[cfg(feature = "file_crawler_logs")]
+    println!(
+        "File crawler subworker has been spawned to process entries in directory. ID: {}",
+        worker_id
+    );
     loop {
         if let Some(ref analyzer) = analyzer {
             analyzer.record_timestamp().await;
         }
         if let Some((path, priority)) = queue.pop().await {
-            let semaphore = Arc::clone(&semaphore);
-            let sender = sender.clone();
-            let queue = Arc::clone(&worker_queue);
-            let analyzer_clone = analyzer.clone();
+            let mut input_dtos_tasks = Vec::new();
+            let mut dir_paths_priority: Vec<(PathBuf, u32)> = Vec::new();
+            let mut files_processed: usize = 0;
 
-            subworker_id += 1;
-
-            tasks.spawn(async move {
-
-                #[cfg(feature = "file_crawler_logs")]
-                println!(
-                    "File crawler subworker has been spawned to process entries in directory. ID: {}",
-                    subworker_id
-                );
-            
-
-                let mut dir_entries = Vec::new();
-
-                let _permit = semaphore
-                    .acquire_owned()
-                    .await
-                    .expect("Failed to acquire semaphore");
-
-                if path.is_dir() {
-                    if let Ok(mut dir) = tokio::fs::read_dir(&path).await {
-                        while let Ok(Some(entry)) = dir.next_entry().await {
-                            let entry_path = entry.path();
-                            if entry_path.is_dir() {
-                                queue.push(entry_path.clone(), priority + 1).await;
-                            }
-
-                            //if let Ok(dto) = create_dto(&entry).await {
-                            dir_entries.push(entry_path);
-                            //}
-
-                            // A directory or a file counts as a file being processed
-                            if let Some(ref analyzer) = analyzer_clone {
-                                analyzer.add_one_to_files_processed();
-                            }
+            if path.is_dir() {
+                if let Ok(mut dir) = tokio::fs::read_dir(&path).await {
+                    // Iterate over each entry in the directory
+                    while let Ok(Some(entry)) = dir.next_entry().await {
+                        let entry_path = entry.path();
+                        if entry_path.is_dir() {
+                            // This Vec is specific to this thread, so no atomic operations right here
+                            dir_paths_priority.push((entry_path.clone(), priority + 1));
                         }
+                        // Metadata is fetched here
+                        let metadata_fetch_task =
+                            tokio::spawn(async move { create_dto(entry_path).await });
+                        input_dtos_tasks.push(metadata_fetch_task);
+
+                        files_processed += 1;
+                    }
+                    // End of the while loop. Put some heavier operations here:
+                    // This is a database call here:
+                    queue.push_many(&dir_paths_priority).await;
+
+                    if let Some(ref analyzer) = analyzer {
+                        // Adding to an atomic variable:
+                        analyzer.add_to_files_processed(files_processed);
                     }
                 }
-
-                #[cfg(feature = "speed_profile")]
-                let time = Instant::now();
-
-                // DTOs get created here
-                let model = create_model(path, dir_entries).await;
-
-                #[cfg(feature = "speed_profile")]
-                println!(
-                    "Crawler creating FileInputModel for batch of files/directories took: {:?}",
-                    time.elapsed()
-                );
-
-                #[cfg(feature = "speed_profile")]
-                let time = Instant::now();
-
-                if let Err(err) = sender.send(model).await {
-                    eprintln!("Error sending FileInputModel to indexer: {}", err);
-                }
-                #[cfg(feature = "speed_profile")]
-                println!(
-                    "Crawler sending files to indexer took: {:?}",
-                    time.elapsed()
-                );
-
-                #[cfg(feature = "file_crawler_logs")]
-                println!(
-                    "File crawler subworker has finished. ID: {}",
-                    subworker_id
-                );
-                
-            });
-        } else {
-            #[cfg(feature = "file_crawler_logs")]
-            println!("File crawler has nothing to do. Sleeping");
-            time::sleep(Duration::from_millis(100)).await;
-        }
-
-        while let Some(result) = tasks.join_next().await {
-            if let Err(err) = result {
-                eprintln!("Task error: {:?}", err);
             }
+
+            // Await the metadata fetch tasks
+            let input_dtos: Vec<FileDTOInput> = futures::future::join_all(input_dtos_tasks)
+                .await
+                .into_iter()
+                .flatten()
+                .flatten()
+                .collect();
+
+            #[cfg(feature = "speed_profile")]
+            let time = Instant::now();
+
+            let model = create_model(path, input_dtos).await;
+
+            #[cfg(feature = "speed_profile")]
+            println!(
+                "Crawler creating FileInputModel for batch of files/directories took: {:?}",
+                time.elapsed()
+            );
+
+            #[cfg(feature = "speed_profile")]
+            let time = Instant::now();
+
+            if let Err(err) = sender.send(model).await {
+                eprintln!("Error sending FileInputModel to indexer: {}", err);
+            }
+            #[cfg(feature = "speed_profile")]
+            println!(
+                "Crawler sending files to indexer took: {:?}",
+                time.elapsed()
+            );
+
+        } else {
+            // Wait to be notified
+            notify.notified().await;
         }
     }
 }
 
-async fn create_model(directory_from: PathBuf, entries: Vec<PathBuf>) -> FileInputModel {
-    let dtos: Vec<FileDTOInput> = create_dtos_batch(entries)
-        .await
-        .into_iter()
-        .flatten()
-        .collect();
+async fn create_model(directory_from: PathBuf, dtos: Vec<FileDTOInput>) -> FileInputModel {
     FileInputModel {
         dtos,
         directory_from,
     }
-}
-
-async fn create_dtos_batch(entries: Vec<PathBuf>) -> Vec<Result<FileDTOInput, String>> {
-    stream::iter(entries)
-        .map(|entry| create_dto(entry))
-        .buffer_unordered(16)
-        .collect()
-        .await
 }
 
 // This function takes around 60ms to complete so look at this
