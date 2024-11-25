@@ -12,12 +12,11 @@ use crate::{
 use super::{
     super::super::{configs::file_indexer_config::FileIndexerConfig, schemas::file_schema},
     core::{index_worker_manager, querier},
-    models::index_worker::file_input::FileInputModel,
 };
 use std::{fs, sync::Arc};
 use tantivy::{schema::Schema, Index, IndexReader, IndexWriter};
-use tauri::async_runtime::Sender;
-use tokio::sync::{mpsc, Mutex};
+
+use tokio::{sync::Mutex, task::JoinSet};
 
 pub struct SearchIndexService {
     pub schema: Schema,
@@ -65,47 +64,14 @@ impl SearchIndexService {
     }
 
     /**
-    * Returns a `Sender` that a crawler can use to send over files.
-
-    * The `batch_size` indicates how many files are processed before the index writer make a commit
-    *
-    * Note that right now, when the indexer is spawned, the vector indexer gets spawned as well
-    */
-    pub fn spawn_indexer_mpsc(
-        &self,
-        db_service: Arc<LocalDbService>,
-        batch_size: usize,
-        buffer_size: usize,
-    ) -> Sender<FileInputModel> {
-        // TODO: Look at buffer_size, because why is the Tokio channel and the vector indexer getting the same size?
-        let schema_clone = Arc::new(self.schema.clone());
-        let (sender, receiver) = mpsc::channel(buffer_size);
-
-        let index_writer_clone = self.index_writer.clone();
-        let vector_processor = Arc::new(
-            self.vector_db_service
-                .spawn_indexer(batch_size, buffer_size),
-        );
-
-        index_worker_manager::spawn_workers(
-            receiver,
-            index_writer_clone,
-            schema_clone,
-            db_service,
-            vector_processor,
-            batch_size,
-            8,
-        );
-
-        sender
-    }
-
+     Returns the sender as well as the handles to the spawned index worker tasks
+     */
     pub fn spawn_indexer_db_connected(
         &self,
         db_service: Arc<LocalDbService>,
         batch_size: usize,
         buffer_size: usize,
-    ) -> DbConnectedSender {
+    ) -> (DbConnectedSender, JoinSet<()>) {
         let schema_clone = Arc::new(self.schema.clone());
         let indexer_table_clone = db_service.indexer_queue_table().clone();
         let (sender, receiver) = db_connected_channel::channel::create(indexer_table_clone);
@@ -116,7 +82,7 @@ impl SearchIndexService {
                 .spawn_indexer(batch_size, buffer_size),
         );
 
-        index_worker_manager::spawn_workers(
+        let indexer_tasks = index_worker_manager::spawn_workers(
             receiver,
             index_writer_clone,
             schema_clone,
@@ -126,6 +92,6 @@ impl SearchIndexService {
             8,
         );
 
-        sender
+        (sender, indexer_tasks)
     }
 }

@@ -58,11 +58,11 @@ async fn initialize_app(handle: AppHandle) {
     let db_service = Arc::clone(&service_container.local_db_service);
 
     if index_files {
-        let sender = service_container
+        let (sender, indexer_handles) = service_container
             .search_service
             .spawn_indexer_db_connected(db_service, 128, 8);
 
-        let handles =
+        let crawler_handles =
             crawler_service.spawn_crawlers_with_analyzer(sender, crawler_analyzer_service);
 
         crawler_service
