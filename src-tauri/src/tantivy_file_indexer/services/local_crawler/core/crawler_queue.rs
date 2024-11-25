@@ -62,7 +62,7 @@ impl CrawlerQueue {
     }
 
     pub async fn push(&self, dir_path: PathBuf, priority: Priority) {
-        self.push_many(&vec![(dir_path, priority)]).await;
+        self.push_many(&[(dir_path, priority)]).await;
     }
 
     pub async fn push_many(&self, entries: &[(PathBuf, u32)]) {

@@ -69,7 +69,7 @@ pub async fn spawn_worker_internal<T>(
                 );
             
 
-                let mut dir_entries = Vec::new();
+                let mut input_dtos:Vec<FileDTOInput> = Vec::new();
 
                 let _permit = semaphore
                     .acquire_owned()
@@ -84,9 +84,9 @@ pub async fn spawn_worker_internal<T>(
                                 queue.push(entry_path.clone(), priority + 1).await;
                             }
 
-                            //if let Ok(dto) = create_dto(&entry).await {
+                            // Put the processing step right here in the middle as opposed to doing it at the end with batches
                             dir_entries.push(entry_path);
-                            //}
+                            
 
                             // A directory or a file counts as a file being processed
                             if let Some(ref analyzer) = analyzer_clone {
@@ -100,7 +100,7 @@ pub async fn spawn_worker_internal<T>(
                 let time = Instant::now();
 
                 // DTOs get created here
-                let model = create_model(path, dir_entries).await;
+                let model = create_model(path, input_dtos).await;
 
                 #[cfg(feature = "speed_profile")]
                 println!(
@@ -141,12 +141,7 @@ pub async fn spawn_worker_internal<T>(
     }
 }
 
-async fn create_model(directory_from: PathBuf, entries: Vec<PathBuf>) -> FileInputModel {
-    let dtos: Vec<FileDTOInput> = create_dtos_batch(entries)
-        .await
-        .into_iter()
-        .flatten()
-        .collect();
+async fn create_model(directory_from: PathBuf, dtos: Vec<FileDTOInput>) -> FileInputModel {
     FileInputModel {
         dtos,
         directory_from,
