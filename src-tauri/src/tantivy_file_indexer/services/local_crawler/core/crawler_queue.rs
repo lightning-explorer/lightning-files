@@ -61,10 +61,6 @@ impl CrawlerQueue {
             .unwrap_or_default()
     }
 
-    pub async fn push(&self, dir_path: PathBuf, priority: Priority) {
-        self.push_many(&[(dir_path, priority)]).await;
-    }
-
     pub async fn push_many(&self, entries: &[(PathBuf, u32)]) {
         // Remove the old directories to ensure that they can be indexed again
         // cutoff time is a value in minutes

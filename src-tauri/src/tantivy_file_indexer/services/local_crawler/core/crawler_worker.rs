@@ -34,7 +34,6 @@ pub async fn spawn_worker_with_analyzer<T>(
     spawn_worker_internal(sender, max_concurrent_tasks, queue, Some(analyzer)).await;
 }
 
-// Note that the crawler does not handle database operations
 pub async fn spawn_worker_internal<T>(
     sender: T,
     max_concurrent_tasks: usize,
@@ -53,9 +52,10 @@ pub async fn spawn_worker_internal<T>(
             analyzer.record_timestamp().await;
         }
         if let Some((path, priority)) = queue.pop().await {
-            let semaphore = Arc::clone(&semaphore);
+            let _permit = Arc::clone(&semaphore).acquire_owned().await.expect("Failed to acquire semaphore");
+
             let sender = sender.clone();
-            let queue = Arc::clone(&worker_queue);
+            let crawler_queue_clone = Arc::clone(&worker_queue);
             let analyzer_clone = analyzer.clone();
 
             subworker_id += 1;
@@ -69,37 +69,50 @@ pub async fn spawn_worker_internal<T>(
                 );
             
 
-                let mut input_dtos:Vec<FileDTOInput> = Vec::new();
-
-                let _permit = semaphore
-                    .acquire_owned()
-                    .await
-                    .expect("Failed to acquire semaphore");
+                let mut input_dtos_tasks = Vec::new();
+                let mut dir_paths_priority: Vec<(PathBuf,u32)> = Vec::new();
+                let mut files_processed:usize = 0;
 
                 if path.is_dir() {
                     if let Ok(mut dir) = tokio::fs::read_dir(&path).await {
+                        // Iterate over each entry in the directory
                         while let Ok(Some(entry)) = dir.next_entry().await {
+
                             let entry_path = entry.path();
                             if entry_path.is_dir() {
-                                queue.push(entry_path.clone(), priority + 1).await;
+                                // This Vec is specific to this thread, so no atomic operations right here
+                                dir_paths_priority.push((entry_path.clone(), priority + 1));
                             }
+                            // Metadata is fetched here
+                            let metadata_fetch_task= tokio::spawn(async move{
+                                create_dto(entry_path).await
+                            });
+                            input_dtos_tasks.push(metadata_fetch_task);
 
-                            // Put the processing step right here in the middle as opposed to doing it at the end with batches
-                            dir_entries.push(entry_path);
-                            
+                            files_processed += 1;
+                        }
+                        // End of the while loop. Put some heavier operations here:
+                        // This is a database call here:
+                        crawler_queue_clone.push_many(&dir_paths_priority).await;
 
-                            // A directory or a file counts as a file being processed
-                            if let Some(ref analyzer) = analyzer_clone {
-                                analyzer.add_one_to_files_processed();
-                            }
+                        if let Some(ref analyzer) = analyzer_clone {
+                            // Adding to an atomic variable:
+                            analyzer.add_to_files_processed(files_processed);
                         }
                     }
                 }
 
+                // Await the metadata fetch tasks
+                let input_dtos: Vec<FileDTOInput> = futures::future::join_all(input_dtos_tasks)
+                .await
+                .into_iter()
+                .flatten()
+                .flatten()
+                .collect();
+
                 #[cfg(feature = "speed_profile")]
                 let time = Instant::now();
 
-                // DTOs get created here
                 let model = create_model(path, input_dtos).await;
 
                 #[cfg(feature = "speed_profile")]

@@ -29,8 +29,8 @@ impl FileCrawlerAnalyzerService {
         }
     }
 
-    pub fn add_one_to_files_processed(&self) {
-        self.files_processed.fetch_add(1, Ordering::Relaxed);
+    pub fn add_to_files_processed(&self, val:usize) {
+        self.files_processed.fetch_add(val, Ordering::Relaxed);
     }
 
     pub async fn record_timestamp(&self) {
