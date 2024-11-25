@@ -60,7 +60,7 @@ async fn initialize_app(handle: AppHandle) {
     if index_files {
         let (sender, indexer_handles) = service_container
             .search_service
-            .spawn_indexer_db_connected(db_service, 128, 8);
+            .spawn_indexers_db_connected(db_service, 128, 8);
 
         let crawler_handles =
             crawler_service.spawn_crawlers_with_analyzer(sender, crawler_analyzer_service);
@@ -68,9 +68,8 @@ async fn initialize_app(handle: AppHandle) {
         crawler_service
             .push_dirs_default(vec![Path::new("C:\\").to_path_buf()])
             .await;
+
     } else {
         println!("index_files in initialize_app is set to false. No files will be indexed and no file crawlers will be spawned.")
     }
-
-    handle.manage(service_container);
 }

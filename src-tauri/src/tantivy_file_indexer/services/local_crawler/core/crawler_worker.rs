@@ -16,20 +16,18 @@ pub async fn worker_task<T>(
     queue: Arc<CrawlerQueue>,
     analyzer: Option<Arc<FileCrawlerAnalyzerService>>,
     notify: Arc<Notify>,
-    worker_id: u32,
 ) where
     T: FileIndexerSender,
 {
-    #[cfg(feature = "file_crawler_logs")]
-    println!(
-        "File crawler subworker has been spawned to process entries in directory. ID: {}",
-        worker_id
-    );
+
     loop {
         if let Some(ref analyzer) = analyzer {
             analyzer.record_timestamp().await;
         }
+        println!("getting item from queue");
         if let Some((path, priority)) = queue.pop().await {
+            println!("got item from queue");
+
             let mut input_dtos_tasks = Vec::new();
             let mut dir_paths_priority: Vec<(PathBuf, u32)> = Vec::new();
             let mut files_processed: usize = 0;
@@ -94,7 +92,9 @@ pub async fn worker_task<T>(
 
         } else {
             // Wait to be notified
+            println!("Crawler worker has nothing to do. Waiting for notification");
             notify.notified().await;
+            println!("Crawler worker received notification. Resuming work");
         }
     }
 }

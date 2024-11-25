@@ -39,19 +39,19 @@ impl LocalDbService {
         }
     }
 
-    pub fn files_table(&self) -> &FilesTable {
-        &self.files_table
+    pub fn files_table_connection(&self) -> FilesTable {
+        self.files_table.clone()
     }
 
-    pub fn recently_indexed_dirs_table(&self) -> &RecentlyIndexedDirectoriesTable {
-        &self.recently_indexed_dirs_table
+    pub fn recently_indexed_dirs_table_connection(&self) -> RecentlyIndexedDirectoriesTable {
+        self.recently_indexed_dirs_table.clone()
     }
 
-    pub fn crawler_queue_table(&self) -> &CrawlerQueueTable {
-        &self.crawler_queue_table
+    pub fn crawler_queue_table_connection(&self) -> CrawlerQueueTable {
+        self.crawler_queue_table.clone()
     }
 
-    pub fn indexer_queue_table(&self) -> &IndexerQueueTable{
-        &self.indexer_queue_table
+    pub fn indexer_queue_table_connection(&self) -> IndexerQueueTable{
+        self.indexer_queue_table.clone()
     }
 }

@@ -20,6 +20,7 @@ use crate::tantivy_file_indexer::services::local_db::table_creator::generate_tab
 
 use super::entities::indexed_dir;
 
+#[derive(Clone)]
 pub struct CrawlerQueueTable {
     db: DatabaseConnection,
 }
@@ -97,8 +98,8 @@ impl CrawlerQueueTable {
     }
 
     /**
-     Retrieve the top n entries from the database
-     */
+    Retrieve the top n entries from the database
+    */
     pub async fn view_all_limit(
         &self,
         limit: u64,

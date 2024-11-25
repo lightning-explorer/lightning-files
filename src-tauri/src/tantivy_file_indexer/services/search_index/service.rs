@@ -11,7 +11,7 @@ use crate::{
 
 use super::{
     super::super::{configs::file_indexer_config::FileIndexerConfig, schemas::file_schema},
-    core::{index_worker_manager, querier},
+    core::{file_indexer::index_worker_manager, querier},
 };
 use std::{fs, sync::Arc};
 use tantivy::{schema::Schema, Index, IndexReader, IndexWriter};
@@ -64,17 +64,19 @@ impl SearchIndexService {
     }
 
     /**
-     Returns the sender as well as the handles to the spawned index worker tasks
-     */
-    pub fn spawn_indexer_db_connected(
+    Returns the sender as well as the handles to the spawned index worker tasks
+    */
+    pub fn spawn_indexers_db_connected(
         &self,
         db_service: Arc<LocalDbService>,
         batch_size: usize,
         buffer_size: usize,
     ) -> (DbConnectedSender, JoinSet<()>) {
         let schema_clone = Arc::new(self.schema.clone());
-        let indexer_table_clone = db_service.indexer_queue_table().clone();
+        let indexer_table_clone = db_service.indexer_queue_table_connection().clone();
         let (sender, receiver) = db_connected_channel::channel::create(indexer_table_clone);
+
+        let indexer_notify = sender.get_notify();
 
         let index_writer_clone = self.index_writer.clone();
         let vector_processor = Arc::new(
@@ -88,8 +90,9 @@ impl SearchIndexService {
             schema_clone,
             db_service,
             vector_processor,
+            indexer_notify,
             batch_size,
-            8,
+            0,
         );
 
         (sender, indexer_tasks)

@@ -44,12 +44,18 @@ pub fn spawn_workers_internal<T>(
     let mut tasks = JoinSet::new();
     // Use a thread pool
     for id in 0..max_concurrent_tasks {
+
+        #[cfg(feature = "file_crawler_logs")]
+        println!(
+            "File crawler worker has been spawned to process entries in directory. ID: {}",
+            id
+        );
+
         tasks.spawn(worker_task(
             sender.clone(),
             Arc::clone(&queue),
             analyzer.clone(),
             Arc::clone(&notify),
-            id as u32,
         ));
     }
     tasks

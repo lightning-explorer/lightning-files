@@ -1,10 +1,7 @@
 use std::{
     collections::HashSet,
     path::Path,
-    sync::{
-        atomic::{AtomicUsize, Ordering},
-        Arc,
-    },
+    sync::Arc,
     time::{Duration, Instant},
 };
 
@@ -21,7 +18,7 @@ use crate::tantivy_file_indexer::{
     shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerReceiver,
 };
 use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, Notify};
 
 pub async fn worker_task<T>(
     mut receiver: T,
@@ -29,79 +26,70 @@ pub async fn worker_task<T>(
     schema: Arc<Schema>,
     db_service: Arc<LocalDbService>,
     vector_db_indexer: Arc<VectorDbIndexer>,
+    notify: Arc<Notify>,
     batch_size: usize,
 ) where
     T: FileIndexerReceiver,
 {
     // Keep track of how many files (not directories) have been indexed so that the changes can be committed
-    let files_processed = Arc::new(AtomicUsize::new(0));
+    let mut files_processed = 0;
 
-    while let Some(model) = receiver.recv().await {
-        let seen_paths: HashSet<String> = model.dtos.iter().map(|x| x.file_path.clone()).collect();
-        let stored_paths = get_stored_paths(&db_service, &model.directory_from)
+    loop {
+        if let Some(model) = receiver.recv().await {
+            #[cfg(feature = "index_worker_logs")]
+            println!("Index worker received File Input Model");
+
+            let seen_paths: HashSet<String> =
+                model.dtos.iter().map(|x| x.file_path.clone()).collect();
+            let stored_paths = get_stored_paths(&db_service, &model.directory_from)
+                .await
+                .expect("Failed to get stored paths");
+            let stale_paths = get_stale_paths(seen_paths, stored_paths);
+
+            #[cfg(feature = "speed_profile")]
+            let time = Instant::now();
+
+            // Ensure that the vector database gets updated
+            let indexing_op_handle = vector_db_indexer.index_files(&model, &stale_paths);
+
+            #[cfg(feature = "speed_profile")]
+            println!(
+                "Search Index Worker: Vector Db Indexer index files operation took {:?}",
+                time.elapsed()
+            );
+
+            files_processed += model.dtos.len();
+
+            if let Err(err) = process_files(
+                model.dtos,
+                Arc::clone(&writer),
+                Arc::clone(&schema),
+                Arc::clone(&db_service),
+            )
             .await
-            .expect("Failed to get stored paths");
-        let stale_paths = get_stale_paths(seen_paths, stored_paths);
-
-        // Clone Arcs to pass into the threads
-        let vector_db_indexer_clone = Arc::clone(&vector_db_indexer);
-        let writer_clone = Arc::clone(&writer);
-        let schema_clone = Arc::clone(&schema);
-        let db_service_clone = Arc::clone(&db_service);
-        let files_processed_clone = Arc::clone(&files_processed);
-
-        #[cfg(feature = "speed_profile")]
-        let time = Instant::now();
-
-        // Ensure that the vector database gets updated
-        vector_db_indexer_clone
-            .index_files(&model, &stale_paths)
-            .await;
-
-        #[cfg(feature = "speed_profile")]
-        println!(
-            "Search Index Worker: Vector Db Indexer index files operation took {:?}",
-            time.elapsed()
-        );
-
-        let dtos_len = model.dtos.len();
-        files_processed_clone.fetch_add(dtos_len, Ordering::Relaxed);
-
-        if let Err(err) = process_files(
-            model.dtos,
-            Arc::clone(&writer_clone),
-            Arc::clone(&schema_clone),
-            Arc::clone(&db_service_clone),
-        )
-        .await
-        {
-            println!("Error processing files: {}", err)
-        }
-
-        if let Err(err) = remove_unseen_entries(
-            stale_paths,
-            Arc::clone(&writer_clone),
-            &schema_clone,
-            &db_service_clone,
-        )
-        .await
-        {
-            println!("Error removing stale entries: {}", err);
-        }
-
-        if files_processed_clone.load(Ordering::Relaxed) >= batch_size {
-            if let Err(err) = commit_and_retry(Arc::clone(&writer_clone)).await {
-                println!("Error committing files: {}", err);
+            {
+                println!("Error processing files: {}", err)
             }
-            files_processed_clone.store(0, Ordering::Relaxed);
+
+            if let Err(err) =
+                remove_unseen_entries(stale_paths, Arc::clone(&writer), &schema, &db_service).await
+            {
+                println!("Error removing stale entries: {}", err);
+            }
+
+            if files_processed >= batch_size {
+                if let Err(err) = commit_and_retry(Arc::clone(&writer)).await {
+                    println!("Error committing files: {}", err);
+                }
+                files_processed = 0;
+            }
+        } else {
+            // The indexer queue is empty. Wait for more entries
+            println!("Index worker has nothing to do. Waiting for notification");
+            notify.notified().await;
+            println!("Index worker received notification. Resuming work");
         }
-        #[cfg(feature = "index_worker_logs")]
-        println!(
-            "File index worker subworker has finished. ID: {}",
-            subworker_id
-        );
     }
-    println!("File index worker receiver channel closed");
 }
 
 // THIS one is the bottleneck
@@ -156,7 +144,7 @@ async fn process_files(
     #[cfg(feature = "speed_profile")]
     let time = Instant::now();
 
-    if let Err(err) = db_service.files_table().upsert_many(&db_file_models).await {
+    if let Err(err) = db_service.files_table_connection().upsert_many(&db_file_models).await {
         return Err(format!("Error upserting file models: {}", err));
     }
 
@@ -182,7 +170,7 @@ async fn remove_unseen_entries(
     if let Err(err) = remove_files_from_index(&stale_paths, writer.clone(), schema).await {
         return Err(err.to_string());
     }
-    if let Err(err) = db_service.files_table().remove_paths(&stale_paths).await {
+    if let Err(err) = db_service.files_table_connection().remove_paths(&stale_paths).await {
         return Err(err.to_string());
     }
 
@@ -194,7 +182,7 @@ async fn get_stored_paths(
     directory: &Path,
 ) -> Result<HashSet<String>, String> {
     db_service
-        .files_table()
+        .files_table_connection()
         .get_paths_from_dir(&directory.to_string_lossy())
         .await
         .map_err(|e| e.to_string())

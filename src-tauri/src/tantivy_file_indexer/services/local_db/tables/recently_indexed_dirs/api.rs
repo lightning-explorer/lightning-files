@@ -8,6 +8,7 @@ use crate::tantivy_file_indexer::services::local_db::table_creator::generate_tab
 
 use super::entities::recently_indexed_dir;
 
+#[derive(Clone)]
 pub struct RecentlyIndexedDirectoriesTable {
     db: DatabaseConnection,
 }

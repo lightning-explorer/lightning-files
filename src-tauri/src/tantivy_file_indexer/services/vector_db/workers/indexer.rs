@@ -27,7 +27,7 @@ impl VectorDbIndexer {
     /**
     Returns a handle to the indexing task that got spawned
     */
-    pub async fn index_files(
+    pub fn index_files(
         &self,
         model: &FileInputModel,
         stale_paths: &HashSet<String>,

@@ -43,7 +43,7 @@ impl CrawlerQueue {
         #[cfg(feature = "file_crawler_logs")]
         println!("Length of queue: {}", self.get_len().await);
 
-        match self.db.crawler_queue_table().pop().await {
+        match self.db.crawler_queue_table_connection().pop().await {
             Ok(model) => model.map(|x| {
                 if x.priority > 1 {
                     #[cfg(feature = "file_crawler_logs")]
@@ -60,7 +60,7 @@ impl CrawlerQueue {
 
     pub async fn get_len(&self) -> u64 {
         self.db
-            .crawler_queue_table()
+            .crawler_queue_table_connection()
             .count_dirs()
             .await
             .unwrap_or_default()
@@ -69,7 +69,12 @@ impl CrawlerQueue {
     pub async fn push_many(&self, entries: &[(PathBuf, u32)]) {
         // Remove the old directories to ensure that they can be indexed again
         // cutoff time is a value in minutes
-        match &self.db.recently_indexed_dirs_table().refresh(5).await {
+        match &self
+            .db
+            .recently_indexed_dirs_table_connection()
+            .refresh(5)
+            .await
+        {
             Ok(val) => {
                 if val > &0 {
                     #[cfg(feature = "file_crawler_logs")]
@@ -95,7 +100,7 @@ impl CrawlerQueue {
         // Add to the crawler queue
         if let Err(err) = self
             .db
-            .crawler_queue_table()
+            .crawler_queue_table_connection()
             .upsert_many(&indexed_dir_models)
             .await
         {
@@ -106,7 +111,7 @@ impl CrawlerQueue {
         // Add to recently indexed
         if let Err(err) = self
             .db
-            .recently_indexed_dirs_table()
+            .recently_indexed_dirs_table_connection()
             .upsert_many(&recently_indexed_dir_models)
             .await
         {
@@ -124,7 +129,7 @@ impl CrawlerQueue {
         for (path, priority) in entries.iter() {
             let is_recent = self
                 .db
-                .recently_indexed_dirs_table()
+                .recently_indexed_dirs_table_connection()
                 .contains_dir(path.to_string_lossy().into_owned())
                 .await
                 .expect("Failed to check if directory was indexed recently");

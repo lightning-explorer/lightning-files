@@ -1,6 +1,8 @@
 mod core {
-    pub mod index_worker_manager;
-    mod index_worker;
+    pub mod file_indexer {
+        mod index_worker;
+        pub mod index_worker_manager;
+    }
     pub mod querier;
 }
 pub mod models {

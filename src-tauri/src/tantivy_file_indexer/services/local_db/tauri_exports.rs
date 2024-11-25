@@ -10,7 +10,7 @@ pub async fn view_crawler_queue(
     service: State<'_, Arc<LocalDbService>>,
 ) -> Result<Vec<indexed_dir::Model>, String> {
     service
-        .crawler_queue_table()
+        .crawler_queue_table_connection()
         .view_all_limit(limit)
         .await
         .map_err(|err| format!("Error viewing crawler queue: {}", err))
@@ -21,7 +21,7 @@ pub async fn view_crawler_priority_counts(
     service: State<'_, Arc<LocalDbService>>,
 ) -> Result<HashMap<u32, i64>, String> {
     service
-        .crawler_queue_table()
+        .crawler_queue_table_connection()
         .get_priority_counts()
         .await
         .map_err(|err| format!("Error viewing crawler priority counts: {}", err))
