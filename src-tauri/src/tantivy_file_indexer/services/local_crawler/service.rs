@@ -1,4 +1,5 @@
 use tokio::sync::mpsc;
+use tokio::task::JoinSet;
 
 use crate::tantivy_file_indexer::services::search_index::models::index_worker::file_input::FileInputModel;
 use crate::tantivy_file_indexer::{
@@ -30,7 +31,10 @@ impl FileCrawlerService {
         }
     }
 
-    pub fn spawn_crawler<T>(&self, sender: T)
+    /**
+     Returns the handles to the crawlers that got spawned
+     */
+    pub fn spawn_crawlers<T>(&self, sender: T) -> JoinSet<()>
     where
         T: FileIndexerSender,
     {
@@ -38,32 +42,36 @@ impl FileCrawlerService {
         let max_concurrent_tasks = self.max_concurrent_tasks;
         let notify = self.queue.get_notifier();
 
-        tokio::task::spawn(async move {
-            super::core::crawler_worker_manager::spawn_workers(sender, max_concurrent_tasks, queue, notify).await;
-        });
+        super::core::crawler_worker_manager::spawn_workers(
+            sender,
+            max_concurrent_tasks,
+            queue,
+            notify,
+        )
     }
 
-    pub fn spawn_crawler_with_analyzer<T>(
+    /**
+     Returns the handles to the crawlers that got spawned
+     */
+    pub fn spawn_crawlers_with_analyzer<T>(
         &self,
         sender: T,
         analyzer: Arc<FileCrawlerAnalyzerService>,
-    ) where
+    ) -> JoinSet<()>
+    where
         T: FileIndexerSender,
     {
         let queue = self.queue.clone();
         let max_concurrent_tasks = self.max_concurrent_tasks;
         let notify = self.queue.get_notifier();
 
-        tokio::task::spawn(async move {
-            super::core::crawler_worker_manager::spawn_workers_with_analyzer(
-                sender,
-                max_concurrent_tasks,
-                queue,
-                analyzer,
-                notify
-            )
-            .await;
-        });
+        super::core::crawler_worker_manager::spawn_workers_with_analyzer(
+            sender,
+            max_concurrent_tasks,
+            queue,
+            analyzer,
+            notify,
+        )
     }
 
     pub async fn push_dirs(&self, paths: Vec<(PathBuf, Priority)>) {

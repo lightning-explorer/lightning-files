@@ -62,7 +62,9 @@ async fn initialize_app(handle: AppHandle) {
             .search_service
             .spawn_indexer_db_connected(db_service, 128, 8);
 
-        crawler_service.spawn_crawler_with_analyzer(sender, crawler_analyzer_service);
+        let handles =
+            crawler_service.spawn_crawlers_with_analyzer(sender, crawler_analyzer_service);
+
         crawler_service
             .push_dirs_default(vec![Path::new("C:\\").to_path_buf()])
             .await;
