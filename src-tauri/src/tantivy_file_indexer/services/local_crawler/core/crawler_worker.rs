@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 use std::{path::PathBuf, sync::Arc, time::UNIX_EPOCH};
 use tokio::sync::Notify;
 
@@ -19,7 +19,6 @@ pub async fn worker_task<T>(
 ) where
     T: FileIndexerSender,
 {
-
     loop {
         if let Some(ref analyzer) = analyzer {
             analyzer.record_timestamp().await;
@@ -89,12 +88,11 @@ pub async fn worker_task<T>(
                 "Crawler sending files to indexer took: {:?}",
                 time.elapsed()
             );
-
         } else {
-            // Wait to be notified
+            //Wait to be notified
             println!("Crawler worker has nothing to do. Waiting for notification");
             notify.notified().await;
-            println!("Crawler worker received notification. Resuming work");
+            println!("Crawler worker resuming work");
         }
     }
 }

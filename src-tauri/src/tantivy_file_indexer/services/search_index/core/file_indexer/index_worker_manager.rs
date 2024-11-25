@@ -27,6 +27,9 @@ where
 {
     let mut tasks = JoinSet::new();
 
+    // TODO: uncomment
+
+    /*
     for id in 0..max_concurrent_tasks {
         #[cfg(feature = "index_worker_logs")]
         println!("Index worker has been spawned. ID: {}", id);
@@ -41,6 +44,7 @@ where
             batch_size,
         ));
     }
+    */
 
     tasks
 }
