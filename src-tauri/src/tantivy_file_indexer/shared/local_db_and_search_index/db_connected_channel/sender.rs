@@ -1,6 +1,4 @@
-
-
-use std::sync::Arc;
+use std::{sync::Arc, time::Instant};
 
 use tokio::sync::mpsc::error::SendError;
 
@@ -14,10 +12,10 @@ use crate::tantivy_file_indexer::{
 
 #[derive(Clone)]
 pub struct DbConnectedSender {
-    indexer_table:IndexerQueueTable,
+    indexer_table: IndexerQueueTable,
 }
 
-impl DbConnectedSender{
+impl DbConnectedSender {
     pub fn new(indexer_table: IndexerQueueTable) -> Self {
         Self { indexer_table }
     }
@@ -27,14 +25,23 @@ impl FileIndexerSender for DbConnectedSender {
     fn send(
         &self,
         value: FileInputModel,
-    ) -> impl std::future::Future<
-        Output = Result<(), SendError<FileInputModel>>,
-    > + Send {
+    ) -> impl std::future::Future<Output = Result<(), SendError<FileInputModel>>> + Send {
         let value_clone: FileInputModel = value.clone();
         let indexer_table_clone = Arc::new(&self.indexer_table);
-        Box::pin(async move { match indexer_table_clone.add(value).await{
-            Ok(_)=>Ok(()),
-            Err(_)=>Err(SendError(value_clone))
-        } })
+        let time = Instant::now();
+        Box::pin(async move {
+            match indexer_table_clone.add(value).await {
+                Ok(_) => {
+                    #[cfg(feature = "db_indexer_queue_logs")]
+                    println!(
+                        "FileIndexerSender send + JSON serialization took {:?}",
+                        time.elapsed()
+                    );
+
+                    Ok(())
+                }
+                Err(_) => Err(SendError(value_clone)),
+            }
+        })
     }
 }

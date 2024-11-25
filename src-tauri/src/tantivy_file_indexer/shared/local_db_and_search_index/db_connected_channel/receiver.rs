@@ -1,4 +1,4 @@
-use std::{path::Path, sync::Arc};
+use std::path::Path;
 
 use crate::tantivy_file_indexer::{
     services::{
@@ -12,14 +12,13 @@ pub struct DbConnectedReceiver {
     indexer_table: IndexerQueueTable,
 }
 
-impl DbConnectedReceiver{
+impl DbConnectedReceiver {
     pub fn new(indexer_table: IndexerQueueTable) -> Self {
         Self { indexer_table }
     }
 }
 
 impl FileIndexerReceiver for DbConnectedReceiver {
-
     async fn recv(&mut self) -> Option<FileInputModel> {
         // Return None if there was an error for some reason
         if let Some(m) = self.indexer_table.pop().await.ok()? {

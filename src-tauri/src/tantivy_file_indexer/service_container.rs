@@ -5,7 +5,10 @@ use super::services::{
     search_index::service::SearchIndexService,
     vector_db::service::VectorDbService,
 };
-use std::sync::{Arc, RwLock};
+use std::{
+    path::PathBuf,
+    sync::{Arc, RwLock},
+};
 
 use tauri::{AppHandle, Manager};
 
@@ -24,7 +27,10 @@ impl AppServiceContainer {
         let app_name = "DesktopSearch";
 
         // AppSavePath::Other("D:\\DSearch".to_string())
-        let app_save_service = Self::initialize_app_save_service(AppSavePath::AppData, app_name);
+        let app_save_service = Self::initialize_app_save_service(
+            AppSavePath::Other(PathBuf::from("D:\\DesktopSearch")),
+            app_name,
+        );
 
         let files_display_state = Self::initialize_files_display_state();
         let config = Self::create_file_indexer_config(&app_save_service);

@@ -8,7 +8,6 @@ use std::{
     time::{Duration, Instant},
 };
 
-use super::super::models::index_worker::file_input::FileInputModel;
 use crate::tantivy_file_indexer::{
     converters::date_converter::unix_time_to_tantivy_datetime,
     dtos::file_dto_input::FileDTOInput,
@@ -16,11 +15,13 @@ use crate::tantivy_file_indexer::{
         local_db::{
             service::LocalDbService,
             tables::files::{self},
-        }, vector_db::workers::indexer::VectorDbIndexer
-    }, shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerReceiver,
+        },
+        vector_db::workers::indexer::VectorDbIndexer,
+    },
+    shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerReceiver,
 };
 use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::Mutex;
 
 /*
 TODO: make it so that rather than an mpsc receiver, we use a custom receiver that pulls in the files from a database table.
@@ -37,7 +38,9 @@ pub async fn spawn_worker<T>(
     db_service: Arc<LocalDbService>,
     vector_db_indexer: Arc<VectorDbIndexer>,
     batch_size: usize,
-) where T: FileIndexerReceiver {
+) where
+    T: FileIndexerReceiver,
+{
     // Keep track of how many files (not directories) have been indexed so that the changes can be committed
     let files_processed = Arc::new(AtomicUsize::new(0));
     let mut subworker_id: u32 = 0;
@@ -57,7 +60,9 @@ pub async fn spawn_worker<T>(
         let files_processed_clone = Arc::clone(&files_processed);
 
         subworker_id += 1;
-
+        println!("NOTE: index_worker spawn function has been commented out. So the indexer queue is not getting processed");
+        // Test not spawning any indexers
+        /*
         tokio::spawn(async move {
             #[cfg(feature = "index_worker_logs")]
             println!(
@@ -116,6 +121,7 @@ pub async fn spawn_worker<T>(
                 subworker_id
             );
         });
+        */
     }
     println!("File index worker receiver channel closed");
 }

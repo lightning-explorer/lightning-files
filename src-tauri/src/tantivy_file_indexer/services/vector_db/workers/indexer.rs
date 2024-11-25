@@ -15,7 +15,7 @@ use crate::{
 
 pub struct VectorDbIndexer {
     vector: Arc<VevtorService>,
-    indexer: Indexer<EmbeddableFileModel>,
+    indexer: Indexer<EmbeddableFileModel>, 
 }
 
 impl VectorDbIndexer {
@@ -24,8 +24,16 @@ impl VectorDbIndexer {
         Self { vector, indexer }
     }
 
-    pub async fn index_files(&self, model: &FileInputModel, stale_paths: &HashSet<String>) {
-        let vector = Arc::clone(&self.vector);
+    /**
+    Returns a handle to the indexing task that got spawned
+    */
+    pub async fn index_files(
+        &self,
+        model: &FileInputModel,
+        stale_paths: &HashSet<String>,
+    ) -> tokio::task::JoinHandle<()> {
+        let vector_clone = Arc::clone(&self.vector);
+        let indexer_clone = self.indexer.clone();
         let paths = self.file_dtos_to_models(
             &model
                 .dtos
@@ -41,27 +49,24 @@ impl VectorDbIndexer {
                 .collect(),
         );
 
-        #[cfg(feature="vector_db_logs")]
-        println!(
-            "removing {} stale entries from vector database",
-            stale_paths.len()
-        );
+        tokio::task::spawn(async move {
+            #[cfg(feature = "vector_db_logs")]
+            println!(
+                "removing {} stale entries from vector database",
+                stale_paths.len()
+            );
 
-        vector
-            .delete_by_id(
-                stale_paths
-                    .iter()
-                    .map(|file| (file.collection(), file.get_id()))
-                    .collect(),
-            )
-            .await;
-        #[cfg(feature="speed_profile")]    
-        let time = Instant::now();
-
-        self.indexer.index(paths).await;
-
-        #[cfg(feature="speed_profile")]    
-        println!("Vector index operation took {:?}", time.elapsed());
+            vector_clone
+                .delete_by_id(
+                    stale_paths
+                        .iter()
+                        .map(|file| (file.collection(), file.get_id()))
+                        .collect(),
+                )
+                .await;
+        
+            indexer_clone.index(paths).await;
+        })
     }
 
     fn file_dtos_to_models(&self, dtos: &Vec<&FileDTOInput>) -> Vec<EmbeddableFileModel> {

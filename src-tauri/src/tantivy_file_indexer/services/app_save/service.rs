@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use dirs::data_dir;
 use serde::{de::DeserializeOwned, Serialize};
@@ -9,7 +9,7 @@ use crate::tantivy_file_indexer::services::app_save::core::helper::{
 
 pub enum AppSavePath {
     AppData,
-    Other(String),
+    Other(PathBuf),
 }
 pub struct AppSaveService {
     pub save_dir: PathBuf,
@@ -48,7 +48,7 @@ impl AppSaveService {
     fn get_save_path(save_dir: AppSavePath, app_name: &str) -> PathBuf {
         let save_path = match save_dir {
             AppSavePath::AppData => data_dir().expect("Could not find AppData directory"),
-            AppSavePath::Other(path) => Path::new(&path).to_path_buf(),
+            AppSavePath::Other(path) => path,
         };
         save_path.join(app_name)
     }
