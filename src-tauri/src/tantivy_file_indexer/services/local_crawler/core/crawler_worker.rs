@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::time::{Duration, Instant};
 use std::{path::PathBuf, sync::Arc, time::UNIX_EPOCH};
 use tokio::sync::Notify;
 
@@ -29,6 +29,15 @@ pub async fn worker_task<T>(
         if let Some(ref analyzer) = analyzer {
             analyzer.record_timestamp().await;
         }
+        /*
+        Current issue:
+        If 'queue.pop' errors, it returns None, which causes the crawler to become idle.
+        In the case of using 'notified.await', this will cause the crawler to idle, and because it tried to take an item out of the queue,
+        it will wait even though there are entries that could still be processed, thus if all of the crawlers eventually idle, then nothing
+        will get crawled.
+
+        To fix this, we need to retry calls to the database to ensure that something is found
+         */
         if let Some((path, priority)) = queue.pop().await {
             let mut input_dtos_tasks = Vec::new();
             let mut dir_paths_priority: Vec<(PathBuf, u32)> = Vec::new();
@@ -91,10 +100,11 @@ pub async fn worker_task<T>(
                 "Crawler sending files to indexer took: {:?}",
                 time.elapsed()
             );
-
         } else {
             // Wait to be notified
-            notify.notified().await;
+            //notify.notified().await;
+            println!("Crawler worker has nothing to do. Idling");
+            tokio::time::sleep(Duration::from_secs(1)).await;
         }
     }
 }

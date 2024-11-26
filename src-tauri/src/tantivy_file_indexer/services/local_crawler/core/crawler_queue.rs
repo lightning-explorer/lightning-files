@@ -54,7 +54,14 @@ impl CrawlerQueue {
                 }
                 (Path::new(&x.path).to_path_buf(), x.priority)
             }),
-            Err(_) => None,
+            Err(err) => {
+                #[cfg(feature = "file_crawler_logs")]
+                println!(
+                    "Error popping item from crawler queue. None will be returned: {}",
+                    err
+                );
+                None
+            }
         }
     }
 
@@ -69,6 +76,8 @@ impl CrawlerQueue {
     pub async fn push_many(&self, entries: &[(PathBuf, u32)]) {
         // Remove the old directories to ensure that they can be indexed again
         // cutoff time is a value in minutes
+
+        // Common error: This table often fails to refresh
         match &self.db.recently_indexed_dirs_table().refresh(5).await {
             Ok(val) => {
                 if val > &0 {
