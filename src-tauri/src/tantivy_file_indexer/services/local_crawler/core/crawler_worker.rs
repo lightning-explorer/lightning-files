@@ -29,82 +29,84 @@ pub async fn worker_task<T>(
         if let Some(ref analyzer) = analyzer {
             analyzer.record_timestamp().await;
         }
-        /*
-        Current issue:
-        If 'queue.pop' errors, it returns None, which causes the crawler to become idle.
-        In the case of using 'notified.await', this will cause the crawler to idle, and because it tried to take an item out of the queue,
-        it will wait even though there are entries that could still be processed, thus if all of the crawlers eventually idle, then nothing
-        will get crawled.
+        match queue.pop().await {
+            Ok(val) => {
+                if let Some((path, priority)) = val {
+                    let mut input_dtos_tasks = Vec::new();
+                    let mut dir_paths_priority: Vec<(PathBuf, u32)> = Vec::new();
+                    let mut files_processed: usize = 0;
 
-        To fix this, we need to retry calls to the database to ensure that something is found
-         */
-        if let Some((path, priority)) = queue.pop().await {
-            let mut input_dtos_tasks = Vec::new();
-            let mut dir_paths_priority: Vec<(PathBuf, u32)> = Vec::new();
-            let mut files_processed: usize = 0;
+                    if path.is_dir() {
+                        if let Ok(mut dir) = tokio::fs::read_dir(&path).await {
+                            // Iterate over each entry in the directory
+                            while let Ok(Some(entry)) = dir.next_entry().await {
+                                let entry_path = entry.path();
+                                if entry_path.is_dir() {
+                                    // This Vec is specific to this thread, so no atomic operations right here
+                                    dir_paths_priority.push((entry_path.clone(), priority + 1));
+                                }
+                                // Metadata is fetched here
+                                let metadata_fetch_task =
+                                    tokio::spawn(async move { create_dto(entry_path).await });
+                                input_dtos_tasks.push(metadata_fetch_task);
 
-            if path.is_dir() {
-                if let Ok(mut dir) = tokio::fs::read_dir(&path).await {
-                    // Iterate over each entry in the directory
-                    while let Ok(Some(entry)) = dir.next_entry().await {
-                        let entry_path = entry.path();
-                        if entry_path.is_dir() {
-                            // This Vec is specific to this thread, so no atomic operations right here
-                            dir_paths_priority.push((entry_path.clone(), priority + 1));
+                                files_processed += 1;
+                            }
+                            // End of the while loop. Put some heavier operations here:
+                            // This is a database call here:
+                            queue.push_many(&dir_paths_priority).await;
+
+                            if let Some(ref analyzer) = analyzer {
+                                // Adding to an atomic variable:
+                                analyzer.add_to_files_processed(files_processed);
+                            }
                         }
-                        // Metadata is fetched here
-                        let metadata_fetch_task =
-                            tokio::spawn(async move { create_dto(entry_path).await });
-                        input_dtos_tasks.push(metadata_fetch_task);
-
-                        files_processed += 1;
                     }
-                    // End of the while loop. Put some heavier operations here:
-                    // This is a database call here:
-                    queue.push_many(&dir_paths_priority).await;
 
-                    if let Some(ref analyzer) = analyzer {
-                        // Adding to an atomic variable:
-                        analyzer.add_to_files_processed(files_processed);
+                    // Await the metadata fetch tasks
+                    let input_dtos: Vec<FileDTOInput> = futures::future::join_all(input_dtos_tasks)
+                        .await
+                        .into_iter()
+                        .flatten()
+                        .flatten()
+                        .collect();
+
+                    #[cfg(feature = "speed_profile")]
+                    let time = Instant::now();
+
+                    let model = create_model(path, input_dtos).await;
+
+                    #[cfg(feature = "speed_profile")]
+                    println!(
+                        "Crawler creating FileInputModel for batch of files/directories took: {:?}",
+                        time.elapsed()
+                    );
+
+                    #[cfg(feature = "speed_profile")]
+                    let time = Instant::now();
+
+                    if let Err(err) = sender.send(model).await {
+                        eprintln!("Error sending FileInputModel to indexer: {}", err);
                     }
+                    #[cfg(feature = "speed_profile")]
+                    println!(
+                        "Crawler sending files to indexer took: {:?}",
+                        time.elapsed()
+                    );
+                } else {
+                    // To get here, and Ok had to be returned and there had to be nothing in it, indicating that the queue must be empty
+                    println!("Crawler worker has nothing to do. Waiting for notification");
+                    notify.notified().await;
                 }
             }
-
-            // Await the metadata fetch tasks
-            let input_dtos: Vec<FileDTOInput> = futures::future::join_all(input_dtos_tasks)
-                .await
-                .into_iter()
-                .flatten()
-                .flatten()
-                .collect();
-
-            #[cfg(feature = "speed_profile")]
-            let time = Instant::now();
-
-            let model = create_model(path, input_dtos).await;
-
-            #[cfg(feature = "speed_profile")]
-            println!(
-                "Crawler creating FileInputModel for batch of files/directories took: {:?}",
-                time.elapsed()
-            );
-
-            #[cfg(feature = "speed_profile")]
-            let time = Instant::now();
-
-            if let Err(err) = sender.send(model).await {
-                eprintln!("Error sending FileInputModel to indexer: {}", err);
+            Err(err) => {
+                // If an error occurs, don't want to be notified, just wait and then try again shortly
+                println!(
+                    "Crawler worker encountered error while trying to take item from queue: {}",
+                    err
+                );
+                tokio::time::sleep(Duration::from_secs(1)).await;
             }
-            #[cfg(feature = "speed_profile")]
-            println!(
-                "Crawler sending files to indexer took: {:?}",
-                time.elapsed()
-            );
-        } else {
-            // Wait to be notified
-            //notify.notified().await;
-            println!("Crawler worker has nothing to do. Idling");
-            tokio::time::sleep(Duration::from_secs(1)).await;
         }
     }
 }
