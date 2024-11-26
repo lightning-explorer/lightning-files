@@ -14,7 +14,7 @@ index_worker_logs = []
 db_indexer_queue_logs = []
 
 # Default features
-default = ["speed_profile", "file_crawler_logs", "db_indexer_queue_logs"]
+default = ["speed_profile", "file_crawler_logs", "index_worker_logs"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

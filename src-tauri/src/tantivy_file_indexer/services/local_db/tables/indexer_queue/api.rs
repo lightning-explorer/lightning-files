@@ -1,5 +1,7 @@
 use crate::tantivy_file_indexer::services::local_db::table_creator::generate_table_lenient;
-use sea_orm::{ActiveValue::NotSet, DatabaseConnection, EntityTrait, InsertResult, Set};
+use sea_orm::{
+    ActiveValue::NotSet, DatabaseConnection, EntityTrait, InsertResult, PaginatorTrait, Set,
+};
 
 use super::entities::directory_payload;
 
@@ -42,5 +44,10 @@ impl IndexerQueueTable {
             return Ok(Some(entry));
         }
         Ok(None)
+    }
+
+    pub async fn get_len(&self) -> Result<u64, sea_orm::DbErr> {
+        let count = directory_payload::Entity::find().count(&self.db).await?;
+        Ok(count)
     }
 }

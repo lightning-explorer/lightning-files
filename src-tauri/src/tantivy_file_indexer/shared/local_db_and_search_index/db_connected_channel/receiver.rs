@@ -20,13 +20,20 @@ impl DbConnectedReceiver {
 
 impl FileIndexerReceiver for DbConnectedReceiver {
     async fn recv(&mut self) -> Option<FileInputModel> {
-        // Return None if there was an error for some reason
-        if let Some(m) = self.indexer_table.pop().await.ok()? {
-            return Some(FileInputModel {
-                directory_from: Path::new(&m.directory_from).to_path_buf(),
-                dtos: m.get_files(),
-            });
+        match self.indexer_table.pop().await {
+            Ok(val) => {
+                if let Some(m) = val {
+                    return Some(FileInputModel {
+                        directory_from: Path::new(&m.directory_from).to_path_buf(),
+                        dtos: m.get_files(),
+                    });
+                }
+                None
+            }
+            Err(err) => {
+                println!("DbConnectedReceiver: Error during pop operation: {}", err);
+                None
+            }
         }
-        None
     }
 }
