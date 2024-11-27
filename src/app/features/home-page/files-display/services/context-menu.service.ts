@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ContextMenuComponent } from '../../../../shared/components/context-menu/context-menu.component';
 import { ContextMenuButton } from '../../../../shared/components/context-menu/models/ContextMenuButton';
-import { FileModel } from '../../models/FileModel';
+import { FileModel } from '../../../../core/models/file-model';
 import { PinService } from '../../../../core/services/files/pin.service';
 
 @Injectable()

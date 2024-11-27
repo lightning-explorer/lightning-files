@@ -39,7 +39,7 @@ impl FileCrawlerService {
         let notify = self.queue.get_notifier();
 
         tokio::task::spawn(async move {
-            super::core::crawler_worker_manager::spawn_workers(sender, max_concurrent_tasks, queue, notify).await;
+            super::core::file_crawler::crawler_worker_manager::spawn_workers(sender, max_concurrent_tasks, queue, notify).await;
         });
     }
 
@@ -55,7 +55,7 @@ impl FileCrawlerService {
         let notify = self.queue.get_notifier();
 
         tokio::task::spawn(async move {
-            super::core::crawler_worker_manager::spawn_workers_with_analyzer(
+            super::core::file_crawler::crawler_worker_manager::spawn_workers_with_analyzer(
                 sender,
                 max_concurrent_tasks,
                 queue,

@@ -50,7 +50,7 @@ pub fn run() {
 }
 
 async fn initialize_app(handle: AppHandle) {
-    let index_files = true;
+    let index_files = false;
 
     let service_container = AppServiceContainer::new_async(&handle).await;
     let crawler_service = Arc::clone(&service_container.crawler_service);

@@ -15,7 +15,7 @@ import { interval, Subject, switchMap, takeUntil } from 'rxjs';
 export class SettingsPageComponent implements OnInit {
   crawlerQueue: IndexedDirModel[] = [];
   crawlerPriorityCounts: Array<{ priority: number; count: number }> = [];
-  crawlerAnalyzerData: Array<{ label:string, data:string }> = [];
+  crawlerAnalyzerData: Array<{ label: string, data: string }> = [];
 
   private readonly refreshIntervalMs = 4000; // 4 seconds
   private destroy$ = new Subject<void>();

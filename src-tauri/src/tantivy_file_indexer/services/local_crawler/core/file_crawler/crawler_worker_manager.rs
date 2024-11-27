@@ -5,7 +5,7 @@ use tokio::sync::Notify;
 use crate::tantivy_file_indexer::services::local_crawler::analyzer::service::FileCrawlerAnalyzerService;
 use crate::tantivy_file_indexer::shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerSender;
 
-use super::crawler_queue::CrawlerQueue;
+use super::super::crawler_queue::CrawlerQueue;
 use super::crawler_worker::worker_task;
 
 pub async fn spawn_workers<T>(

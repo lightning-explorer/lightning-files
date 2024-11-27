@@ -1,10 +1,10 @@
-import { FileModel } from "../../../features/home-page/models/FileModel";
+import { FileModel } from "../../models/file-model";
 
 export interface ConfigKeys {
-    moveItemsDontAskAgain:boolean,
-    pinnedFiles:FileModel[]
+    moveItemsDontAskAgain: boolean,
+    pinnedFiles: FileModel[]
 }
 
-export function getDefaultConfig():ConfigKeys{
-    return {moveItemsDontAskAgain:false, pinnedFiles:[]};
+export function getDefaultConfig(): ConfigKeys {
+    return { moveItemsDontAskAgain: false, pinnedFiles: [] };
 }

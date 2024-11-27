@@ -1,14 +1,12 @@
 import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { FileDTOReceived } from '../../../core/dtos/file-dto-received';
 import { CommonModule } from '@angular/common';
 import { FileResultComponent } from "../file-result/file-result.component";
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
 import { trigger, state, style, animate, transition } from '@angular/animations';
-import { FileModel } from '../models/FileModel';
+import { FileModel } from '../../../core/models/file-model';
 import { InlineSearchService } from '../../../core/services/search/text/inline-search.service';
 import { SelectService } from './services/select.service';
 import { DragDropService } from './services/dragdrop.service';
-import { ModalPopupComponent } from "../../../shared/components/modal-popup/modal-popup.component";
 import { MoveItemsPopupComponent } from "./components/move-items-popup/move-items-popup.component";
 import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator/directory-navigator.service';
 import { DriveService } from '../../../core/services/files/drive.service';
@@ -17,9 +15,9 @@ import { ContextMenuComponent } from "../../../shared/components/context-menu/co
 import { PinService } from '../../../core/services/files/pin.service';
 
 @Component({
-  selector: 'app-files-display',
+  selector: 'app-files-display', 
   standalone: true,
-  imports: [CommonModule, FileResultComponent, ScrollingModule, ModalPopupComponent, MoveItemsPopupComponent, ContextMenuComponent],
+  imports: [CommonModule, FileResultComponent, ScrollingModule, MoveItemsPopupComponent, ContextMenuComponent],
   providers: [SelectService, DragDropService, FileContextMenuService],
   templateUrl: './files-display.component.html',
   styleUrl: './files-display.component.scss',

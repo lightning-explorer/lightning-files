@@ -1,22 +1,19 @@
 import { Component, HostListener, OnInit } from '@angular/core';
-import { SearchEngineService } from '../../core/services/search/text/search-engine.service';
-import { SearchbarComponent } from "./searchbar/searchbar.component";
-import { FileDTOReceived } from '../../core/dtos/file-dto-received';
-import { FileResultComponent } from "./file-result/file-result.component";
+
 import { CommonModule } from '@angular/common';
 import { FormControl } from '@angular/forms';
-import { SearchParamsDTO } from '../../core/dtos/search-params-dto';
+import { SearchParamsDTO } from '../../core/dtos/output/search-params-dto';
 import { SidebarComponent } from "./sidebar/sidebar.component";
 import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-directory-bar.component";
 import { FilesDisplayComponent } from "./files-display/files-display.component";
 import { DirectoryNavigatorService } from '../../core/services/files/directory-navigator/directory-navigator.service';
 import { MatIconModule } from '@angular/material/icon';
-import { InlineQueryDTO } from '../../core/dtos/inline-query-dto';
+import { InlineQueryDTO } from '../../core/dtos/output/inline-query-dto';
 import { InlineSearchService } from '../../core/services/search/text/inline-search.service';
-import { FileModel } from './models/FileModel';
-import { fileDTOToModel } from './models/converters/FileDTOToModel';
+import { FileModel } from '../../core/models/file-model';
 import { TopHeaderComponent } from "./top-header/top-header.component";
 import { PinnedFilesHeaderComponent } from "./pinned-files-header/pinned-files-header.component";
+import { fileDTOToModel } from '../../core/models/converters/FileDTOToModel';
 
 // TODO:
 // put search bar in Shared and then make a simpler one in features to manage its own state

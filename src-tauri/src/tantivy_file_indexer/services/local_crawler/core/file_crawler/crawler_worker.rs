@@ -9,7 +9,7 @@ use crate::tantivy_file_indexer::{
     services::search_index::models::index_worker::file_input::FileInputModel, util::file_id_helper,
 };
 
-use super::crawler_queue::CrawlerQueue;
+use super::super::crawler_queue::CrawlerQueue;
 
 pub async fn worker_task<T>(
     sender: T,

@@ -3,7 +3,7 @@ import { Injectable, OnInit } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 import { DriveModel } from "../../models/drive-model";
 import { invoke } from "@tauri-apps/api/core";
-import { FileModel } from "../../../features/home-page/models/FileModel";
+import { FileModel } from "../../models/file-model";
 import { PersistentConfigService } from "../persistence/config.service";
 
 @Injectable({ 'providedIn': 'root' })

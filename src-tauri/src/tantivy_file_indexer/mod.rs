@@ -29,6 +29,5 @@ mod models {
     pub mod vector_search_params_model;
 }
 pub mod shared {
-    pub mod crawler_and_indexer;
     pub mod local_db_and_search_index;
 }

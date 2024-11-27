@@ -1,5 +1,5 @@
 <div *ngIf="file">
-    <button class="content" [ngClass]="{'selected':selected}">
+    <button class="content" [ngClass]="{'selected':selected}" (click)="onClick()">
 
         <div class="content-left">
             <div *ngIf="isPinned">

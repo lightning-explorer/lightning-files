@@ -34,7 +34,7 @@ impl CrawlerQueue {
 
     pub async fn push_defaults(&self, paths: &[PathBuf]) {
         let files: Vec<(PathBuf, u32)> = paths
-            .into_iter()
+            .iter()
             .map(|path| (path.clone(), DEFAULT_PRIORITY))
             .collect();
 
@@ -45,7 +45,7 @@ impl CrawlerQueue {
         #[cfg(feature = "file_crawler_logs")]
         println!("Length of queue: {}", self.get_len().await);
 
-        match retry::retry_on_locked(|| self.db.crawler_queue_table().pop(), 3).await {
+        match self.db.crawler_queue_table().pop().await {
             Ok(model) => Ok(model.map(|x| {
                 if x.priority > 1 {
                     #[cfg(feature = "file_crawler_logs")]

@@ -1,4 +1,4 @@
-export interface FileDTOReceived {
+export interface FileDTO {
     Name: string,
     DateModified: string,
     Metadata: string,
