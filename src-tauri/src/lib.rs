@@ -8,6 +8,7 @@ use tantivy_file_indexer::{
     services::vector_db::tauri_exports::*,
 };
 use tauri::{AppHandle, Manager};
+mod shared;
 mod directory_nav_service;
 mod tantivy_file_indexer;
 

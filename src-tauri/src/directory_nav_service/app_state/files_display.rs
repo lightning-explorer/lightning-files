@@ -1,4 +1,5 @@
-use crate::directory_nav_service::{dtos::inline_query_dto::InlineQueryDTO, models::sys_file_model::SystemFileModel};
+use crate::directory_nav_service::dtos::inline_query_dto::InlineQueryDTO;
+use crate::shared::models::sys_file_model::SystemFileModel;
 use std::sync::{Arc, RwLock, RwLockWriteGuard};
 
 pub struct FilesDisplayState {
