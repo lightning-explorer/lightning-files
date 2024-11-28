@@ -1,20 +1,19 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs';
-import { SearchEngineService } from '../../../core/services/search/text/search-engine.service';
-import { SearchParamsDTO } from '../../../core/dtos/output/search-params-dto';
-import { FileDTO } from '../../../core/dtos/input/file-dto';
+import { SearchParamsDTO } from '../../../../core/dtos/output/search-params-dto';
+import { FileDTO } from '../../../../core/dtos/input/file-dto';
 import { CommonModule } from '@angular/common';
-import { FileResultComponent } from "../file-result/file-result.component";
-import { FileModel } from '../../../core/models/file-model';
+import { FileResultComponent } from "../../file-result/file-result.component";
+import { FileModel } from '../../../../core/models/file-model';
 
-import { LocalSearchEngineService } from '../../../core/services/search/text/local-search-engine.service';
-import { VectorSearchEngineService } from '../../../core/services/search/vector/vector-search.service';
-import { VectorSearchParamsModel } from '../../../core/services/search/vector/dtos/output/vector-search-params';
+import { LocalSearchEngineService } from '../../../../core/services/search/text/local-search-engine.service';
+import { VectorSearchEngineService } from '../../../../core/services/search/vector/vector-search.service';
+import { VectorSearchParamsModel } from '../../../../core/services/search/vector/dtos/output/vector-search-params';
 
-import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator/directory-navigator.service';
-import { vectorResultToModel } from '../../../core/models/converters/VectorResultToModel';
-import { fileDTOToModel } from '../../../core/models/converters/FileDTOToModel';
+import { DirectoryNavigatorService } from '../../../../core/services/files/directory-navigator/directory-navigator.service';
+import { vectorResultToModel } from '../../../../core/models/converters/VectorResultToModel';
+import { fileDTOToModel } from '../../../../core/models/converters/FileDTOToModel';
 
 @Component({
   selector: 'app-searchbar',

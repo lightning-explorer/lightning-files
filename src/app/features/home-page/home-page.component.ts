@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { FormControl } from '@angular/forms';
 import { SearchParamsDTO } from '../../core/dtos/output/search-params-dto';
 import { SidebarComponent } from "./sidebar/sidebar.component";
-import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-directory-bar.component";
 import { FilesDisplayComponent } from "./files-display/files-display.component";
 import { DirectoryNavigatorService } from '../../core/services/files/directory-navigator/directory-navigator.service';
 import { MatIconModule } from '@angular/material/icon';

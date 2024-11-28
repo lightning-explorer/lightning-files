@@ -37,11 +37,13 @@ body.dark-mode {
 
 body,
 html {
-  background: radial-gradient(circle at 100% 107%,
-      var(--background-color) 0%,
-      var(--background-secondary) 30%,
-      var(--background-ambient) 60%,
-      var(--background-color) 100%);
+  background: radial-gradient(
+    circle at 100% 107%,
+    var(--background-color) 0%,
+    var(--background-secondary) 30%,
+    var(--background-ambient) 60%,
+    var(--background-color) 100%
+  );
   width: 100%;
   height: 100%;
   margin: 0px;

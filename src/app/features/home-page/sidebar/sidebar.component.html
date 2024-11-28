@@ -1,18 +1,20 @@
 <div class="content">
 
-    <div class="divider"></div>
+    <div class="top">
+        <div class="divider"></div>
 
-    <app-button-w-icon text="Your Collections" iconName="folder" />
-    <app-button-w-icon text="Shared Collections" iconName="folder_shared" />
+        <app-button-w-icon text="Your Collections" iconName="folder" />
+        <app-button-w-icon text="Shared Collections" iconName="folder_shared" />
 
-    <div class="divider"></div>
+        <div class="divider"></div>
 
-    <div class="scroll-region">
+        <div class="scroll-region">
 
-        <div *ngFor="let drive of drives">
-            <app-drive-result [drive]="drive" />
+            <div *ngFor="let drive of drives">
+                <app-drive-result [drive]="drive" />
+            </div>
+
         </div>
-
     </div>
 
     <app-toolbar />

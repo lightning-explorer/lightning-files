@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import { CurrentDirectoryBarComponent } from "../current-directory-bar/current-directory-bar.component";
-import { SearchbarComponent } from "../searchbar/searchbar.component";
+import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-directory-bar.component";
 import { MatIconModule } from '@angular/material/icon';
 import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator/directory-navigator.service';
+import { SearchbarComponent } from './searchbar/searchbar.component';
 
 @Component({
   selector: 'app-top-header',

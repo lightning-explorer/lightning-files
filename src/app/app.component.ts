@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { WindowChromeComponent } from "./layout/window-chrome/window-chrome.component";
 import { IconifyIconModule } from './shared/components/IconifyIcons/icon.module';
 import { TauriLifecycleService } from './core/services/tauri/lifecycle.service';
@@ -18,10 +17,7 @@ export class AppComponent implements OnInit {
   constructor(private lifecycleService: TauriLifecycleService) { }
 
   async ngOnInit() {
-    const window = getCurrentWindow();
-
-    // TODO: Revisit this code as it causes the backend to panic if the frontend initializes before it does
-    // await this.lifecycleService.onStartup();
+    await this.lifecycleService.onStartup();
   }
 
 }
