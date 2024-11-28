@@ -6,7 +6,7 @@
     border-left: 4px solid var(--secondary-color);
     border-radius: 10px;
     overflow: hidden;
-    background-color: var(--background-color);
+    //background-color: var(--background-color);
     margin: 0.2em;
     width: 100%;
     align-items: center;
@@ -22,7 +22,7 @@
     align-items: center;
     display: flex;
     width: 100%;
-    gap: .5em;
+    gap: 0.5em;
 }
 
 .icon {
@@ -35,16 +35,10 @@
     display: flex;
     line-height: 0;
     align-items: stretch;
-
     width: 100%;
     text-wrap: wrap;
     text-align: left;
-}
-
-.name {
     overflow-wrap: anywhere;
-    text-align: left;
-    width: 70%;
 }
 
 .metadata p {

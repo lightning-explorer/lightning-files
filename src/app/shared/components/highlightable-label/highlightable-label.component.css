@@ -1,8 +1,9 @@
 label{
+    color: var(--contrast-color);
     pointer-events: none;
 }
 
-::ng-deep .highlight {
-    color: var(--background-color);
+label .highlight{
+    color: var(--contrast-color);
     background-color: var(--fourth-color);
-  }
+}

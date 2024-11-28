@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, ViewEncapsulation } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
@@ -6,7 +6,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   standalone: true,
   imports: [],
   templateUrl: './highlightable-label.component.html',
-  styleUrl: './highlightable-label.component.css'
+  styleUrl: './highlightable-label.component.css',
+  encapsulation: ViewEncapsulation.None
 })
 export class HighlightableLabelComponent implements OnChanges {
   @Input() text: string = ''; // Text to display
@@ -14,7 +15,7 @@ export class HighlightableLabelComponent implements OnChanges {
 
   highlightedText: SafeHtml = ''; // HTML string with highlights
 
-  constructor(private sanitizer: DomSanitizer) {}
+  constructor(private sanitizer: DomSanitizer) { }
 
   ngOnChanges(): void {
     this.highlightedText = this.getHighlightedText();
@@ -29,6 +30,7 @@ export class HighlightableLabelComponent implements OnChanges {
       `<span class="highlight">$1</span>`
     );
 
-    return this.sanitizer.bypassSecurityTrustHtml(highlighted);
+    const html = this.sanitizer.bypassSecurityTrustHtml(highlighted);
+    return html;
   }
 }

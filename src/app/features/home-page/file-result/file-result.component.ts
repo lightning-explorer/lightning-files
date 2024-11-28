@@ -9,6 +9,9 @@ import { FileModel } from '../../../core/models/file-model';
 import { HighlightableLabelComponent } from "../../../shared/components/highlightable-label/highlightable-label.component";
 import { PinService } from '../../../core/services/files/pin.service';
 
+// If you are looking for the drag functionality, it gets handled by the parent component
+// 'files-display' for example
+
 @Component({
   selector: 'app-file-result',
   standalone: true,
@@ -34,10 +37,6 @@ export class FileResultComponent {
 
   get icon(): string {
     return getIconFromPath(this.file ? this.file.Dto.FilePath : "");
-  }
-
-  get iconColor(): string {
-    return this.cssVarService.cssVarToHex('--secondary-color');
   }
 
   onClick() {

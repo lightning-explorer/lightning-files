@@ -16,8 +16,8 @@
     width: 100%;
     display: flex;
     align-items: center;
+    background-color: var(--background-transparent);
     justify-content: space-between;
-    background-color: rgb(255, 255, 255);
     border-radius: 10px;
     overflow: hidden;
     cursor: pointer;
@@ -27,6 +27,8 @@
 }
 
 .input {
+    color: var(--contrast-color);
+    background-color: transparent;
     display: flex;
     font-family: "Fredoka";
     width: 100%;
