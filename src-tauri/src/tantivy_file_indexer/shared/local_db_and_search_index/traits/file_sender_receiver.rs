@@ -8,7 +8,10 @@ pub trait FileIndexerReceiver {
     async fn recv(&mut self) -> Option<FileInputModel>;
 }
 
-pub trait FileIndexerSender: Send + Clone + Sync + 'static
-{
-    fn send(&self, value: FileInputModel) -> impl Future<Output = Result<(), SendError<FileInputModel>>> + Send;
+pub trait FileIndexerSender: Send + Clone + Sync + 'static {
+    fn send(
+        &self,
+        value: FileInputModel,
+    ) -> impl Future<Output = Result<(), SendError<FileInputModel>>> + Send;
 }
+//merge
