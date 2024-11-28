@@ -12,7 +12,6 @@ import { InlineSearchService } from '../../core/services/search/text/inline-sear
 import { FileModel } from '../../core/models/file-model';
 import { TopHeaderComponent } from "./top-header/top-header.component";
 import { PinnedFilesHeaderComponent } from "./pinned-files-header/pinned-files-header.component";
-import { fileDTOToModel } from '../../core/models/converters/FileDTOToModel';
 
 // TODO:
 // put search bar in Shared and then make a simpler one in features to manage its own state
@@ -38,8 +37,8 @@ export class HomePageComponent implements OnInit {
   ngOnInit(): void {
     this.directoryService.setDriveFiles();
 
-    this.directoryService.currentFiles$.subscribe(x =>
-      this.driveFiles = x.map(x => fileDTOToModel(x))
+    this.directoryService.currentFiles$.subscribe(files =>
+      this.driveFiles = files
     );
   }
 

@@ -8,7 +8,7 @@
             </div>
 
             <div>
-                <div *ngIf="file.Dto.IsDirectory; else elseBlock">
+                <div *ngIf="file.IsDirectory; else elseBlock">
                     <iconify-icon icon="folder" />
                 </div>
 
@@ -19,11 +19,11 @@
 
 
             <div class="name">
-                <app-highlightable-label [text]="file.Dto.Name" [highlight]="file.HighlightedText" />
+                <app-highlightable-label [text]="file.Name" [highlight]="file.HighlightedText" />
             </div>
 
             <div class="metadata">
-                <p>{{file.Dto.FilePath}}</p>
+                <p>{{file.FilePath}}</p>
             </div>
 
         </div>

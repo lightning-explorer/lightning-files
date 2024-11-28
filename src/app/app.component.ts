@@ -17,7 +17,7 @@ export class AppComponent implements OnInit {
   constructor(private lifecycleService: TauriLifecycleService) { }
 
   async ngOnInit() {
-    await this.lifecycleService.onStartup();
+    //await this.lifecycleService.onStartup();
   }
 
 }

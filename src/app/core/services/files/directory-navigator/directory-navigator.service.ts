@@ -1,16 +1,16 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
-import { FileDTO } from "../../../dtos/input/file-dto";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { defaultParams, GetFilesParamsModel } from "./models/get-files-params";
+import { FileModel } from "../../../models/file-model";
 
 @Injectable({ 'providedIn': 'root' })
 export class DirectoryNavigatorService {
     private currentDirSubject = new BehaviorSubject<string>('C:\\');
     public currentDir$ = this.currentDirSubject.asObservable();
 
-    private currentFilesSubject = new BehaviorSubject<FileDTO[]>([]);
+    private currentFilesSubject = new BehaviorSubject<FileModel[]>([]);
     public currentFiles$ = this.currentFilesSubject.asObservable();
 
     constructor() { }
@@ -26,7 +26,7 @@ export class DirectoryNavigatorService {
 
         this.currentFilesSubject.next([]);
 
-        const unlisten = await listen<FileDTO>("sys_file_model", (event) => {
+        const unlisten = await listen<FileModel>("sys_file_model", (event) => {
             const updatedFiles = [...this.currentFilesSubject.getValue(), event.payload];
             this.currentFilesSubject.next(updatedFiles);
         })

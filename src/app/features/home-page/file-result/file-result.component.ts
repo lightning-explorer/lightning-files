@@ -35,7 +35,7 @@ export class FileResultComponent {
   }
 
   get icon(): string {
-    return getIconFromPath(this.file ? this.file.Dto.FilePath : "");
+    return getIconFromPath(this.file ? this.file.FilePath : "");
   }
 
   onClick() {

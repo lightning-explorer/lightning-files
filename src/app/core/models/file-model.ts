@@ -1,6 +1,13 @@
-import { FileDTO } from "../dtos/input/file-dto";
 
+/**
+ Corresponds to `SystemFileModel` in the Rust backend
+ */
 export interface FileModel {
-    Dto: FileDTO
+    Name: string,
+    DateModified: string,
+    Metadata: string,
+    FilePath: string,
+    Score: number,
+    IsDirectory: boolean,
     HighlightedText: string,
 }

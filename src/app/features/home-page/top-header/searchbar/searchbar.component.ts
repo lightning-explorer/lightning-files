@@ -2,7 +2,6 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs';
 import { SearchParamsDTO } from '../../../../core/dtos/output/search-params-dto';
-import { FileDTO } from '../../../../core/dtos/input/file-dto';
 import { CommonModule } from '@angular/common';
 import { FileResultComponent } from "../../file-result/file-result.component";
 import { FileModel } from '../../../../core/models/file-model';
@@ -13,7 +12,6 @@ import { VectorSearchParamsModel } from '../../../../core/services/search/vector
 
 import { DirectoryNavigatorService } from '../../../../core/services/files/directory-navigator/directory-navigator.service';
 import { vectorResultToModel } from '../../../../core/models/converters/VectorResultToModel';
-import { fileDTOToModel } from '../../../../core/models/converters/FileDTOToModel';
 import { InlineSearchService } from '../../../../core/services/search/text/inline-search.service';
 
 @Component({
@@ -58,13 +56,13 @@ export class SearchbarComponent implements OnInit {
       FilePath: value
     }
     let results = await this.searchEngineService.query(searchParams);
-    this.searchResults = results.map(x => fileDTOToModel(x))
+    this.searchResults = results;
   }
 
   onResultClick(model: FileModel) {
     return () => {
       this.inlineSearchService.clearQuery();
-      this.directoryNavService.setCurrentDir(model.Dto.FilePath);
+      this.directoryNavService.setCurrentDir(model.FilePath);
     };
   }
 

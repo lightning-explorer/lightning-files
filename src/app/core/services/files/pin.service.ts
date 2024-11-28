@@ -19,7 +19,7 @@ export class PinService {
     }
 
     isFilePinned(file: FileModel): boolean {
-        return this.pinnedFilesSubject.getValue().some(x => x.Dto.FilePath == file.Dto.FilePath);
+        return this.pinnedFilesSubject.getValue().some(x => x.FilePath == file.FilePath);
     }
 
     pinFile(file: FileModel) {
@@ -27,6 +27,6 @@ export class PinService {
     }
 
     unpinFile(file: FileModel) {
-        this.configService.update("pinnedFiles", this.pinnedFilesSubject.getValue().filter(x => x.Dto.FilePath != file.Dto.FilePath));
+        this.configService.update("pinnedFiles", this.pinnedFilesSubject.getValue().filter(x => x.FilePath != file.FilePath));
     }
 }

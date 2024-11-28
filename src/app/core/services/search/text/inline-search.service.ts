@@ -1,5 +1,4 @@
 import { Injectable, input } from "@angular/core";
-import { FileDTO } from "../../../dtos/input/file-dto";
 import { InlineQueryDTO } from "../../../dtos/output/inline-query-dto";
 import { invoke } from "@tauri-apps/api/core";
 import { FileModel } from "../../../models/file-model";
@@ -46,7 +45,7 @@ export class InlineSearchService {
 
             for (let i = 0; i < files.length; i++) {
                 let file = files[i];
-                if (dtos.some(x => x.Name === file.Dto.Name)) {
+                if (dtos.some(x => x.Name === file.Name)) {
                     if (!input_was_backspace)
                         this.firstOccurenceOfQueryIndexSubject.next(i);
 
@@ -68,8 +67,8 @@ export class InlineSearchService {
         return result ? result : false;
     }
 
-    private async query(query: InlineQueryDTO): Promise<FileDTO[]> {
-        return invoke<FileDTO[]>("search_files_inline", {
+    private async query(query: InlineQueryDTO): Promise<FileModel[]> {
+        return invoke<FileModel[]>("search_files_inline", {
             query
         }).then(result =>
             result

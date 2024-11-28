@@ -42,7 +42,7 @@ export class PinnedFilesHeaderComponent {
   }
 
   getIcon(file: FileModel): string {
-    return getIconFromPath(file ? file.Dto.FilePath : "");
+    return getIconFromPath(file ? file.FilePath : "");
   }
 
 }

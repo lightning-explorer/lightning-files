@@ -35,7 +35,7 @@ export class SelectService {
   }
 
   async onFileDoubleClick(file: FileModel) {
-    const path = file.Dto.FilePath;
+    const path = file.FilePath;
     this.clearSelection();
     if (await this.directoryService.isPathAFile(path)) {
       await this.directoryService.openFileCmd(path);

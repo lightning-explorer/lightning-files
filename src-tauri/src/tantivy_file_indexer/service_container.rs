@@ -5,12 +5,10 @@ use super::services::{
     search_index::service::SearchIndexService,
     vector_db::service::VectorDbService,
 };
-use std::{
-    path::PathBuf,
-    sync::{Arc, RwLock},
-};
+use std::{path::PathBuf, sync::Arc};
 
 use tauri::{AppHandle, Manager};
+use tokio::sync::RwLock;
 
 use crate::FilesDisplayState;
 
@@ -28,14 +26,13 @@ impl AppServiceContainer {
         // Ensure that the app service is initialized before the rest to ensure that the AppData save path is created
         let app_save_service = Self::initialize_app_save_service(
             AppSavePath::Other(PathBuf::from("D:\\DesktopSearch")),
-            app_name, 
+            app_name,
         );
         let app_path = app_save_service.save_dir.clone();
 
-        let files_display_state = Self::initialize_files_display_state();
-
         let vector_db_service = Self::initialize_vector_service();
-        let search_service = Self::initialize_search_service(50_000_000,app_path, &vector_db_service);
+        let search_service =
+            Self::initialize_search_service(50_000_000, app_path, &vector_db_service);
 
         // TODO: Remove this:
         vector_db_service.delete_all_collections().await;
@@ -48,7 +45,7 @@ impl AppServiceContainer {
         let crawler_service =
             Self::initialize_crawler_service(8, Arc::clone(&local_db_service)).await;
 
-        handle.manage(Arc::clone(&files_display_state));
+        handle.manage(Arc::new(FilesDisplayState::new()));
         handle.manage(Arc::clone(&search_service));
         handle.manage(Arc::clone(&local_db_service));
         handle.manage(Arc::clone(&crawler_service));
@@ -63,10 +60,6 @@ impl AppServiceContainer {
             crawler_service,
             crawler_analyzer_service,
         }
-    }
-
-    fn initialize_files_display_state() -> Arc<RwLock<FilesDisplayState>> {
-        Arc::new(RwLock::new(FilesDisplayState::new()))
     }
 
     fn initialize_search_service(

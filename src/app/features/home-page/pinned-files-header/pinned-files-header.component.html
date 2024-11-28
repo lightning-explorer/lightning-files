@@ -7,10 +7,10 @@
 
                 <span class="pin">
                     <iconify-icon icon="pin" size="1.2em" color="--contrast-color" />
-                    <label>{{processFilename(file.Dto.Name)}}</label>
+                    <label>{{processFilename(file.Name)}}</label>
                 </span>
 
-                <div *ngIf="file.Dto.IsDirectory; else elseBlock" class="icon">
+                <div *ngIf="file.IsDirectory; else elseBlock" class="icon">
                     <iconify-icon icon="folder" size="1.2em" />
                 </div>
 
@@ -19,7 +19,7 @@
                 </ng-template>
 
             </button>
-            <div class="tooltiptext">{{file.Dto.FilePath}}</div>
+            <div class="tooltiptext">{{file.FilePath}}</div>
         </div>
 
     </div>

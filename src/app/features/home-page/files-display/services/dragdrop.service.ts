@@ -29,9 +29,9 @@ export class DragDropService {
         if (this.draggedItems.has(targetItem))
             return true;
 
-        this.draggingItemsTo = targetItem.Dto.FilePath;
+        this.draggingItemsTo = targetItem.FilePath;
         event.preventDefault();
-        if (targetItem.Dto.IsDirectory) {
+        if (targetItem.IsDirectory) {
             if (this.draggedItems.size > maxNumDroppable) {
                 return false;
             }
@@ -42,10 +42,10 @@ export class DragDropService {
 
     moveItems(targetDirectory: FileModel) {
         this.draggedItems.forEach(item => {
-            const file = item.Dto.FilePath;
-            const move_to = targetDirectory.Dto.FilePath;
+            const file = item.FilePath;
+            const move_to = targetDirectory.FilePath;
             if (file != move_to) {
-                console.log(`Moved ${item.Dto.FilePath} to ${targetDirectory.Dto.FilePath}`);
+                console.log(`Moved ${item.FilePath} to ${targetDirectory.FilePath}`);
             }
         });
     }
