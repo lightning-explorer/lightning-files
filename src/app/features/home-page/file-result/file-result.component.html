@@ -2,29 +2,30 @@
     <button class="content" [ngClass]="{'selected':selected}" (click)="onClick()">
 
         <div class="content-left">
+
             <div *ngIf="isPinned">
-                <iconify-icon icon="pin" size="1em" />
+                <iconify-icon icon="pin" size="1em" color="--contrast-color" />
+            </div>
+
+            <div>
+                <div *ngIf="file.Dto.IsDirectory; else elseBlock">
+                    <iconify-icon icon="folder" />
+                </div>
+
+                <ng-template #elseBlock class="icon">
+                    <iconify-icon [icon]="icon" color="--contrast-color" />
+                </ng-template>
             </div>
 
 
             <div class="name">
-                <app-highlightable-label [text]="file.Dto.Name" [highlight]="file.HighlightedText">
-                </app-highlightable-label>
-
-                <div class="metadata">
-                    <p>{{file.Dto.FilePath}}</p>
-                </div>
-
+                <app-highlightable-label [text]="file.Dto.Name" [highlight]="file.HighlightedText" />
             </div>
+
+            <div class="metadata">
+                <p>{{file.Dto.FilePath}}</p>
+            </div>
+
         </div>
-
-        <div *ngIf="file.Dto.IsDirectory; else elseBlock">
-            <iconify-icon icon="folder" />
-        </div>
-
-        <ng-template #elseBlock class="icon">
-            <iconify-icon [icon]="icon" color="--contrast-color" />
-        </ng-template>
-
     </button>
 </div>

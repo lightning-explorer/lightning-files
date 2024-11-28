@@ -1,16 +1,16 @@
+use super::super::super::super::app_state::files_display::FilesDisplayState;
 use crate::directory_nav_service::models::get_files_model::GetFilesParamsModel;
 use crate::directory_nav_service::util::metadata_inspector::is_hidden;
-use crate::FilesDisplayState;
 
-use crate::shared::dtos::file_dto::FileDTO;
 use std::fs;
 use std::path::Path;
-use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::RwLock;
 use tauri::AppHandle;
 use tauri::Emitter;
 use tauri::State;
+
+use super::helper;
 
 #[tauri::command]
 pub async fn get_files_as_dtos(
@@ -38,7 +38,7 @@ pub async fn get_files_as_dtos(
             continue;
         }
 
-        if let Some(dto) = create_dto_from_path(path.clone()).await {
+        if let Some(dto) = helper::create_dto_from_path(path.clone()).await {
             if let Ok(mut state) = FilesDisplayState::lock(&state_files_display) {
                 state.add_dto(dto.clone());
             } else {
@@ -49,19 +49,4 @@ pub async fn get_files_as_dtos(
         }
     }
     Ok(())
-}
-
-// Asynchronous helper function to create a FileDTO
-async fn create_dto_from_path(file_path: PathBuf) -> Option<FileDTO> {
-    let is_directory = file_path.is_dir();
-    let file_name = file_path.file_stem()?.to_string_lossy().to_string();
-
-    Some(FileDTO {
-        name: file_name,
-        file_path: file_path.to_string_lossy().to_string(),
-        metadata: "".to_string(),      // Add metadata logic if needed
-        date_modified: "".to_string(), // Add date logic if needed
-        score: 0.0,
-        is_directory,
-    })
 }

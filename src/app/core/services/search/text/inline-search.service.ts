@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, input } from "@angular/core";
 import { FileDTO } from "../../../dtos/input/file-dto";
 import { InlineQueryDTO } from "../../../dtos/output/inline-query-dto";
 import { invoke } from "@tauri-apps/api/core";
@@ -6,45 +6,60 @@ import { FileModel } from "../../../models/file-model";
 import { filterAlphanumeric } from "../../../../shared/services/keyboard-press-filter";
 import { BehaviorSubject, Observable } from "rxjs";
 
+/**
+ Calls the Rust backend to handle the query operation
+ */
 @Injectable({ 'providedIn': 'root' })
 export class InlineSearchService {
 
-    private searchQuery = "";
+    private searchQuerySubject = new BehaviorSubject<string>("");
+    searchQuery$ = this.searchQuerySubject.asObservable();
+
+    private numberOfFoundItemsSubject = new BehaviorSubject<number>(0);
+    numberOfFoundItems$ = this.numberOfFoundItemsSubject.asObservable();
+
     private firstOccurenceOfQueryIndexSubject = new BehaviorSubject<number>(0);
     firstOccurenceOfQueryIndex$ = this.firstOccurenceOfQueryIndexSubject.asObservable();
 
     async handleKeydown(event: KeyboardEvent, files: FileModel[]) {
         if (!this.isInputFocused()) {
             const key = filterAlphanumeric(event);
+            let input_was_backspace = false;
             if (event.key == "Backspace") {
-                if (this.searchQuery.length == 0) {
+                if (this.searchQuerySubject.getValue().length == 0) {
                     return;
                 }
-                this.searchQuery = this.searchQuery.slice(0, -1);
+                this.searchQuerySubject.next(this.searchQuerySubject.getValue().slice(0, -1));
+                input_was_backspace = true;
             } else {
                 if (key == undefined) {
                     return;
                 }
-                this.searchQuery += event.key;
+                let searchQueryValue = this.searchQuerySubject.getValue();
+                this.searchQuerySubject.next(searchQueryValue += event.key);
             }
-            console.log(this.searchQuery);
-            const queryDto: InlineQueryDTO = { Query: this.searchQuery };
+
+            const queryDto: InlineQueryDTO = { Query: this.searchQuerySubject.getValue() };
             const dtos = await this.query(queryDto);
-            let foundFirst = false;
+
+            this.numberOfFoundItemsSubject.next(dtos.length);
 
             for (let i = 0; i < files.length; i++) {
                 let file = files[i];
                 if (dtos.some(x => x.Name === file.Dto.Name)) {
+                    if (!input_was_backspace)
+                        this.firstOccurenceOfQueryIndexSubject.next(i);
 
-                    foundFirst = true;
-                    this.firstOccurenceOfQueryIndexSubject.next(i);
-
-                    file.HighlightedText = this.searchQuery;
+                    file.HighlightedText = this.searchQuerySubject.getValue();
                 } else {
                     file.HighlightedText = "";
                 }
             }
         }
+    }
+
+    clearQuery() {
+        this.searchQuerySubject.next("");
     }
 
     private isInputFocused(): boolean {
@@ -60,7 +75,4 @@ export class InlineSearchService {
             result
         )
     }
-
-
-
 }

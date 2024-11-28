@@ -9,15 +9,14 @@ import { SelectService } from './services/select.service';
 import { DragDropService } from './services/dragdrop.service';
 import { MoveItemsPopupComponent } from "./components/move-items-popup/move-items-popup.component";
 import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator/directory-navigator.service';
-import { DriveService } from '../../../core/services/files/drive.service';
 import { FileContextMenuService } from './services/context-menu.service';
 import { ContextMenuComponent } from "../../../shared/components/context-menu/context-menu.component";
-import { PinService } from '../../../core/services/files/pin.service';
+import { InlineSearchBarComponent } from "./components/inline-search-bar/inline-search-bar.component";
 
 @Component({
-  selector: 'app-files-display', 
+  selector: 'app-files-display',
   standalone: true,
-  imports: [CommonModule, FileResultComponent, ScrollingModule, MoveItemsPopupComponent, ContextMenuComponent],
+  imports: [CommonModule, FileResultComponent, ScrollingModule, MoveItemsPopupComponent, ContextMenuComponent, InlineSearchBarComponent],
   providers: [SelectService, DragDropService, FileContextMenuService],
   templateUrl: './files-display.component.html',
   styleUrl: './files-display.component.scss',
@@ -96,6 +95,7 @@ export class FilesDisplayComponent implements OnInit, OnChanges {
   }
 
   onFileDoubleClick(file: FileModel) {
+    this.inlineSearchService.clearQuery();
     this.selectService.onFileDoubleClick(file);
   }
 

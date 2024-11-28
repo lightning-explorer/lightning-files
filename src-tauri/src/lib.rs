@@ -1,6 +1,6 @@
 use std::{path::Path, sync::Arc};
 
-use directory_nav_service::service::*;
+use directory_nav_service::tauri_exports::*;
 use tantivy_file_indexer::{
     service_container::AppServiceContainer, services::app_save::tauri_exports::*,
     services::local_crawler::tauri_exports::*, services::local_db::tables::files::tauri_exports::*,

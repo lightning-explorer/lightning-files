@@ -1,7 +1,6 @@
 use serde::Deserialize;
 use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
-use tauri::command;
 use winapi::um::fileapi::GetLogicalDriveStringsW;
 
 #[derive(Deserialize, Debug)]
@@ -10,7 +9,6 @@ pub struct WindowsDrive {
     pub volume_name: String,
 }
 
-#[command]
 pub fn get_system_drives() -> Result<Vec<WindowsDrive>, String> {
     let mut buffer: [u16; 1024] = [0; 1024];
     let length = unsafe { GetLogicalDriveStringsW(buffer.len() as u32, buffer.as_mut_ptr()) };
