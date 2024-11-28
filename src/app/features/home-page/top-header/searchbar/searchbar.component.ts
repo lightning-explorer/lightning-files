@@ -14,6 +14,7 @@ import { VectorSearchParamsModel } from '../../../../core/services/search/vector
 import { DirectoryNavigatorService } from '../../../../core/services/files/directory-navigator/directory-navigator.service';
 import { vectorResultToModel } from '../../../../core/models/converters/VectorResultToModel';
 import { fileDTOToModel } from '../../../../core/models/converters/FileDTOToModel';
+import { InlineSearchService } from '../../../../core/services/search/text/inline-search.service';
 
 @Component({
   selector: 'app-searchbar',
@@ -27,8 +28,11 @@ export class SearchbarComponent implements OnInit {
   searchResults: FileModel[] = [];
   inputControl = new FormControl();
 
-  constructor(private searchEngineService: LocalSearchEngineService, private vectorSearchService: VectorSearchEngineService,
-    private directoryNavService: DirectoryNavigatorService
+  constructor(
+    private searchEngineService: LocalSearchEngineService,
+    private vectorSearchService: VectorSearchEngineService,
+    private directoryNavService: DirectoryNavigatorService,
+    private inlineSearchService: InlineSearchService
   ) { }
 
   ngOnInit(): void {
@@ -58,7 +62,10 @@ export class SearchbarComponent implements OnInit {
   }
 
   onResultClick(model: FileModel) {
-    return () => this.directoryNavService.setCurrentDir(model.Dto.FilePath);
+    return () => {
+      this.inlineSearchService.clearQuery();
+      this.directoryNavService.setCurrentDir(model.Dto.FilePath);
+    };
   }
 
   onBlur() {

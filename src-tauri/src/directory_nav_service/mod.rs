@@ -7,25 +7,32 @@ mod models {
 }
 mod core {
     pub mod files {
-        pub mod file_ops;
-        pub mod file_retriever;
-        pub mod user_input_validator;
-        pub mod search{
-            pub mod inline_search;
+        pub mod inline_search{
+            pub mod tauri_cmds;
+        }
+        pub mod operations{
+            pub mod tauri_cmds;
+        }
+        pub mod retrieve{
+            pub mod tauri_cmds;
+            mod helper;
+        }
+        pub mod user_input_validator{
+            pub mod tauri_cmds;
         }
     }
     pub mod drives {
-        pub mod drive_ops;
-        pub mod com {
+        pub mod tauri_cmds;
+        mod com {
             pub mod get_sys_drives;
         }
     }
 }
-mod app_state{
+mod app_state {
     pub mod files_display;
 }
 mod util {
     pub mod metadata_inspector;
     pub mod path_ops;
 }
-pub mod service;
+pub mod tauri_exports;

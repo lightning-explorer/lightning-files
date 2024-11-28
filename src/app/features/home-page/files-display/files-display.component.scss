@@ -9,9 +9,10 @@
     height: 100%;
 
     overflow-x: hidden;
+    overflow-y: hidden;
 }
 
-.item {
+.content .item {
     margin-right: 1em;
     margin-left: 1em;
 }
@@ -28,6 +29,7 @@
     display: flex;
     align-items: left;
     gap: 5px;
+    color: var(--contrast-color);
     background-color: var(--background-color);
     padding: 5px;
     border-radius: 4px;
@@ -43,6 +45,12 @@
 }
 
 .no-files label {
-    width: 80%;
     overflow-wrap: anywhere;
+}
+
+app-inline-search-bar {
+    position: absolute;
+    margin: 0.5em;
+    pointer-events: none;
+    z-index: 10;
 }

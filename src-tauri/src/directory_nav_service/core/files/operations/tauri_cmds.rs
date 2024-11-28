@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use super::util::path_ops;
+use super::super::super::super::util::path_ops;
 
 #[tauri::command]
 pub fn get_directory_path(file_path: &str) -> String {
@@ -32,4 +32,22 @@ pub fn get_parent_directory(file_path: &str) -> String {
     } else {
         file_path.to_string()
     }
+}
+
+/**
+ * As opposed to being a directory
+ */
+#[tauri::command]
+pub fn is_path_a_file(file_path:&str)->bool{
+    let path = Path::new(file_path);
+    !path.is_dir()
+}
+
+#[tauri::command]
+pub async fn open_file(file_path:&str)-> Result<(),String>{
+    tokio::process::Command::new("cmd")
+    .args(["/C","start","",file_path])
+    .spawn()
+    .map_err(|x| x.to_string())?;
+    Ok(())
 }

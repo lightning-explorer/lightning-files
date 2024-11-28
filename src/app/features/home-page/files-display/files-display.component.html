@@ -1,8 +1,11 @@
 <div class="content" [@fadeAnimation]="animationState">
 
+    <app-inline-search-bar/>
+
     <div *ngIf="files.length==0; else elseBlock" class="no-files">
         <label><b>{{currentDirectory}}</b> is empty</label>
     </div>
+
 
     <ng-template #elseBlock>
         <cdk-virtual-scroll-viewport itemSize="50" style="height: 100%; width: 100%;">
@@ -17,8 +20,10 @@
         </cdk-virtual-scroll-viewport>
     </ng-template>
 
+
 </div>
 
+<!-- The below items are disconnected from the main component -->
 <app-move-items-popup #moveItemsPopup />
 
 <div class="drag-preview" #dragPreview>

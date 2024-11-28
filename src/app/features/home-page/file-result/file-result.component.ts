@@ -24,8 +24,7 @@ export class FileResultComponent {
   @Input() selected = false;
   @Input() clickEvent: (() => void) | undefined;
 
-  constructor(private directoryService: DirectoryNavigatorService,
-    private cssVarService: CssVarToHexService,
+  constructor(
     private pinService: PinService
   ) { }
 

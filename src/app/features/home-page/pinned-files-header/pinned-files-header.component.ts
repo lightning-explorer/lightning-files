@@ -25,7 +25,7 @@ export class PinnedFilesHeaderComponent {
   pinnedFiles: FileModel[] = [];
 
   constructor(private pinService: PinService, private selectService: SelectService,
-    private cssVarService: CssVarToHexService, private contextMenuService: FileContextMenuService) {
+    private contextMenuService: FileContextMenuService) {
     this.pinService.pinnedFiles$.subscribe(x => this.pinnedFiles = x);
   }
 
@@ -43,10 +43,6 @@ export class PinnedFilesHeaderComponent {
 
   getIcon(file: FileModel): string {
     return getIconFromPath(file ? file.Dto.FilePath : "");
-  }
-
-  getIconColor(): string {
-    return this.cssVarService.cssVarToHex('--secondary-color');
   }
 
 }
