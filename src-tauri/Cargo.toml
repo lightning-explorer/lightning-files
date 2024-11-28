@@ -14,7 +14,7 @@ index_worker_logs = []
 db_indexer_queue_logs = []
 
 # Default features
-default = ["speed_profile", "file_crawler_logs", "db_indexer_queue_logs"]
+default = ["speed_profile", "file_crawler_logs", "index_worker_logs"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -48,8 +48,7 @@ sea-orm = { version = "1.1.1", features = [ "sqlx-sqlite", "runtime-tokio-rustls
 sea-schema = "0.16.0"
 
 sqlx = { version = "0.8.2", features = ["sqlite", "macros", "runtime-tokio-native-tls"] }
-# stuff for vevtor:
-vevtor = { path = "C:\\Users\\grays\\OneDrive\\Desktop\\angular\\Rust\\vevtor" }
+vevtor = "0.1.0"
 
 [package.metadata.tauri.windows]
 requiresAdmin = true

@@ -1,5 +1,8 @@
 pub mod service;
 mod table_creator;
+pub mod util {
+    pub mod retry;
+}
 pub mod tauri_exports;
 pub mod tables {
     pub mod files {

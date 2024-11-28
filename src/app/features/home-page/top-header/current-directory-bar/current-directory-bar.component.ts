@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator/directory-navigator.service';
+import { DirectoryNavigatorService } from '../../../../core/services/files/directory-navigator/directory-navigator.service';
 import { debounceTime } from 'rxjs';
-import { truncateText } from '../../../core/other/util/text-truncator';
+import { truncateText } from '../../../../core/other/util/text-truncator';
 import { simplifyPath } from './util/overflow-checker';
 
 @Component({

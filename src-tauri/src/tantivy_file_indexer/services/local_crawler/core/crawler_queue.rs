@@ -4,6 +4,7 @@ use std::{
 };
 
 use chrono::Utc;
+use sea_orm::DbErr;
 use tokio::sync::Notify;
 
 use crate::tantivy_file_indexer::services::local_db::{
@@ -11,6 +12,7 @@ use crate::tantivy_file_indexer::services::local_db::{
     tables::{
         crawler_queue::entities::indexed_dir, recently_indexed_dirs::entities::recently_indexed_dir,
     },
+    util::retry,
 };
 
 pub type Priority = u32;
@@ -32,19 +34,19 @@ impl CrawlerQueue {
 
     pub async fn push_defaults(&self, paths: &[PathBuf]) {
         let files: Vec<(PathBuf, u32)> = paths
-            .into_iter()
+            .iter()
             .map(|path| (path.clone(), DEFAULT_PRIORITY))
             .collect();
 
         self.push_many(&files).await;
     }
 
-    pub async fn pop(&self) -> Option<(PathBuf, Priority)> {
+    pub async fn pop(&self) -> Result<Option<(PathBuf, Priority)>, DbErr> {
         #[cfg(feature = "file_crawler_logs")]
         println!("Length of queue: {}", self.get_len().await);
 
         match self.db.crawler_queue_table().pop().await {
-            Ok(model) => model.map(|x| {
+            Ok(model) => Ok(model.map(|x| {
                 if x.priority > 1 {
                     #[cfg(feature = "file_crawler_logs")]
                     println!(
@@ -53,8 +55,8 @@ impl CrawlerQueue {
                     );
                 }
                 (Path::new(&x.path).to_path_buf(), x.priority)
-            }),
-            Err(_) => None,
+            })),
+            Err(err) => Err(err),
         }
     }
 
@@ -69,6 +71,8 @@ impl CrawlerQueue {
     pub async fn push_many(&self, entries: &[(PathBuf, u32)]) {
         // Remove the old directories to ensure that they can be indexed again
         // cutoff time is a value in minutes
+
+        // Common error: This table often fails to refresh
         match &self.db.recently_indexed_dirs_table().refresh(5).await {
             Ok(val) => {
                 if val > &0 {

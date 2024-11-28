@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
-import { FileDTOReceived } from "../../../dtos/file-dto-received";
+import { FileDTO } from "../../../dtos/input/file-dto";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { defaultParams, GetFilesParamsModel } from "./models/get-files-params";
@@ -10,23 +10,23 @@ export class DirectoryNavigatorService {
     private currentDirSubject = new BehaviorSubject<string>('C:\\');
     public currentDir$ = this.currentDirSubject.asObservable();
 
-    private currentFilesSubject = new BehaviorSubject<FileDTOReceived[]>([]);
+    private currentFilesSubject = new BehaviorSubject<FileDTO[]>([]);
     public currentFiles$ = this.currentFilesSubject.asObservable();
 
     constructor() { }
 
-    async setCurrentDir(dir: string, params?:GetFilesParamsModel) {
+    async setCurrentDir(dir: string, params?: GetFilesParamsModel) {
         this.currentDirSubject.next(await this.formatPathIntoDir(dir, this.currentDirSubject.getValue()));
         await this.setDriveFiles(params);
     }
 
-    async setDriveFiles(params?:GetFilesParamsModel) {
-        if(!params)
+    async setDriveFiles(params?: GetFilesParamsModel) {
+        if (!params)
             params = defaultParams();
-        
+
         this.currentFilesSubject.next([]);
 
-        const unlisten = await listen<FileDTOReceived>("file_dto", (event) => {
+        const unlisten = await listen<FileDTO>("file_dto", (event) => {
             const updatedFiles = [...this.currentFilesSubject.getValue(), event.payload];
             this.currentFilesSubject.next(updatedFiles);
         })

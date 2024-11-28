@@ -2235,6 +2235,8 @@ checksum = "ce23b50ad8242c51a442f3ff322d56b02f08852c77e4c0b4d3fd684abc89c683"
 [[package]]
 name = "indexable_macro"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f755a06d1a2a1d5447d6a4d180a4c88b8f3b2f3196011afa704a0d37b15922c"
 dependencies = [
  "proc-macro2",
  "qdrant-client",
@@ -6644,6 +6646,8 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 [[package]]
 name = "vevtor"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a87528d4a5ad7841b3942d1271bcd8380e764a5883a7893050c4f28208af4ea"
 dependencies = [
  "fastembed",
  "indexable_macro",

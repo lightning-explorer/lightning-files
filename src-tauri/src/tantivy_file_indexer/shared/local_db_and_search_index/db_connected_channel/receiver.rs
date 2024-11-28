@@ -8,7 +8,6 @@ use crate::tantivy_file_indexer::{
     shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerReceiver,
 };
 
-#[derive(Clone)]
 pub struct DbConnectedReceiver {
     indexer_table: IndexerQueueTable,
 }
@@ -20,16 +19,21 @@ impl DbConnectedReceiver {
 }
 
 impl FileIndexerReceiver for DbConnectedReceiver {
-    fn recv(&mut self) -> impl std::future::Future<Output = Option<FileInputModel>> + Send {
-        Box::pin(async move {
-            // Return None if there was an error for some reason
-            if let Some(m) = self.indexer_table.pop().await.ok()? {
-                return Some(FileInputModel {
-                    directory_from: Path::new(&m.directory_from).to_path_buf(),
-                    dtos: m.get_files(),
-                });
+    async fn recv(&mut self) -> Option<FileInputModel> {
+        match self.indexer_table.pop().await {
+            Ok(val) => {
+                if let Some(m) = val {
+                    return Some(FileInputModel {
+                        directory_from: Path::new(&m.directory_from).to_path_buf(),
+                        dtos: m.get_files(),
+                    });
+                }
+                None
             }
-            None
-        })
+            Err(err) => {
+                println!("DbConnectedReceiver: Error during pop operation: {}", err);
+                None
+            }
+        }
     }
 }

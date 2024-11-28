@@ -11,8 +11,8 @@ SQLite database and store stuff there.
 use std::collections::HashMap;
 
 use sea_orm::{
-    prelude::Expr, sea_query::OnConflict, ColumnTrait, DatabaseConnection, EntityTrait,
-    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Set, TransactionTrait,
+    prelude::Expr, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
+    QueryOrder, QuerySelect, TransactionTrait,
 };
 use sqlx::{Sqlite, Transaction};
 
@@ -59,35 +59,43 @@ impl CrawlerQueueTable {
         Ok(())
     }
 
+    pub async fn pop(&self)->Result<Option<indexed_dir::Model>, sea_orm::DbErr>{
+        let mut items = self.fetch_many(1).await?;
+        Ok(items.pop())
+    }
+
     /**
-     * Retrieves the next most popular directory in the collection
+     * Retrieves the next most popular directories in the collection
      */
-    pub async fn pop(&self) -> Result<Option<indexed_dir::Model>, sea_orm::DbErr> {
-        // Begin a transaction
+    pub async fn fetch_many(&self, amount: u64) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
         let txn = self.db.begin().await?;
 
         // Fetch the entry with the highest priority (biggest number)
-        if let Some(next_entry) = indexed_dir::Entity::find()
+        let next_entries: Vec<indexed_dir::Model> = indexed_dir::Entity::find()
             .order_by_asc(indexed_dir::Column::Priority)
             // Order by ascending to ensure that lower numbers are nearer to the top (The lower the number, the higher the priority)
-            .one(&txn)
-            .await?
+            .limit(amount)
+            .all(&txn)
+            .await?;
+
         {
-            // Delete the fetched entry
+            // Collect the paths of the fetched entries
+            let paths_to_delete: Vec<String> = next_entries
+                .iter()
+                .map(|entry| entry.path.clone())
+                .collect();
+
+            // Delete the fetched entries using the 'IN' filter
             indexed_dir::Entity::delete_many()
-                .filter(indexed_dir::Column::Path.eq(next_entry.path.clone()))
+                .filter(indexed_dir::Column::Path.is_in(paths_to_delete))
                 .exec(&txn)
                 .await?;
 
             // Commit the transaction
             txn.commit().await?;
 
-            // Return the fetched entry
-            Ok(Some(next_entry))
-        } else {
-            // No entry found, roll back the transaction
-            txn.rollback().await?;
-            Ok(None)
+            // Return the fetched entries
+            Ok(next_entries)
         }
     }
 
@@ -97,8 +105,8 @@ impl CrawlerQueueTable {
     }
 
     /**
-     Retrieve the top n entries from the database
-     */
+    Retrieve the top n entries from the database
+    */
     pub async fn view_all_limit(
         &self,
         limit: u64,

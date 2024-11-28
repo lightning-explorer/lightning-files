@@ -1,10 +1,13 @@
 :host {
     scrollbar-width: thin;
     scrollbar-color: var(--secondary-color) transparent;
+    flex: 1;
 }
 
 .content {
-    height: 80vh;
+    display: flex;
+    height: 100%;
+
     overflow-x: hidden;
 }
 

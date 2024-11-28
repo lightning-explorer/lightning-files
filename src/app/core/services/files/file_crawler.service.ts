@@ -1,7 +1,7 @@
 
 import { Injectable, OnInit } from "@angular/core";
 import { invoke } from "@tauri-apps/api/core";
-import { AddToCrawlerQueueDTO } from "../../dtos/add-to-crawler-queue-dto";
+import { AddToCrawlerQueueDTO } from "../../dtos/output/add-to-crawler-queue-dto";
 import { IndexedDirModel } from "../../models/indexed-dir-model";
 
 @Injectable({ 'providedIn': 'root' })

@@ -13,7 +13,7 @@
     </div>
     <div class="search-results" [ngClass]="searchResults.length>0 ? 'active' : 'inactive'">
         <div *ngFor="let result of searchResults">
-            <app-file-result [file]="result" />
+            <app-file-result [file]="result" [clickEvent]="onResultClick(result)" />
         </div>
     </div>
 </div>

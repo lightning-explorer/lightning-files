@@ -1,8 +1,8 @@
 import { Injectable } from "@angular/core";
-import { FileDTOReceived } from "../../../dtos/file-dto-received";
-import { InlineQueryDTO } from "../../../dtos/inline-query-dto";
+import { FileDTO } from "../../../dtos/input/file-dto";
+import { InlineQueryDTO } from "../../../dtos/output/inline-query-dto";
 import { invoke } from "@tauri-apps/api/core";
-import { FileModel } from "../../../../features/home-page/models/FileModel";
+import { FileModel } from "../../../models/file-model";
 import { filterAlphanumeric } from "../../../../shared/services/keyboard-press-filter";
 import { BehaviorSubject, Observable } from "rxjs";
 
@@ -53,8 +53,8 @@ export class InlineSearchService {
         return result ? result : false;
     }
 
-    private async query(query: InlineQueryDTO): Promise<FileDTOReceived[]> {
-        return invoke<FileDTOReceived[]>("search_files_inline", {
+    private async query(query: InlineQueryDTO): Promise<FileDTO[]> {
+        return invoke<FileDTO[]>("search_files_inline", {
             query
         }).then(result =>
             result

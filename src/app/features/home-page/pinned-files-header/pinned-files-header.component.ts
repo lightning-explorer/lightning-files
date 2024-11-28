@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { PinService } from '../../../core/services/files/pin.service';
-import { FileModel } from '../models/FileModel';
+import { FileModel } from '../../../core/models/file-model';
 import { CommonModule } from '@angular/common';
 import { FileResultComponent } from "../file-result/file-result.component";
 import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator/directory-navigator.service';

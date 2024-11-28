@@ -1,5 +1,5 @@
 <div *ngIf="file">
-    <button class="content" [ngClass]="{'selected':selected}">
+    <button class="content" [ngClass]="{'selected':selected}" (click)="onClick()">
 
         <div class="content-left">
             <div *ngIf="isPinned">
@@ -8,7 +8,6 @@
 
 
             <div class="name">
-
                 <app-highlightable-label [text]="file.Dto.Name" [highlight]="file.HighlightedText">
                 </app-highlightable-label>
 
@@ -24,7 +23,7 @@
         </div>
 
         <ng-template #elseBlock class="icon">
-            <iconify-icon [icon]="icon" [color]="iconColor" />
+            <iconify-icon [icon]="icon" color="--contrast-color" />
         </ng-template>
 
     </button>

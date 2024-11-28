@@ -1,10 +1,10 @@
 
-import { FileDTOReceived } from "../../../../core/dtos/file-dto-received";
-import { VectorSearchResult } from "../../../../core/services/search/vector/dtos/input/vector-search-result";
-import { FileModel } from "../FileModel";
+import { FileDTO } from "../../dtos/input/file-dto";
+import { VectorSearchResult } from "../../services/search/vector/dtos/input/vector-search-result";
+import { FileModel } from "../file-model";
 
 export function vectorResultToModel(result: VectorSearchResult): FileModel {
-    const dto: FileDTOReceived = {
+    const dto: FileDTO= {
         Name: result.File.Name,
         FilePath: result.File.ParentDir, // TODO: join this with the name
         Metadata: "",

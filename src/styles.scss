@@ -1,26 +1,31 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");
-
+// refactor
 @import "variables";
 
+// Light mode
+// :root {
+//   margin: 0px;
+//   --background-color: #{$background-color-light};
+//   --background-transparent: #{$background-transparent-light};
+//   --background-secondary: #{$background-secondary-light};
+//   --background-darker: #{$background-darker-light};
+//   --background-ambient: #{$background-ambient-light};
+//   --primary-color: #{$primary-color-light};
+//   --primary-darker: #{$primary-darker-light};
+//   --contrast-color: #{$contrast-color-light};
+//   --font-color: #{$font-color-light};
+//   --secondary-color: #{$secondary-color-light};
+//   --secondary-color-contrast: #{$secondary-color-contrast-light};
+//   --selected-color: #{$selected-color-light};
+//   --third-color: #{$third-color-light};
+//   --fourth-color: #{$fourth-color-light};
+// }
+
+// Dark mode
 :root {
   margin: 0px;
-  --background-color: #{$background-color-light};
-  --background-secondary: #{$background-secondary-light};
-  --background-darker: #{$background-darker-light};
-  --background-ambient: #{$background-ambient-light};
-  --primary-color: #{$primary-color-light};
-  --primary-darker: #{$primary-darker-light};
-  --contrast-color: #{$contrast-color-light};
-  --font-color: #{$font-color-light};
-  --secondary-color: #{$secondary-color-light};
-  --secondary-color-contrast: #{$secondary-color-contrast-light};
-  --selected-color: #{$selected-color-light};
-  --third-color: #{$third-color-light};
-  --fourth-color: #{$fourth-color-light};
-}
-
-body.dark-mode {
   --background-color: #{$background-color-dark};
+  --background-transparent: #{$background-transparent-dark};
   --background-secondary: #{$background-secondary-dark};
   --background-darker: #{$background-darker-dark};
   --background-ambient: #{$background-ambient-dark};
@@ -37,11 +42,13 @@ body.dark-mode {
 
 body,
 html {
-  background: radial-gradient(circle at 100% 107%,
-      var(--background-color) 0%,
-      var(--background-secondary) 30%,
-      var(--background-ambient) 60%,
-      var(--background-color) 100%);
+  background: radial-gradient(
+    circle at 100% 107%,
+    var(--background-color) 0%,
+    var(--background-transparent) 30%,
+    var(--background-ambient) 60%,
+    var(--background-transparent) 100%
+  );
   width: 100%;
   height: 100%;
   margin: 0px;

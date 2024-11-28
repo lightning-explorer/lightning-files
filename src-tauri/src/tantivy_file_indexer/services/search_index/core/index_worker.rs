@@ -21,9 +21,17 @@ use crate::tantivy_file_indexer::{
     shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerReceiver,
 };
 use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
-use tokio::sync::Mutex;
+use tokio::{sync::Mutex, task::JoinSet};
 
-pub async fn worker_task<T>(
+/*
+TODO: make it so that rather than an mpsc receiver, we use a custom receiver that pulls in the files from a database table.
+Otherwise, files that are queried to be indexed will get lost when the program closes.
+*/
+
+/**
+ * waits around for the MPSC channel to send it files to index, in which it will index them
+ */
+pub async fn spawn_worker<T>(
     mut receiver: T,
     writer: Arc<Mutex<IndexWriter>>,
     schema: Arc<Schema>,
@@ -35,73 +43,103 @@ pub async fn worker_task<T>(
 {
     // Keep track of how many files (not directories) have been indexed so that the changes can be committed
     let files_processed = Arc::new(AtomicUsize::new(0));
+    let mut subworker_id: u32 = 0;
+    let mut tasks = JoinSet::new();
 
-    while let Some(model) = receiver.recv().await {
-        let seen_paths: HashSet<String> = model.dtos.iter().map(|x| x.file_path.clone()).collect();
-        let stored_paths = get_stored_paths(&db_service, &model.directory_from)
-            .await
-            .expect("Failed to get stored paths");
-        let stale_paths = get_stale_paths(seen_paths, stored_paths);
+    loop {
+        if let Some(model) = receiver.recv().await {
+            //optional log
+            #[cfg(feature = "index_worker_logs")]
+            println!(
+                "Length of Indexer queue: {}",
+                db_service
+                    .indexer_queue_table()
+                    .get_len()
+                    .await
+                    .unwrap_or(0)
+            );
 
-        // Clone Arcs to pass into the threads
-        let vector_db_indexer_clone = Arc::clone(&vector_db_indexer);
-        let writer_clone = Arc::clone(&writer);
-        let schema_clone = Arc::clone(&schema);
-        let db_service_clone = Arc::clone(&db_service);
-        let files_processed_clone = Arc::clone(&files_processed);
+            let seen_paths: HashSet<String> =
+                model.dtos.iter().map(|x| x.file_path.clone()).collect();
+            let stored_paths = get_stored_paths(&db_service, &model.directory_from)
+                .await
+                .expect("Failed to get stored paths");
+            let stale_paths = get_stale_paths(seen_paths, stored_paths);
 
-        #[cfg(feature = "speed_profile")]
-        let time = Instant::now();
+            // Clone Arcs to pass into the threads
+            let vector_db_indexer_clone = Arc::clone(&vector_db_indexer);
+            let writer_clone = Arc::clone(&writer);
+            let schema_clone = Arc::clone(&schema);
+            let db_service_clone = Arc::clone(&db_service);
+            let files_processed_clone = Arc::clone(&files_processed);
 
-        // Ensure that the vector database gets updated
-        vector_db_indexer_clone
-            .index_files(&model, &stale_paths)
-            .await;
+            subworker_id += 1;
 
-        #[cfg(feature = "speed_profile")]
-        println!(
-            "Search Index Worker: Vector Db Indexer index files operation took {:?}",
-            time.elapsed()
-        );
+            // Test not spawning any indexers
 
-        let dtos_len = model.dtos.len();
-        files_processed_clone.fetch_add(dtos_len, Ordering::Relaxed);
+            tasks.spawn(async move {
+                #[cfg(feature = "index_worker_logs")]
+                println!(
+                    "File index worker subworker has been spawned. ID: {}",
+                    subworker_id
+                );
 
-        if let Err(err) = process_files(
-            model.dtos,
-            Arc::clone(&writer_clone),
-            Arc::clone(&schema_clone),
-            Arc::clone(&db_service_clone),
-        )
-        .await
-        {
-            println!("Error processing files: {}", err)
+                #[cfg(feature = "speed_profile")]
+                let time = Instant::now();
+
+                // Ensure that the vector database gets updated
+                vector_db_indexer_clone
+                    .index_files(&model, &stale_paths)
+                    .await;
+
+                #[cfg(feature = "speed_profile")]
+                println!(
+                    "Search Index Worker: Vector Db Indexer index files operation took {:?}",
+                    time.elapsed()
+                );
+
+                let dtos_len = model.dtos.len();
+                files_processed_clone.fetch_add(dtos_len, Ordering::Relaxed);
+
+                if let Err(err) = process_files(
+                    model.dtos,
+                    Arc::clone(&writer_clone),
+                    Arc::clone(&schema_clone),
+                    Arc::clone(&db_service_clone),
+                )
+                .await
+                {
+                    println!("Error processing files: {}", err)
+                }
+
+                if let Err(err) = remove_unseen_entries(
+                    stale_paths,
+                    Arc::clone(&writer_clone),
+                    &schema_clone,
+                    &db_service_clone,
+                )
+                .await
+                {
+                    println!("Error removing stale entries: {}", err);
+                }
+
+                if files_processed_clone.load(Ordering::Relaxed) >= batch_size {
+                    if let Err(err) = commit_and_retry(Arc::clone(&writer_clone)).await {
+                        println!("Error committing files: {}", err);
+                    }
+                    files_processed_clone.store(0, Ordering::Relaxed);
+                }
+                #[cfg(feature = "index_worker_logs")]
+                println!(
+                    "File index worker subworker has finished. ID: {}",
+                    subworker_id
+                );
+            });
+        } else {
+            println!("Index worker has nothing to do. Sleeping");
+            tokio::time::sleep(Duration::from_secs(1)).await;
         }
-
-        if let Err(err) = remove_unseen_entries(
-            stale_paths,
-            Arc::clone(&writer_clone),
-            &schema_clone,
-            &db_service_clone,
-        )
-        .await
-        {
-            println!("Error removing stale entries: {}", err);
-        }
-
-        if files_processed_clone.load(Ordering::Relaxed) >= batch_size {
-            if let Err(err) = commit_and_retry(Arc::clone(&writer_clone)).await {
-                println!("Error committing files: {}", err);
-            }
-            files_processed_clone.store(0, Ordering::Relaxed);
-        }
-        #[cfg(feature = "index_worker_logs")]
-        println!(
-            "File index worker subworker has finished. ID: {}",
-            subworker_id
-        );
     }
-    println!("File index worker receiver channel closed");
 }
 
 // THIS one is the bottleneck
