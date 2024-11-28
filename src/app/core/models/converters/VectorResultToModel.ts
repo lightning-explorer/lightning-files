@@ -4,7 +4,7 @@ import { VectorSearchResult } from "../../services/search/vector/dtos/input/vect
 import { FileModel } from "../file-model";
 
 export function vectorResultToModel(result: VectorSearchResult): FileModel {
-    const dto: FileDTO= {
+    const dto: FileDTO = {
         Name: result.File.Name,
         FilePath: result.File.ParentDir, // TODO: join this with the name
         Metadata: "",

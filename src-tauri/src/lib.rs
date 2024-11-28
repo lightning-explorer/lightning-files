@@ -9,7 +9,6 @@ use tantivy_file_indexer::{
 };
 use tauri::{AppHandle, Manager};
 mod directory_nav_service;
-mod shared;
 mod tantivy_file_indexer;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -26,7 +25,7 @@ pub fn run() {
         })
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
-            get_files_as_dtos,
+            get_files_as_models,
             format_path_into_dir,
             get_directory_path,
             get_root_path,

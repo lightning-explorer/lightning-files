@@ -1,10 +1,10 @@
-use std::path::PathBuf;
+use std::{fs, path::PathBuf};
 
 use dirs::data_dir;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::tantivy_file_indexer::services::app_save::core::helper::{
-    create_path, get_path, load, save,
+    create_file, get_file_path, load, save,
 };
 
 pub enum AppSavePath {
@@ -17,15 +17,19 @@ pub struct AppSaveService {
 
 impl AppSaveService {
     pub fn new(save_dir: AppSavePath, app_name: &str) -> Self {
+        let save_path = AppSaveService::get_save_path(save_dir, app_name);
+        if !save_path.exists() {
+            fs::create_dir_all(app_name).expect("could not create App directory");
+        }
         Self {
-            save_dir: AppSaveService::get_save_path(save_dir, app_name),
+            save_dir: save_path,
         }
     }
     pub fn get_path(&self, path: &str) -> PathBuf {
-        get_path(&self.save_dir, path)
+        get_file_path(&self.save_dir, path)
     }
     pub fn create_path(&self, path: &str) -> PathBuf {
-        create_path(&self.save_dir, path)
+        create_file(&self.save_dir, path)
     }
 
     pub fn save<T>(&self, name: &str, data: T) -> Result<(), std::io::Error>

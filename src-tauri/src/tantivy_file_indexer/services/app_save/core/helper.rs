@@ -6,7 +6,7 @@ use std::{
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{from_reader, to_writer_pretty};
 
-pub fn get_path(app_path: &Path, file: &str) -> PathBuf {
+pub fn get_file_path(app_path: &Path, file: &str) -> PathBuf {
     let new_path = app_path.join(file);
 
     if !app_path.exists() {
@@ -15,8 +15,8 @@ pub fn get_path(app_path: &Path, file: &str) -> PathBuf {
 
     new_path
 }
-pub fn create_path(app_path: &Path, path: &str) -> PathBuf {
-    let new_path = get_path(app_path, path);
+pub fn create_file(app_path: &Path, path: &str) -> PathBuf {
+    let new_path = get_file_path(app_path, path);
 
     if !new_path.exists() {
         if let Some(parent) = Path::new(&new_path).parent() {
@@ -31,7 +31,7 @@ pub fn save<T>(app_path: &Path, name: &str, data: T) -> Result<(), std::io::Erro
 where
     T: Serialize,
 {
-    let path = get_path(app_path, format!("{}.json", name).as_str());
+    let path = get_file_path(app_path, format!("{}.json", name).as_str());
     let file = File::create(path)?;
     to_writer_pretty(file, &data)?;
     Ok(())
@@ -44,7 +44,7 @@ pub fn load<T>(app_path: &Path, name: &str) -> Result<T, std::io::Error>
 where
     T: DeserializeOwned,
 {
-    let path = get_path(app_path, format!("{}.json", name).as_str());
+    let path = get_file_path(app_path, format!("{}.json", name).as_str());
     let file = File::open(path)?;
     let data: T = from_reader(file)?;
     Ok(data)

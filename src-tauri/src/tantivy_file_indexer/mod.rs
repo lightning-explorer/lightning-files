@@ -1,7 +1,4 @@
 pub mod service_container;
-pub mod configs {
-    pub mod file_indexer_config;
-}
 mod schemas {
     pub mod file_schema;
 }
@@ -27,6 +24,7 @@ pub mod services {
 mod models {
     pub mod search_params_model;
     pub mod vector_search_params_model;
+    pub mod tantivy_file_model;
 }
 pub mod shared {
     pub mod local_db_and_search_index;

@@ -13,16 +13,16 @@ use tauri::State;
 use super::helper;
 
 #[tauri::command]
-pub async fn get_files_as_dtos(
+pub fn get_files_as_models(
     directory: String,
     params: GetFilesParamsModel,
     app_handle: AppHandle,
     state_files_display: State<'_, Arc<RwLock<FilesDisplayState>>>,
 ) -> Result<(), String> {
-    // erase the file dtos in the Tauri state:
+    // erase the file models in the Tauri state:
 
     if let Ok(mut state) = FilesDisplayState::lock(&state_files_display) {
-        state.clear_dtos();
+        state.clear_files();
     } else {
         return Err("Failed to clear DTOs in state".to_string());
     }
@@ -38,14 +38,14 @@ pub async fn get_files_as_dtos(
             continue;
         }
 
-        if let Some(dto) = helper::create_dto_from_path(path.clone()).await {
+        if let Some(model) = helper::create_file_model_from_path(path.clone()) {
             if let Ok(mut state) = FilesDisplayState::lock(&state_files_display) {
-                state.add_dto(dto.clone());
+                state.add_file(model.clone());
             } else {
                 return Err("Failed to add DTO to state".to_string());
             }
 
-            app_handle.emit("file_dto", dto).unwrap_or_default();
+            app_handle.emit("sys_file_model", model).unwrap_or_default();
         }
     }
     Ok(())

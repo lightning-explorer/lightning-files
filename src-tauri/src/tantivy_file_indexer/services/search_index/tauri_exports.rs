@@ -2,10 +2,7 @@ use std::sync::Arc;
 
 use tauri::State;
 
-use crate::{
-    shared::dtos::file_dto::FileDTO,
-    tantivy_file_indexer::models::search_params_model::SearchParamsModel,
-};
+use crate::tantivy_file_indexer::models::{search_params_model::SearchParamsModel, tantivy_file_model::TantivyFileModel};
 
 use super::service::SearchIndexService;
 
@@ -13,7 +10,7 @@ use super::service::SearchIndexService;
 pub fn search_index_query(
     params: SearchParamsModel,
     service: State<'_, Arc<SearchIndexService>>,
-) -> Result<Vec<FileDTO>, String> {
+) -> Result<Vec<TantivyFileModel>, String> {
     match service.query(&params) {
         Ok(result) => Ok(result),
         Err(err) => Err(err.to_string()),

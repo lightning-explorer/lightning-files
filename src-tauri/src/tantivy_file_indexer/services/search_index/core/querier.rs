@@ -5,18 +5,15 @@ use tantivy::{
     DateTime, Searcher, TantivyDocument, Term,
 };
 
-use crate::{
-    shared::dtos::file_dto::FileDTO,
-    tantivy_file_indexer::{
-        converters::doc_to_dto::doc_to_dto, models::search_params_model::SearchParamsModel,
-    },
-};
+use crate::tantivy_file_indexer::{
+        converters::doc_to_dto::doc_to_tantivy_file_model, models::{search_params_model::SearchParamsModel, tantivy_file_model::TantivyFileModel},
+    };
 
 pub fn advanced_query(
     schema: &Schema,
     searcher: &Searcher,
     search_params: &SearchParamsModel,
-) -> tantivy::Result<Vec<FileDTO>> {
+) -> tantivy::Result<Vec<TantivyFileModel>> {
     let mut queries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
 
     if let Some(file_path) = &search_params.file_path {
@@ -66,11 +63,11 @@ pub fn advanced_query(
         }),
     )?;
 
-    let results: Vec<FileDTO> = top_docs
+    let results: Vec<TantivyFileModel> = top_docs
         .into_iter()
         .map(|(_score, doc_address)| {
             let doc: TantivyDocument = searcher.doc(doc_address).unwrap();
-            doc_to_dto(doc, schema, _score)
+            doc_to_tantivy_file_model(doc, schema, _score)
         })
         .collect();
 

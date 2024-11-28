@@ -26,13 +26,13 @@ export class DirectoryNavigatorService {
 
         this.currentFilesSubject.next([]);
 
-        const unlisten = await listen<FileDTO>("file_dto", (event) => {
+        const unlisten = await listen<FileDTO>("sys_file_model", (event) => {
             const updatedFiles = [...this.currentFilesSubject.getValue(), event.payload];
             this.currentFilesSubject.next(updatedFiles);
         })
 
         try {
-            await invoke("get_files_as_dtos", { directory: this.currentDirSubject.getValue(), params });
+            await invoke("get_files_as_models", { directory: this.currentDirSubject.getValue(), params });
         }
         catch (err) {
             console.log("Error setting files", err)

@@ -12,7 +12,6 @@ use std::{
 
 use tauri::{AppHandle, Manager};
 
-use super::configs::file_indexer_config::FileIndexerConfig;
 use crate::FilesDisplayState;
 
 pub struct AppServiceContainer {
@@ -26,16 +25,17 @@ impl AppServiceContainer {
     pub async fn new_async(handle: &AppHandle) -> Self {
         let app_name = "DesktopSearch";
 
-        // AppSavePath::Other("D:\\DSearch".to_string())
+        // Ensure that the app service is initialized before the rest to ensure that the AppData save path is created
         let app_save_service = Self::initialize_app_save_service(
             AppSavePath::Other(PathBuf::from("D:\\DesktopSearch")),
-            app_name,
+            app_name, 
         );
+        let app_path = app_save_service.save_dir.clone();
 
         let files_display_state = Self::initialize_files_display_state();
-        let config = Self::create_file_indexer_config(&app_save_service);
+
         let vector_db_service = Self::initialize_vector_service();
-        let search_service = Self::initialize_search_service(&config, &vector_db_service);
+        let search_service = Self::initialize_search_service(50_000_000,app_path, &vector_db_service);
 
         // TODO: Remove this:
         vector_db_service.delete_all_collections().await;
@@ -65,24 +65,21 @@ impl AppServiceContainer {
         }
     }
 
-    fn create_file_indexer_config(app_save_service: &Arc<AppSaveService>) -> FileIndexerConfig {
-        FileIndexerConfig {
-            buffer_size: 50_000_000,
-            indexer_batch_size: 256,
-            app_path: app_save_service.save_dir.clone(),
-        }
-    }
-
     fn initialize_files_display_state() -> Arc<RwLock<FilesDisplayState>> {
         Arc::new(RwLock::new(FilesDisplayState::new()))
     }
 
     fn initialize_search_service(
-        config: &FileIndexerConfig,
+        buffer_size: usize,
+        app_path: PathBuf,
         vector_db_service: &Arc<VectorDbService>,
     ) -> Arc<SearchIndexService> {
-        let clone = Arc::clone(vector_db_service);
-        Arc::new(SearchIndexService::new(config, clone))
+        let vector_db_clone = Arc::clone(vector_db_service);
+        Arc::new(SearchIndexService::new(
+            buffer_size,
+            app_path,
+            vector_db_clone,
+        ))
     }
 
     fn initialize_app_save_service(save_dir: AppSavePath, app_name: &str) -> Arc<AppSaveService> {

@@ -1,11 +1,18 @@
 use std::path::Path;
 
 use chrono::Utc;
-use tantivy::{schema::{OwnedValue, Schema}, Document, TantivyDocument};
+use tantivy::{
+    schema::{OwnedValue, Schema},
+    Document, TantivyDocument,
+};
 
-use crate::shared::dtos::file_dto::FileDTO;
+use super::super::models::tantivy_file_model::TantivyFileModel;
 
-pub fn doc_to_dto(doc: TantivyDocument, schema: &Schema, score: f64) -> FileDTO {
+pub fn doc_to_tantivy_file_model(
+    doc: TantivyDocument,
+    schema: &Schema,
+    score: f64,
+) -> TantivyFileModel {
     let mut name = String::new();
     let mut file_path = String::new();
     let mut metadata = String::new();
@@ -41,7 +48,7 @@ pub fn doc_to_dto(doc: TantivyDocument, schema: &Schema, score: f64) -> FileDTO 
     }
     let is_dir: bool = Path::new(file_path.as_str()).is_dir();
     // Construct and return the DTO
-    FileDTO {
+    TantivyFileModel {
         name,
         file_path,
         metadata,
