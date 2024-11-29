@@ -1,5 +1,4 @@
 use super::super::super::super::app_state::files_display::FilesDisplayState;
-use crate::directory_nav_service::core::files;
 use crate::directory_nav_service::models::get_files_model::GetFilesParamsModel;
 use crate::directory_nav_service::util::metadata_inspector::is_hidden;
 

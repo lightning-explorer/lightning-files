@@ -41,6 +41,13 @@ impl CrawlerQueue {
         self.push_many(&files).await;
     }
 
+    pub async fn take_many(&self, amount:u64) -> Result<Vec<(PathBuf, Priority)>, DbErr> {
+        self.db.crawler_queue_table().take_many(amount).await.map(|models|
+        models.into_iter().map(|model|
+            (PathBuf::from(model.path),model.priority)
+        ).collect())
+    }
+
     pub async fn pop(&self) -> Result<Option<(PathBuf, Priority)>, DbErr> {
         #[cfg(feature = "file_crawler_logs")]
         println!("Length of queue: {}", self.get_len().await);
@@ -54,7 +61,7 @@ impl CrawlerQueue {
                         x.path, x.priority
                     );
                 }
-                (Path::new(&x.path).to_path_buf(), x.priority)
+                (PathBuf::from(&x.path), x.priority)
             })),
             Err(err) => Err(err),
         }

@@ -28,4 +28,5 @@ mod models {
 }
 pub mod shared {
     pub mod local_db_and_search_index;
+
 }

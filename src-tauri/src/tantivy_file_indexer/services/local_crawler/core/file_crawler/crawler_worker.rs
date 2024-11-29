@@ -130,13 +130,13 @@ async fn create_dto(entry: PathBuf) -> Result<FileDTOInput, String> {
         .expect("Time went backwards")
         .as_secs();
 
-    // metadata.is_dir() might be slightly more efficient than calling it on 'entry'
-    let file_id = if metadata.is_dir() {
-        //for directories, use the directory path since getting their ID is more difficult
-        entry.to_string_lossy().to_string()
-    } else {
-        file_id_helper::get_file_id(entry.clone())?
-    };
+    // // metadata.is_dir() might be slightly more efficient than calling it on 'entry'
+    // let file_id = if metadata.is_dir() {
+    //     //for directories, use the directory path since getting their ID is more difficult
+    //     entry.to_string_lossy().to_string()
+    // } else {
+    //     file_id_helper::get_file_id(entry.clone())?
+    // };
 
     let name = entry
         .file_name()
@@ -144,7 +144,6 @@ async fn create_dto(entry: PathBuf) -> Result<FileDTOInput, String> {
         .to_string_lossy()
         .to_string();
     let dto = FileDTOInput {
-        file_id,
         name,
         file_path: entry.to_string_lossy().to_string(),
         metadata: "test metadata".to_string(),

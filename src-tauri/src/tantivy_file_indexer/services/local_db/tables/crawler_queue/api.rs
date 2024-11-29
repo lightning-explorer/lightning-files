@@ -60,14 +60,14 @@ impl CrawlerQueueTable {
     }
 
     pub async fn pop(&self)->Result<Option<indexed_dir::Model>, sea_orm::DbErr>{
-        let mut items = self.fetch_many(1).await?;
+        let mut items = self.take_many(1).await?;
         Ok(items.pop())
     }
 
     /**
-     * Retrieves the next most popular directories in the collection
+     * Retrieves the next most popular directories in the collection and removes them
      */
-    pub async fn fetch_many(&self, amount: u64) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
+    pub async fn take_many(&self, amount: u64) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
         let txn = self.db.begin().await?;
 
         // Fetch the entry with the highest priority (biggest number)
