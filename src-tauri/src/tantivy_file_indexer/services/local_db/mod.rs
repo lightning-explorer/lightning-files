@@ -10,12 +10,20 @@ pub mod tables {
         pub mod entities {
             pub mod file;
         }
+        pub mod trait_impl{
+            pub mod files_model;
+            pub mod files_collection_api;
+        }
         pub mod tauri_exports;
     }
     pub mod crawler_queue {
         pub mod api;
         pub mod entities {
             pub mod indexed_dir;
+        }
+        pub mod trait_impl{
+            pub mod crawler_file;
+            pub mod crawler_queue_api;
         }
     }
     pub mod indexer_queue {

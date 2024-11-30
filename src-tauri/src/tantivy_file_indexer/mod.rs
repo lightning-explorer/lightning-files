@@ -23,10 +23,10 @@ pub mod services {
 }
 mod models {
     pub mod search_params_model;
-    pub mod vector_search_params_model;
     pub mod tantivy_file_model;
+    pub mod vector_search_params_model;
 }
 pub mod shared {
+    pub mod indexing_crawler;
     pub mod local_db_and_search_index;
-
 }

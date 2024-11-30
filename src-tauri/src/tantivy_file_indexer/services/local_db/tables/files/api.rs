@@ -5,6 +5,7 @@ use super::entities::file::{self};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter};
 use sqlx::{Sqlite, Transaction};
 
+#[derive(Clone)]
 pub struct FilesTable {
     db: DatabaseConnection,
 }

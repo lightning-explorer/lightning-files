@@ -1,5 +1,5 @@
-use std::{path::Path, sync::Arc};
 use directory_nav_service::tauri_exports::*;
+use std::{path::Path, sync::Arc};
 use tantivy_file_indexer::{
     service_container::AppServiceContainer, services::app_save::tauri_exports::*,
     services::local_crawler::tauri_exports::*, services::local_db::tables::files::tauri_exports::*,
@@ -7,8 +7,8 @@ use tantivy_file_indexer::{
     services::vector_db::tauri_exports::*,
 };
 use tauri::{AppHandle, Manager};
-mod shared;
 mod directory_nav_service;
+mod shared;
 mod tantivy_file_indexer;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

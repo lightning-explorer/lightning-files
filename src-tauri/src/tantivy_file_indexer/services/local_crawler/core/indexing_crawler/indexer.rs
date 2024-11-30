@@ -9,21 +9,19 @@ use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
 use tokio::sync::Mutex;
 
 use crate::tantivy_file_indexer::{
-    converters::date_converter::unix_time_to_tantivy_datetime,
-    dtos::file_dto_input::FileDTOInput,
-    services::local_crawler::{
-        models::file_model::FileModel, traits::files_collection_api::FilesCollectionApi,
-    },
+    converters::date_converter::unix_time_to_tantivy_datetime, dtos::file_dto_input::FileDTOInput,
+    shared::indexing_crawler::{models::file_model::FileModel, traits::files_collection_api::FilesCollectionApi},
 };
 
 use super::worker_manager::TantivyInput;
 
 pub async fn index_files<F>(
-    files: Vec<FileDTOInput>,
+    files: &Vec<FileDTOInput>,
     tantivy: TantivyInput,
     parent_path: PathBuf,
     files_collection: Arc<F>,
-) where
+) -> Result<(), String>
+where
     F: FilesCollectionApi,
 {
     let (writer, schema) = tantivy;
@@ -37,13 +35,15 @@ pub async fn index_files<F>(
         .expect("Failed to get stored paths");
     let stale_paths: HashSet<String> = stored_paths.difference(&seen_paths).cloned().collect();
 
-    process_files(files, writer, schema.clone(), files_collection).await;
+    process_files_and_commit(files, writer, schema.clone(), files_collection).await?;
 
-    remove_unseen_entries(stale_paths, writer_clone, schema, files_collection_clone).await;
+    remove_unseen_entries(stale_paths, writer_clone, schema, files_collection_clone).await?;
+
+    Ok(())
 }
 
-async fn process_files<F>(
-    dtos: Vec<FileDTOInput>,
+async fn process_files_and_commit<F>(
+    dtos: &Vec<FileDTOInput>,
     writer: Arc<Mutex<IndexWriter>>,
     schema: Schema,
     files_collection: Arc<F>,
@@ -51,24 +51,24 @@ async fn process_files<F>(
 where
     F: FilesCollectionApi,
 {
-    let writer = writer.lock().await;
+    let writer_lock = writer.lock().await;
     // Remove from index and add document within a single lock
     let mut db_file_models = Vec::new();
 
     for dto in dtos.into_iter() {
         // Use the name field as the primary key
-        writer.delete_term(tantivy::Term::from_field_text(
+        writer_lock.delete_term(tantivy::Term::from_field_text(
             schema
                 .get_field("name")
                 .map_err(|x| format!("Field doesn't exist: {}", x))?,
             &dto.file_path,
         ));
-        writer.add_document(doc! {
+        writer_lock.add_document(doc! {
         //schema.get_field("file_id").unwrap() => dto.file_id,
-        schema.get_field("name").unwrap() => dto.name,
+        schema.get_field("name").unwrap() => dto.name.clone(),
         schema.get_field("date_modified").unwrap() => unix_time_to_tantivy_datetime(dto.date_modified),
         schema.get_field("path").unwrap() => dto.file_path.clone(),
-        schema.get_field("metadata").unwrap() => dto.metadata,
+        schema.get_field("metadata").unwrap() => dto.metadata.clone(),
         schema.get_field("popularity").unwrap() => dto.popularity,
         }).map_err(|x| format!("Failed to add document: {}",x))?;
 
@@ -76,13 +76,17 @@ where
         let path_clone = dto.file_path.clone();
         let parent_path = get_parent_path(path_clone);
         let file_model = FileModel {
-            path: dto.file_path,
+            path: dto.file_path.clone(),
             parent_path,
         };
         db_file_models.push(file_model);
     }
 
-    if let Err(err) = files_collection.upsert_many(&db_file_models).await {
+    if let Err(err) = commit_and_retry(Arc::clone(&writer)).await {
+        return Err(format!("Error committing files to Tantivy index: {}", err));
+    }
+
+    if let Err(err) = files_collection.upsert_many(db_file_models).await {
         return Err(format!("Error upserting file models: {}", err));
     }
 
@@ -98,7 +102,7 @@ async fn remove_unseen_entries<F>(
 where
     F: FilesCollectionApi,
 {
-    if let Err(err) = remove_files_from_index(&stale_paths, writer.clone(), schema).await {
+    if let Err(err) = remove_files_from_index(&stale_paths, writer.clone(), &schema).await {
         return Err(err.to_string());
     }
     if let Err(err) = files_collection.remove_paths(&stale_paths).await {

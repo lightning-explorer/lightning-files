@@ -1,135 +1,84 @@
-use std::{
-    collections::HashSet,
-    path::PathBuf,
-    sync::Arc,
-    time::{Duration, UNIX_EPOCH},
-};
+use std::{fmt::Display, future::Future, ops::Fn, sync::Arc, time::Duration};
 
+use rand::Rng;
+use rand_chacha::rand_core::SeedableRng;
 use tantivy::{schema::Schema, IndexWriter};
 use tokio::{
     sync::{Mutex, Notify},
-    task::{JoinHandle, JoinSet},
+    task::JoinSet,
 };
 
-use crate::tantivy_file_indexer::{
-    dtos::file_dto_input::FileDTOInput,
-    services::local_crawler::{
-        models::crawler_file::{self, CrawlerFile},
-        traits::{crawler_queue_api::CrawlerQueueApi, files_collection_api::FilesCollectionApi},
-    },
+use crate::tantivy_file_indexer::shared::indexing_crawler::traits::{
+    crawler_queue_api::CrawlerQueueApi, files_collection_api::FilesCollectionApi,
 };
 
-use super::indexer;
+use super::worker;
 
 pub type TantivyInput = (Arc<Mutex<IndexWriter>>, Schema);
 
-/*
-Workflow:
-The manager pulls a batch of directories from the crawler queue, then, that many threads will get spawned to crawl and make DTOs out of them.
-then they all get indexed
-*/
-
-pub async fn manager_task<C, F>(
+/// Returns the handles to the workers that were spawned
+pub async fn spawn_worker_pool<C, F>(
     crawler_queue: Arc<C>,
     files_collection: Arc<F>,
     tantivy: TantivyInput,
     notify: Arc<Notify>,
     max_concurrent_tasks: usize,
-) where
+) -> JoinSet<()>
+where
     C: CrawlerQueueApi,
     F: FilesCollectionApi,
 {
-    let (writer, schema) = tantivy;
     let mut tasks: JoinSet<()> = JoinSet::new();
-    loop {
-        match crawler_queue
-            .fetch((max_concurrent_tasks - tasks.len()) as u64)
-            .await
-        {
-            Ok(paths) => {
-                if !paths.is_empty() {
-                    // Dispatch the batch of tasks
-                    for file in paths {
-                        let queue_clone = Arc::clone(&crawler_queue);
-                        let files_collection_clone = Arc::clone(&files_collection);
-                        let writer_clone = Arc::clone(&writer);
-                        let schema_clone = schema.clone();
+    let (ref writer, ref schema) = tantivy;
+    for _ in 0..max_concurrent_tasks {
+        let worker = worker::IndexingCrawlerWorker::new(
+            Arc::clone(&crawler_queue),
+            Arc::clone(&files_collection),
+            (Arc::clone(&writer), schema.clone()),
+            Arc::clone(&notify),
+        );
+        tasks.spawn(async move {
+            worker.worker_task().await;
+        });
+    }
+    tasks
+}
 
-                        tasks.spawn(async move {
-                            if file.path.is_dir() {
-                                let mut dtos = Vec::new();
-                                let mut dir_paths_found: Vec<CrawlerFile> = Vec::new();
+pub async fn retry_with_backoff<T, E, F, Fut>(
+    function: F,
+    max_retries: usize,
+    initial_delay: Duration,
+) -> Result<T, String>
+where
+    F: Fn() -> Fut,
+    Fut: Future<Output = Result<T, E>>,
+    E: Display,
+{
+    let mut delay = initial_delay;
+    // Use a thread-safe RNG
+    let mut rng = rand_chacha::ChaChaRng::from_entropy();
 
-                                if let Ok(mut dir) = tokio::fs::read_dir(&file.path).await {
-                                    while let Ok(Some(entry)) = dir.next_entry().await {
-                                        let entry_path = entry.path();
-                                        if entry_path.is_dir() {
-                                            dir_paths_found.push(CrawlerFile {
-                                                path: entry_path.clone(),
-                                                priority: file.priority + 1,
-                                            });
-                                        }
-                                        if let Ok(dto) = create_dto(entry_path).await {
-                                            dtos.push(dto);
-                                        }
-                                    }
-                                }
-                                // Add the directories that were found to the queue
-                                // TODO: HANDLE THE ERROR
-                                queue_clone.push(&dir_paths_found).await;
-                                // Perform the indexing operations
-                                // TODO: HANDLE THE ERROR
-                                indexer::index_files(
-                                    dtos,
-                                    (writer_clone, schema_clone),
-                                    file.path.clone(),
-                                    files_collection_clone,
-                                )
-                                .await;
-                            }
-                            // If all goes well, then the directory can be removed from the crawler queue
-                            queue_clone.delete(&[file.clone()]).await;
-                        });
-                    }
-                } else {
-                    // If queue is empty, wait for notification
-                    println!("No tasks available. Waiting for notification...");
-                    notify.notified().await;
-                }
+    for attempt in 1..=max_retries {
+        match function().await {
+            Ok(result) => return Ok(result),
+            Err(_) if attempt < max_retries => {
+                // Add jitter: Randomize delay within 50%-150% of the current delay
+                let jitter: f64 = rng.gen_range(0.5..1.5);
+                let jittered_delay = delay.mul_f64(jitter);
+
+                tokio::time::sleep(jittered_delay).await;
+
+                // Exponential backoff: Double the delay for the next attempt
+                delay = delay * 2;
             }
             Err(err) => {
-                eprintln!(
-                    "File crawler task manager encountered an error: {}. Retrying in 1 second.",
-                    err
-                );
-                tokio::time::sleep(Duration::from_secs(1)).await;
-                continue;
+                return Err(format!(
+                    "Function failed after {} attempts. Last error: {}",
+                    max_retries, err
+                ));
             }
         }
     }
-}
 
-async fn create_dto(entry: PathBuf) -> Result<FileDTOInput, String> {
-    let metadata = entry.metadata().map_err(|x| x.to_string())?;
-
-    let modified_time = metadata.modified().map_err(|x| x.to_string())?;
-
-    let unix_timestamp = modified_time
-        .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards")
-        .as_secs();
-
-    let name = entry
-        .file_name()
-        .unwrap_or_default()
-        .to_string_lossy()
-        .to_string();
-    let dto = FileDTOInput {
-        name,
-        file_path: entry.to_string_lossy().to_string(),
-        metadata: "test metadata".to_string(),
-        date_modified: unix_timestamp,
-        popularity: 1.0,
-    };
-    Ok(dto)
+    unreachable!() // This should never be reached because all cases are handled above.
 }

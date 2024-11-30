@@ -7,8 +7,7 @@ use std::{
     path::Path,
 };
 
-use crate::tantivy_file_indexer::services::local_crawler::models::file_model::FileModel;
-
+use super::super::models::file_model::FileModel;
 pub trait FilesCollectionApi: Clone + Send + Sync + 'static {
     type Error: Display + Debug;
 
@@ -20,15 +19,10 @@ pub trait FilesCollectionApi: Clone + Send + Sync + 'static {
         directory: &Path,
     ) -> impl Future<Output = Result<HashSet<String>, Self::Error>> + Send;
 
-    fn upsert_many<T>(&self, models: &[T]) -> impl Future<Output = Result<(), Self::Error>> + Send
-    where
-        T: Into<FileModel>;
+    fn upsert_many(&self, models: Vec<FileModel>) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
-    fn remove_paths<'a, I, S>(
+    fn remove_paths(
         &self,
-        paths: I,
-    ) -> impl Future<Output = Result<(), Self::Error>> + Send
-    where
-        I: IntoIterator<Item = S>,
-        S: AsRef<str> + 'a;
+        paths: &HashSet<String>,
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 }
