@@ -38,7 +38,7 @@ where
             err
         );
     }
-    
+
     println!(
         "Spawning pool of {} file crawler indexers",
         max_concurrent_tasks

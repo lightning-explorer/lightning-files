@@ -59,12 +59,10 @@ where
         loop {
             println!("Worker is alive");
             // Since not every directory will have a lot of files, save up a bunch of files and then commit all of them
-            match self.crawler_queue.fetch_next().await {
+            match self.staggered_fetch_next().await {
                 Ok(file_option) => match file_option {
                     Some(file) => {
-                        println!("file crawler fetched item");
                         let dtos = self.handle_crawl(&file).await;
-                        println!("file crawler crawl finsihed");
                         num_files_processed += dtos.len();
                         dtos_bank.push((file, dtos));
 
@@ -181,5 +179,10 @@ where
             Duration::from_millis(1000),
         )
         .await
+    }
+
+    /// Attempt to fetch the next item from the crawler queue
+    async fn staggered_fetch_next(&self)->Result<Option<CrawlerFile>, String>{
+        retry_with_backoff(|| self.crawler_queue.fetch_next(), 8, Duration::from_millis(200)).await
     }
 }

@@ -8,7 +8,7 @@ SQLite database and store stuff there.
  * that have ALREADY been indexed
  */
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use sea_orm::{
     prelude::Expr, ColumnTrait, DatabaseConnection, DatabaseTransaction, EntityTrait,
@@ -22,11 +22,11 @@ use super::entities::indexed_dir;
 
 #[derive(Clone)]
 pub struct CrawlerQueueTable {
-    db: DatabaseConnection,
+    db: Arc<DatabaseConnection>,
 }
 
 impl CrawlerQueueTable {
-    pub async fn new_async(db: DatabaseConnection) -> Self {
+    pub async fn new_async(db: Arc<DatabaseConnection>) -> Self {
         generate_table_lenient(&db, indexed_dir::Entity).await;
 
         Self { db }
@@ -109,7 +109,7 @@ impl CrawlerQueueTable {
     }
 
     pub async fn count_dirs(&self) -> Result<u64, sea_orm::DbErr> {
-        let count = indexed_dir::Entity::find().count(&self.db).await?;
+        let count = indexed_dir::Entity::find().count(&*self.db).await?;
         Ok(count)
     }
 
@@ -120,7 +120,7 @@ impl CrawlerQueueTable {
         &self,
         limit: u64,
     ) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
-        indexed_dir::Entity::find().limit(limit).all(&self.db).await
+        indexed_dir::Entity::find().limit(limit).all(&*self.db).await
     }
 
     /**
@@ -141,7 +141,7 @@ impl CrawlerQueueTable {
             .column_as(Expr::col(indexed_dir::Column::Priority).count(), "count") // Count occurrences
             .group_by(indexed_dir::Column::Priority) // Group by priority
             .into_tuple::<(u32, i64)>() // Convert the result into (priority, count) tuples
-            .all(&self.db)
+            .all(&*self.db)
             .await?;
 
         // Convert the results into a HashMap for easier use
@@ -153,7 +153,7 @@ impl CrawlerQueueTable {
     pub async fn mark_all_as_not_taken(&self) -> Result<(), sea_orm::DbErr> {
         indexed_dir::Entity::update_many()
             .col_expr(indexed_dir::Column::Taken, true.into())
-            .exec(&self.db)
+            .exec(&*self.db)
             .await?;
         Ok(())
     }

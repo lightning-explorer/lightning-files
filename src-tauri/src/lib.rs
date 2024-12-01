@@ -75,9 +75,9 @@ async fn initialize_app(handle: AppHandle) {
         crawler_service
             .push_dirs_default(vec![Path::new("C:\\").to_path_buf()])
             .await;
+
+        handles.join_all().await;
     } else {
         println!("index_files in initialize_app is set to false. No files will be indexed and no file crawlers will be spawned.")
     }
-
-    handle.manage(service_container);
 }

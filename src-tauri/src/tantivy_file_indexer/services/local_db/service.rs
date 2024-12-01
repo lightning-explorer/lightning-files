@@ -9,6 +9,7 @@ use sea_orm::DatabaseConnection;
 use sqlx::sqlite::SqlitePool;
 
 pub struct LocalDbService {
+    connection_string:String,
     files_table: FilesTable,
     recently_indexed_dirs_table: RecentlyIndexedDirectoriesTable,
     crawler_queue_table: CrawlerQueueTable,
@@ -32,6 +33,7 @@ impl LocalDbService {
         let indexer_queue_table = IndexerQueueTable::new_async(db.clone()).await;
 
         Self {
+            connection_string: db_url,
             files_table,
             recently_indexed_dirs_table,
             crawler_queue_table,
@@ -53,5 +55,9 @@ impl LocalDbService {
 
     pub fn indexer_queue_table(&self) -> &IndexerQueueTable{
         &self.indexer_queue_table
+    }
+    
+    async fn get_db_connection(&self){
+        let db: DatabaseConnection = SqlitePool::connect(&self.connection_string).await.unwrap().into();
     }
 }
