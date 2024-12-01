@@ -19,6 +19,7 @@ where
     files_collection: Arc<F>,
     tantivy: TantivyInput,
     notify: Arc<Notify>,
+    batch_size:usize
 }
 
 impl<C, F> IndexingCrawlerWorker<C, F>
@@ -27,29 +28,41 @@ where
     F: FilesCollectionApi,
 {
     /// Note that `worker_task` must be called in order for the background operations to start
+    /// 
+    /// `batch_size` is the number of files that will be processed before the indexer commits them in bulk
     pub fn new(
         crawler_queue: Arc<C>,
         files_collection: Arc<F>,
         tantivy: TantivyInput,
         notify: Arc<Notify>,
+        batch_size:usize,
     ) -> Self {
         Self {
             crawler_queue,
             files_collection,
             tantivy,
             notify,
+            batch_size
         }
     }
 
     pub async fn worker_task(&self) {
         loop {
+            // Since not every directory will have a lot of files, save up a bunch of files and then commit all of them
+            let mut dtos_bank: Vec<(CrawlerFile,Vec<FileDTOInput>)> = Vec::new();
+            let mut num_files_processed = 0;
             match self.crawler_queue.fetch_next().await {
                 Ok(file_option) => match file_option {
                     Some(file) => {
                         let dtos = self.handle_crawl(&file).await;
-                        // If the operation was unsuccessful, then 'dtos' will be empty
-                        if !dtos.is_empty() {
-                            self.handle_index(&file, &dtos).await;
+                        num_files_processed += dtos.len();
+                        dtos_bank.push((file,dtos));
+
+                        if num_files_processed >= self.batch_size{
+                            // Commit all and drain the bank of files
+                            for (dir,files) in dtos_bank.drain(..){
+                                self.handle_index(&dir, &files).await;
+                            }
                         }
                     }
                     None => {
@@ -69,14 +82,14 @@ where
         }
     }
 
-    async fn handle_index(&self, file: &CrawlerFile, dtos: &Vec<FileDTOInput>) {
+    async fn handle_index(&self, dir: &CrawlerFile, dtos: &Vec<FileDTOInput>) {
         let (ref writer, ref schema) = self.tantivy;
         match retry_with_backoff(
             || {
                 indexer::index_files(
                     dtos,
                     (Arc::clone(writer), schema.clone()),
-                    file.path.clone(),
+                    dir.path.clone(),
                     Arc::clone(&self.files_collection),
                 )
             },
@@ -87,7 +100,7 @@ where
         {
             Ok(_) => {
                 // If all goes well, then the directory can be removed from the crawler queue
-                if let Err(err) = self.remove_file_from_queue(file).await {
+                if let Err(err) = self.remove_from_crawler_queue(dir).await {
                     // If for some reason the directory can't be removed, it is no big deal, it just means
                     // that it will get indexed again
                     println!(
@@ -102,11 +115,12 @@ where
         }
     }
 
-    async fn handle_crawl(&self, file: &CrawlerFile) -> Vec<FileDTOInput>
+    /// Returns all of the files that were found in the given directory
+    async fn handle_crawl(&self, directory: &CrawlerFile) -> Vec<FileDTOInput>
     where
         C: CrawlerQueueApi,
     {
-        match crawler::crawl(file, Arc::clone(&self.crawler_queue)).await {
+        match crawler::crawl(directory, Arc::clone(&self.crawler_queue)).await {
             Ok(dtos) => {
                 return dtos;
             }
@@ -123,7 +137,8 @@ where
                         "Crawler could not read directory: {}. Removing it from the queue",
                         err
                     );
-                    if let Err(err) = self.remove_file_from_queue(file).await {
+                    // Something must be wrong with the directory, so go ahead and remove it from the queue early
+                    if let Err(err) = self.remove_from_crawler_queue(directory).await {
                         println!(
                             "Error trying to remove directory from crawler queue: {}",
                             err
@@ -135,9 +150,9 @@ where
         Vec::new()
     }
 
-    async fn remove_file_from_queue(&self, file: &CrawlerFile) -> Result<(), String> {
+    async fn remove_from_crawler_queue(&self, directory: &CrawlerFile) -> Result<(), String> {
         retry_with_backoff(
-            || self.crawler_queue.delete_one(file.clone()),
+            || self.crawler_queue.delete_one(directory.clone()),
             5,
             Duration::from_millis(1000),
         )

@@ -37,6 +37,7 @@ where
             dir_paths_found.push(CrawlerFile {
                 path: entry_path.clone(),
                 priority: file.priority + 1,
+                taken: false,
             });
         }
         if let Ok(dto) = create_dto(entry_path).await {

@@ -8,6 +8,7 @@ use crate::tantivy_file_indexer::{
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use super::core::indexing_crawler;
 use super::{
     analyzer::service::FileCrawlerAnalyzerService,
     core::crawler_queue::{CrawlerQueue, Priority},
@@ -16,6 +17,7 @@ use super::{
 pub struct FileCrawlerService {
     max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,
+    local_db: Arc<LocalDbService>,
 }
 
 impl FileCrawlerService {
@@ -27,6 +29,7 @@ impl FileCrawlerService {
         Self {
             max_concurrent_tasks,
             queue,
+            local_db: Arc::clone(&local_db_service),
         }
     }
 
@@ -39,7 +42,13 @@ impl FileCrawlerService {
         let notify = self.queue.get_notifier();
 
         tokio::task::spawn(async move {
-            super::core::file_crawler::crawler_worker_manager::spawn_workers(sender, max_concurrent_tasks, queue, notify).await;
+            super::core::file_crawler::crawler_worker_manager::spawn_workers(
+                sender,
+                max_concurrent_tasks,
+                queue,
+                notify,
+            )
+            .await;
         });
     }
 
@@ -60,10 +69,23 @@ impl FileCrawlerService {
                 max_concurrent_tasks,
                 queue,
                 analyzer,
-                notify
+                notify,
             )
             .await;
         });
+    }
+
+    pub fn spawn_indexing_crawlers(&self) {
+        let crawler_queue = self.local_db.crawler_queue_table().clone();
+        let files_collection = self.local_db.files_table().clone();
+        indexing_crawler::worker_manager::spawn_worker_pool(
+            crawler_queue.into(),
+            files_collection.into(),
+            tantivy,
+            notify,
+            512,
+            8,
+        );
     }
 
     pub async fn push_dirs(&self, paths: Vec<(PathBuf, Priority)>) {

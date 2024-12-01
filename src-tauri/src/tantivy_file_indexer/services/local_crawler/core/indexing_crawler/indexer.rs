@@ -15,6 +15,7 @@ use crate::tantivy_file_indexer::{
 
 use super::worker_manager::TantivyInput;
 
+/// The files also get committed to the Tantivy index and database at the end of this function
 pub async fn index_files<F>(
     files: &Vec<FileDTOInput>,
     tantivy: TantivyInput,
@@ -102,9 +103,11 @@ async fn remove_unseen_entries<F>(
 where
     F: FilesCollectionApi,
 {
+    // Remove the files from the Tantivy index
     if let Err(err) = remove_files_from_index(&stale_paths, writer.clone(), &schema).await {
         return Err(err.to_string());
     }
+    // Remove the files from the database
     if let Err(err) = files_collection.remove_paths(&stale_paths).await {
         return Err(err.to_string());
     }

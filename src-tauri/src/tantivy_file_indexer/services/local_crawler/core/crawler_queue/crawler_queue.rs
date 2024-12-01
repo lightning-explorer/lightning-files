@@ -41,11 +41,17 @@ impl CrawlerQueue {
         self.push_many(&files).await;
     }
 
-    pub async fn take_many(&self, amount:u64) -> Result<Vec<(PathBuf, Priority)>, DbErr> {
-        self.db.crawler_queue_table().take_many(amount).await.map(|models|
-        models.into_iter().map(|model|
-            (PathBuf::from(model.path),model.priority)
-        ).collect())
+    pub async fn take_many(&self, amount: u64) -> Result<Vec<(PathBuf, Priority)>, DbErr> {
+        self.db
+            .crawler_queue_table()
+            .take_many(amount)
+            .await
+            .map(|models| {
+                models
+                    .into_iter()
+                    .map(|model| (PathBuf::from(model.path), model.priority))
+                    .collect()
+            })
     }
 
     pub async fn pop(&self) -> Result<Option<(PathBuf, Priority)>, DbErr> {
@@ -155,6 +161,7 @@ impl CrawlerQueue {
             .map(|(path, priority)| indexed_dir::Model {
                 path: path.to_string_lossy().into_owned(),
                 priority: *priority,
+                taken: false, // TODO: ensure setting this to false is correct
             })
             .collect()
     }

@@ -25,4 +25,7 @@ pub trait CrawlerQueueApi: Clone + Send + Sync + 'static {
 
     fn delete_one(&self, file: CrawlerFile)
         -> impl Future<Output = Result<(), Self::Error>> + Send;
+
+    /// Set the `taken` status of every item in the database to `false`
+    fn set_taken_to_false_all(&self)->impl Future<Output = Result<(), Self::Error>> + Send;
 }

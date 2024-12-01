@@ -31,7 +31,7 @@ pub async fn spawn_workers_with_analyzer<T>(
     spawn_workers_internal(sender, max_concurrent_tasks, queue, Some(analyzer), notify).await;
 }
 
-pub async fn spawn_workers_internal<T>(
+async fn spawn_workers_internal<T>(
     sender: T,
     max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,
