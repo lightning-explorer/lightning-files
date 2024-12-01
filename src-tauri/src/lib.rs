@@ -49,19 +49,29 @@ pub fn run() {
 }
 
 async fn initialize_app(handle: AppHandle) {
-    let index_files = false;
+    let index_files = true;
 
     let service_container = AppServiceContainer::new_async(&handle).await;
     let crawler_service = Arc::clone(&service_container.crawler_service);
-    let crawler_analyzer_service = Arc::clone(&service_container.crawler_analyzer_service);
-    let db_service = Arc::clone(&service_container.local_db_service);
+    //let crawler_analyzer_service = Arc::clone(&service_container.crawler_analyzer_service);
+    let search_service = Arc::clone(&service_container.search_service);
+    //let db_service = Arc::clone(&service_container.local_db_service);
 
     if index_files {
-        let sender = service_container
-            .search_service
-            .spawn_indexer_db_connected(db_service, 128, 8);
+        // Old file crawlers + indexers:
+        // let sender = service_container
+        //     .search_service
+        //     .spawn_indexer_db_connected(db_service, 128, 8);
 
-        crawler_service.spawn_crawler_with_analyzer(sender, crawler_analyzer_service);
+        // crawler_service.spawn_crawler_with_analyzer(sender, crawler_analyzer_service);
+
+        // New file crawlers:
+        let index_writer = Arc::clone(&search_service.index_writer);
+        let schema = search_service.schema.clone();
+        let handles = crawler_service
+            .spawn_indexing_crawlers(index_writer, schema, 512)
+            .await;
+
         crawler_service
             .push_dirs_default(vec![Path::new("C:\\").to_path_buf()])
             .await;

@@ -17,7 +17,7 @@ use super::worker_manager::TantivyInput;
 
 /// The files also get committed to the Tantivy index and database at the end of this function
 pub async fn index_files<F>(
-    files: &Vec<FileDTOInput>,
+    files: &[FileDTOInput],
     tantivy: TantivyInput,
     parent_path: PathBuf,
     files_collection: Arc<F>,
@@ -44,7 +44,7 @@ where
 }
 
 async fn process_files_and_commit<F>(
-    dtos: &Vec<FileDTOInput>,
+    dtos: &[FileDTOInput],
     writer: Arc<Mutex<IndexWriter>>,
     schema: Schema,
     files_collection: Arc<F>,
@@ -56,7 +56,7 @@ where
     // Remove from index and add document within a single lock
     let mut db_file_models = Vec::new();
 
-    for dto in dtos.into_iter() {
+    for dto in dtos.iter() {
         // Use the name field as the primary key
         writer_lock.delete_term(tantivy::Term::from_field_text(
             schema

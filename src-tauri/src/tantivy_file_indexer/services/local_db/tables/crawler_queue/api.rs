@@ -40,10 +40,11 @@ impl CrawlerQueueTable {
         // Raw SQL is needed because SQLite is picky about on conflict operations
         // Prepare raw SQL for upsert
         let query = r#"
-            INSERT INTO indexed (path, priority)
-            VALUES (?, ?)
+            INSERT INTO indexed (path, priority, taken)
+            VALUES (?, ?, ?)
             ON CONFLICT(path) DO UPDATE SET
-                priority = excluded.priority;
+                priority = excluded.priority,
+                taken = excluded.taken
         "#;
 
         // Execute the query for each model
@@ -51,6 +52,7 @@ impl CrawlerQueueTable {
             sqlx::query(query)
                 .bind(&model.path)
                 .bind(model.priority)
+                .bind(model.taken)
                 .execute(&mut *transaction)
                 .await?;
         }

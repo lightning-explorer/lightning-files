@@ -2,7 +2,13 @@ use std::{sync::Arc, time::Duration};
 
 use tokio::sync::Notify;
 
-use crate::tantivy_file_indexer::{dtos::file_dto_input::FileDTOInput, shared::indexing_crawler::{models::crawler_file::CrawlerFile, traits::{crawler_queue_api::CrawlerQueueApi, files_collection_api::FilesCollectionApi}}};
+use crate::tantivy_file_indexer::{
+    dtos::file_dto_input::FileDTOInput,
+    shared::indexing_crawler::{
+        models::crawler_file::CrawlerFile,
+        traits::{crawler_queue_api::CrawlerQueueApi, files_collection_api::FilesCollectionApi},
+    },
+};
 
 use super::{
     crawler::{self, CrawlerError},
@@ -19,7 +25,7 @@ where
     files_collection: Arc<F>,
     tantivy: TantivyInput,
     notify: Arc<Notify>,
-    batch_size:usize
+    batch_size: usize,
 }
 
 impl<C, F> IndexingCrawlerWorker<C, F>
@@ -28,42 +34,50 @@ where
     F: FilesCollectionApi,
 {
     /// Note that `worker_task` must be called in order for the background operations to start
-    /// 
+    ///
     /// `batch_size` is the number of files that will be processed before the indexer commits them in bulk
     pub fn new(
         crawler_queue: Arc<C>,
         files_collection: Arc<F>,
         tantivy: TantivyInput,
         notify: Arc<Notify>,
-        batch_size:usize,
+        batch_size: usize,
     ) -> Self {
         Self {
             crawler_queue,
             files_collection,
             tantivy,
             notify,
-            batch_size
+            batch_size,
         }
     }
 
     pub async fn worker_task(&self) {
+        let mut dtos_bank: Vec<(CrawlerFile, Vec<FileDTOInput>)> = Vec::new();
+        let mut num_files_processed = 0;
+
         loop {
+            println!("Worker is alive");
             // Since not every directory will have a lot of files, save up a bunch of files and then commit all of them
-            let mut dtos_bank: Vec<(CrawlerFile,Vec<FileDTOInput>)> = Vec::new();
-            let mut num_files_processed = 0;
             match self.crawler_queue.fetch_next().await {
                 Ok(file_option) => match file_option {
                     Some(file) => {
+                        println!("file crawler fetched item");
                         let dtos = self.handle_crawl(&file).await;
+                        println!("file crawler crawl finsihed");
                         num_files_processed += dtos.len();
-                        dtos_bank.push((file,dtos));
+                        dtos_bank.push((file, dtos));
 
-                        if num_files_processed >= self.batch_size{
+                        if num_files_processed >= self.batch_size {
                             // Commit all and drain the bank of files
-                            for (dir,files) in dtos_bank.drain(..){
-                                self.handle_index(&dir, &files).await;
-                            }
+                            num_files_processed = 0;
+                            dtos_bank = self.commit_dtos_bank(dtos_bank).await;
                         }
+                    }
+                    None if !dtos_bank.is_empty() => {
+                        // There isn't another item in the queue, but the crawler is still hanging on to DTOs
+                        num_files_processed = 0;
+                        dtos_bank = self.commit_dtos_bank(dtos_bank).await;
                     }
                     None => {
                         println!("No tasks available. Waiting for notification...");
@@ -76,13 +90,12 @@ where
                     err
                 );
                     tokio::time::sleep(Duration::from_secs(1)).await;
-                    continue;
                 }
             }
         }
     }
 
-    async fn handle_index(&self, dir: &CrawlerFile, dtos: &Vec<FileDTOInput>) {
+    async fn handle_index(&self, dir: &CrawlerFile, dtos: &[FileDTOInput]) {
         let (ref writer, ref schema) = self.tantivy;
         match retry_with_backoff(
             || {
@@ -148,6 +161,17 @@ where
             },
         }
         Vec::new()
+    }
+
+    async fn commit_dtos_bank(
+        &self,
+        mut dtos: Vec<(CrawlerFile, Vec<FileDTOInput>)>,
+    ) -> Vec<(CrawlerFile, Vec<FileDTOInput>)> {
+        println!("Crawler worker committing dtos batch");
+        for (dir, files) in dtos.drain(..) {
+            self.handle_index(&dir, &files).await;
+        }
+        dtos
     }
 
     async fn remove_from_crawler_queue(&self, directory: &CrawlerFile) -> Result<(), String> {

@@ -17,6 +17,8 @@ use super::worker;
 pub type TantivyInput = (Arc<Mutex<IndexWriter>>, Schema);
 
 /// Returns the handles to the workers that were spawned
+///
+/// Because an intial database call is made, this function must be awaited.
 pub async fn spawn_worker_pool<C, F>(
     crawler_queue: Arc<C>,
     files_collection: Arc<F>,
@@ -36,6 +38,12 @@ where
             err
         );
     }
+    
+    println!(
+        "Spawning pool of {} file crawler indexers",
+        max_concurrent_tasks
+    );
+
     let mut tasks: JoinSet<()> = JoinSet::new();
     let (ref writer, ref schema) = tantivy;
     for _ in 0..max_concurrent_tasks {
@@ -79,7 +87,7 @@ where
                 tokio::time::sleep(jittered_delay).await;
 
                 // Exponential backoff: Double the delay for the next attempt
-                delay = delay * 2;
+                delay *= 2;
             }
             Err(err) => {
                 return Err(format!(

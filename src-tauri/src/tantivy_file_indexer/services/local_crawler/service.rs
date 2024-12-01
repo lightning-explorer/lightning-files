@@ -1,6 +1,8 @@
-use tokio::sync::mpsc;
+use tantivy::schema::Schema;
+use tantivy::IndexWriter;
+use tokio::sync::{mpsc, Mutex};
+use tokio::task::JoinSet;
 
-use crate::tantivy_file_indexer::services::search_index::models::index_worker::file_input::FileInputModel;
 use crate::tantivy_file_indexer::{
     services::local_db::service::LocalDbService,
     shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerSender,
@@ -11,7 +13,7 @@ use std::sync::Arc;
 use super::core::indexing_crawler;
 use super::{
     analyzer::service::FileCrawlerAnalyzerService,
-    core::crawler_queue::{CrawlerQueue, Priority},
+    core::crawler_queue::queue::{CrawlerQueue, Priority},
 };
 
 pub struct FileCrawlerService {
@@ -75,17 +77,22 @@ impl FileCrawlerService {
         });
     }
 
-    pub fn spawn_indexing_crawlers(&self) {
-        let crawler_queue = self.local_db.crawler_queue_table().clone();
+    pub async fn spawn_indexing_crawlers(
+        &self,
+        index_writer: Arc<Mutex<IndexWriter>>,
+        schema: Schema,
+        worker_batch_size:usize,
+    ) -> JoinSet<()> {
         let files_collection = self.local_db.files_table().clone();
         indexing_crawler::worker_manager::spawn_worker_pool(
-            crawler_queue.into(),
+            self.queue.clone(),
             files_collection.into(),
-            tantivy,
-            notify,
-            512,
-            8,
-        );
+            (index_writer, schema),
+            self.queue.get_notifier(),
+            worker_batch_size,
+            self.max_concurrent_tasks,
+        )
+        .await
     }
 
     pub async fn push_dirs(&self, paths: Vec<(PathBuf, Priority)>) {
