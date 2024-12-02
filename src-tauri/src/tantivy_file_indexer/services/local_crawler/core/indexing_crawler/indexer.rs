@@ -61,10 +61,10 @@ where
         let writer_lock = writer.lock().await;
 
         for dto in dtos.iter() {
-            // Use the name field as the primary key
+            // Use the path field as the primary key
             writer_lock.delete_term(tantivy::Term::from_field_text(
                 schema
-                    .get_field("name")
+                    .get_field("path")
                     .map_err(|x| format!("Field doesn't exist: {}", x))?,
                 &dto.file_path,
             ));

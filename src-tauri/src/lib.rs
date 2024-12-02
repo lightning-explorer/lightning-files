@@ -69,7 +69,7 @@ async fn initialize_app(handle: AppHandle) {
         let index_writer = Arc::clone(&search_service.index_writer);
         let schema = search_service.schema.clone();
         let handles = crawler_service
-            .spawn_indexing_crawlers(index_writer, schema, 512)
+            .spawn_indexing_crawlers(index_writer, schema, 128)
             .await;
 
         crawler_service

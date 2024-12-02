@@ -1,4 +1,7 @@
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 use rand::{Rng, RngCore, SeedableRng};
 use tokio::sync::Notify;
@@ -65,6 +68,7 @@ where
                     Some(file) => {
                         // not needed if the log isn't there
                         let file_clone = file.clone();
+                        let time = Instant::now();
 
                         let dtos = self.handle_crawl(&file).await;
                         num_files_processed += dtos.len();
@@ -72,10 +76,11 @@ where
 
                         // optional log
                         println!(
-                            "Crawler worker finished processing {}. Priority: {}. Num files processed: {}",
+                            "Crawler worker finished processing {}. Priority: {}. Num files processed: {}. Time: {:?}",
                             file_clone.path.to_string_lossy(),
                             file_clone.priority,
-                            num_files_processed
+                            num_files_processed,
+                            time.elapsed()
                         );
 
                         if num_files_processed >= self.batch_size {

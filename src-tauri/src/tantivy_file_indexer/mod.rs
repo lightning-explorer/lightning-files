@@ -7,9 +7,6 @@ mod dtos {
     pub mod file_dto_input;
     pub mod vector_search_result;
 }
-mod util {
-    pub mod file_id_helper;
-}
 mod converters {
     pub mod date_converter;
     pub mod doc_to_dto;

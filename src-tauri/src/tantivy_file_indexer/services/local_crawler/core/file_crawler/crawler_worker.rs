@@ -6,7 +6,7 @@ use crate::tantivy_file_indexer::services::local_crawler::analyzer::service::Fil
 use crate::tantivy_file_indexer::shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerSender;
 use crate::tantivy_file_indexer::{
     dtos::file_dto_input::FileDTOInput,
-    services::search_index::models::index_worker::file_input::FileInputModel, util::file_id_helper,
+    services::search_index::models::index_worker::file_input::FileInputModel,
 };
 
 use super::super::crawler_queue::queue::CrawlerQueue;
