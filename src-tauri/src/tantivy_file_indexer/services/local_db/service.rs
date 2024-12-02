@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::tantivy_file_indexer::services::app_save::service::AppSaveService;
 
 use super::tables::{
@@ -22,7 +24,8 @@ impl LocalDbService {
         let db_url = format!("sqlite://{}", db_path.to_string_lossy());
 
         // Starts out as a SQLX pool, but 'into' is called to turn it into a Sea ORM database connection
-        let db: DatabaseConnection = SqlitePool::connect(&db_url).await.unwrap().into();
+        let db: Arc<DatabaseConnection> =
+            Arc::new(SqlitePool::connect(&db_url).await.unwrap().into());
 
         // initialize the tables
         let files_table = FilesTable::new_async(db.clone()).await;
@@ -51,7 +54,7 @@ impl LocalDbService {
         &self.crawler_queue_table
     }
 
-    pub fn indexer_queue_table(&self) -> &IndexerQueueTable{
+    pub fn indexer_queue_table(&self) -> &IndexerQueueTable {
         &self.indexer_queue_table
     }
 }

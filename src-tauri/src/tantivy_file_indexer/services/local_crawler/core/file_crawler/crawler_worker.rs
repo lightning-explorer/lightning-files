@@ -6,10 +6,10 @@ use crate::tantivy_file_indexer::services::local_crawler::analyzer::service::Fil
 use crate::tantivy_file_indexer::shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerSender;
 use crate::tantivy_file_indexer::{
     dtos::file_dto_input::FileDTOInput,
-    services::search_index::models::index_worker::file_input::FileInputModel, util::file_id_helper,
+    services::search_index::models::index_worker::file_input::FileInputModel,
 };
 
-use super::super::crawler_queue::CrawlerQueue;
+use super::super::crawler_queue::queue::CrawlerQueue;
 
 pub async fn worker_task<T>(
     sender: T,
@@ -130,13 +130,13 @@ async fn create_dto(entry: PathBuf) -> Result<FileDTOInput, String> {
         .expect("Time went backwards")
         .as_secs();
 
-    // metadata.is_dir() might be slightly more efficient than calling it on 'entry'
-    let file_id = if metadata.is_dir() {
-        //for directories, use the directory path since getting their ID is more difficult
-        entry.to_string_lossy().to_string()
-    } else {
-        file_id_helper::get_file_id(entry.clone())?
-    };
+    // // metadata.is_dir() might be slightly more efficient than calling it on 'entry'
+    // let file_id = if metadata.is_dir() {
+    //     //for directories, use the directory path since getting their ID is more difficult
+    //     entry.to_string_lossy().to_string()
+    // } else {
+    //     file_id_helper::get_file_id(entry.clone())?
+    // };
 
     let name = entry
         .file_name()
@@ -144,7 +144,6 @@ async fn create_dto(entry: PathBuf) -> Result<FileDTOInput, String> {
         .to_string_lossy()
         .to_string();
     let dto = FileDTOInput {
-        file_id,
         name,
         file_path: entry.to_string_lossy().to_string(),
         metadata: "test metadata".to_string(),

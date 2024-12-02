@@ -1,5 +1,5 @@
-use std::{path::Path, sync::Arc};
 use directory_nav_service::tauri_exports::*;
+use std::{path::Path, sync::Arc};
 use tantivy_file_indexer::{
     service_container::AppServiceContainer, services::app_save::tauri_exports::*,
     services::local_crawler::tauri_exports::*, services::local_db::tables::files::tauri_exports::*,
@@ -7,8 +7,8 @@ use tantivy_file_indexer::{
     services::vector_db::tauri_exports::*,
 };
 use tauri::{AppHandle, Manager};
-mod shared;
 mod directory_nav_service;
+mod shared;
 mod tantivy_file_indexer;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -49,25 +49,35 @@ pub fn run() {
 }
 
 async fn initialize_app(handle: AppHandle) {
-    let index_files = false;
+    let index_files = true;
 
     let service_container = AppServiceContainer::new_async(&handle).await;
     let crawler_service = Arc::clone(&service_container.crawler_service);
-    let crawler_analyzer_service = Arc::clone(&service_container.crawler_analyzer_service);
-    let db_service = Arc::clone(&service_container.local_db_service);
+    //let crawler_analyzer_service = Arc::clone(&service_container.crawler_analyzer_service);
+    let search_service = Arc::clone(&service_container.search_service);
+    //let db_service = Arc::clone(&service_container.local_db_service);
 
     if index_files {
-        let sender = service_container
-            .search_service
-            .spawn_indexer_db_connected(db_service, 128, 8);
+        // Old file crawlers + indexers:
+        // let sender = service_container
+        //     .search_service
+        //     .spawn_indexer_db_connected(db_service, 128, 8);
 
-        crawler_service.spawn_crawler_with_analyzer(sender, crawler_analyzer_service);
+        // crawler_service.spawn_crawler_with_analyzer(sender, crawler_analyzer_service);
+
+        // New file crawlers:
+        let index_writer = Arc::clone(&search_service.index_writer);
+        let schema = search_service.schema.clone();
+        let handles = crawler_service
+            .spawn_indexing_crawlers(index_writer, schema, 128)
+            .await;
+
         crawler_service
             .push_dirs_default(vec![Path::new("C:\\").to_path_buf()])
             .await;
+
+        handles.join_all().await;
     } else {
         println!("index_files in initialize_app is set to false. No files will be indexed and no file crawlers will be spawned.")
     }
-
-    handle.manage(service_container);
 }

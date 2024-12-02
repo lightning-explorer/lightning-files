@@ -7,10 +7,14 @@ use serde::Serialize;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub path: String,
-    /**
-    Where a higher number means that the directory is more important
-    */
+    /// Where a higher number means that the directory is more important
     pub priority: u32,
+    /// If a directory is "taken", then it means that a crawler is already working on scanning its files and the
+    /// other crawlers should not try to pick up this one. 
+    /// 
+    /// Upon application startup, all models should have `taken` set to `false`, due to the fact that some crawler
+    /// workers could have terminated while they were trying to process a directory.
+    pub taken: bool
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

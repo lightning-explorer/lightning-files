@@ -5,7 +5,7 @@ use tokio::sync::Notify;
 use crate::tantivy_file_indexer::services::local_crawler::analyzer::service::FileCrawlerAnalyzerService;
 use crate::tantivy_file_indexer::shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerSender;
 
-use super::super::crawler_queue::CrawlerQueue;
+use super::super::crawler_queue::queue::CrawlerQueue;
 use super::crawler_worker::worker_task;
 
 pub async fn spawn_workers<T>(
@@ -31,7 +31,7 @@ pub async fn spawn_workers_with_analyzer<T>(
     spawn_workers_internal(sender, max_concurrent_tasks, queue, Some(analyzer), notify).await;
 }
 
-pub async fn spawn_workers_internal<T>(
+async fn spawn_workers_internal<T>(
     sender: T,
     max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,

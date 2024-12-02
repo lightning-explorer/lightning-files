@@ -160,14 +160,15 @@ async fn process_files(
     //
 
     for dto in dtos.into_iter() {
+        // Use the name field as the primary key
         writer.delete_term(tantivy::Term::from_field_text(
             schema
-                .get_field("file_id")
+                .get_field("name")
                 .map_err(|x| format!("Field doesn't exist: {}", x))?,
             &dto.file_path,
         ));
         writer.add_document(doc! {
-        schema.get_field("file_id").unwrap() => dto.file_id,
+        //schema.get_field("file_id").unwrap() => dto.file_id,
         schema.get_field("name").unwrap() => dto.name,
         schema.get_field("date_modified").unwrap() => unix_time_to_tantivy_datetime(dto.date_modified),
         schema.get_field("path").unwrap() => dto.file_path.clone(),
@@ -263,7 +264,7 @@ where
     T: IntoIterator<Item = S>,
     S: AsRef<str>,
 {
-    let field = schema.get_field("file_id")?;
+    let field = schema.get_field("name")?;
     let writer = writer.lock().await;
     for path in file_paths {
         writer.delete_term(tantivy::Term::from_field_text(field, path.as_ref()));

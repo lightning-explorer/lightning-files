@@ -1,7 +1,7 @@
+use std::sync::Arc;
+
 use chrono::Utc;
-use sea_orm::{
-    sea_query::OnConflict, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set,
-};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use sqlx::{Sqlite, Transaction};
 
 use crate::tantivy_file_indexer::services::local_db::table_creator::generate_table_lenient;
@@ -9,11 +9,11 @@ use crate::tantivy_file_indexer::services::local_db::table_creator::generate_tab
 use super::entities::recently_indexed_dir;
 
 pub struct RecentlyIndexedDirectoriesTable {
-    db: DatabaseConnection,
+    db: Arc<DatabaseConnection>,
 }
 
 impl RecentlyIndexedDirectoriesTable {
-    pub async fn new_async(db: DatabaseConnection) -> Self {
+    pub async fn new_async(db: Arc<DatabaseConnection>) -> Self {
         generate_table_lenient(&db, recently_indexed_dir::Entity).await;
 
         Self { db }
@@ -40,7 +40,7 @@ impl RecentlyIndexedDirectoriesTable {
         for model in models {
             sqlx::query(query)
                 .bind(&model.path)
-                .bind(&model.time)
+                .bind(model.time)
                 .execute(&mut *transaction)
                 .await?;
         }
@@ -53,7 +53,7 @@ impl RecentlyIndexedDirectoriesTable {
     pub async fn contains_dir(&self, dir_path: String) -> Result<bool, sea_orm::DbErr> {
         let exists = recently_indexed_dir::Entity::find()
             .filter(recently_indexed_dir::Column::Path.eq(dir_path))
-            .one(&self.db)
+            .one(&*self.db)
             .await?
             .is_some();
         Ok(exists)
@@ -74,7 +74,7 @@ impl RecentlyIndexedDirectoriesTable {
 
         let delete = recently_indexed_dir::Entity::delete_many()
             .filter(recently_indexed_dir::Column::Time.lt(cutoff_time))
-            .exec(&self.db)
+            .exec(&*self.db)
             .await?;
 
         Ok(delete.rows_affected)

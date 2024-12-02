@@ -8,11 +8,11 @@ SQLite database and store stuff there.
  * that have ALREADY been indexed
  */
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use sea_orm::{
     prelude::Expr, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
-    QueryOrder, QuerySelect, TransactionTrait,
+    QueryOrder, QuerySelect,
 };
 use sqlx::{Sqlite, Transaction};
 
@@ -20,12 +20,13 @@ use crate::tantivy_file_indexer::services::local_db::table_creator::generate_tab
 
 use super::entities::indexed_dir;
 
+#[derive(Clone)]
 pub struct CrawlerQueueTable {
-    db: DatabaseConnection,
+    db: Arc<DatabaseConnection>,
 }
 
 impl CrawlerQueueTable {
-    pub async fn new_async(db: DatabaseConnection) -> Self {
+    pub async fn new_async(db: Arc<DatabaseConnection>) -> Self {
         generate_table_lenient(&db, indexed_dir::Entity).await;
 
         Self { db }
@@ -39,10 +40,11 @@ impl CrawlerQueueTable {
         // Raw SQL is needed because SQLite is picky about on conflict operations
         // Prepare raw SQL for upsert
         let query = r#"
-            INSERT INTO indexed (path, priority)
-            VALUES (?, ?)
+            INSERT INTO indexed (path, priority, taken)
+            VALUES (?, ?, ?)
             ON CONFLICT(path) DO UPDATE SET
-                priority = excluded.priority;
+                priority = excluded.priority,
+                taken = excluded.taken
         "#;
 
         // Execute the query for each model
@@ -50,6 +52,7 @@ impl CrawlerQueueTable {
             sqlx::query(query)
                 .bind(&model.path)
                 .bind(model.priority)
+                .bind(model.taken)
                 .execute(&mut *transaction)
                 .await?;
         }
@@ -59,48 +62,45 @@ impl CrawlerQueueTable {
         Ok(())
     }
 
-    pub async fn pop(&self)->Result<Option<indexed_dir::Model>, sea_orm::DbErr>{
-        let mut items = self.fetch_many(1).await?;
+    pub async fn pop(&self) -> Result<Option<indexed_dir::Model>, sea_orm::DbErr> {
+        let mut items = self.take_many(1).await?;
         Ok(items.pop())
     }
 
-    /**
-     * Retrieves the next most popular directories in the collection
-     */
-    pub async fn fetch_many(&self, amount: u64) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
-        let txn = self.db.begin().await?;
+    /// Completely removes the given models from the database
+    /// 
+    /// Returns the number of items that were deleted
+    pub async fn delete_many(&self, models: &[indexed_dir::Model]) -> Result<u64, sea_orm::DbErr> {
+        let paths_to_delete: Vec<String> = models.iter().map(|entry| entry.path.clone()).collect();
 
-        // Fetch the entry with the highest priority (biggest number)
-        let next_entries: Vec<indexed_dir::Model> = indexed_dir::Entity::find()
-            .order_by_asc(indexed_dir::Column::Priority)
-            // Order by ascending to ensure that lower numbers are nearer to the top (The lower the number, the higher the priority)
-            .limit(amount)
-            .all(&txn)
+        // Delete the fetched entries using the 'IN' filter
+        let result = indexed_dir::Entity::delete_many()
+            .filter(indexed_dir::Column::Path.is_in(paths_to_delete))
+            .exec(&*self.db)
             .await?;
+        Ok(result.rows_affected)
+    }
 
-        {
-            // Collect the paths of the fetched entries
-            let paths_to_delete: Vec<String> = next_entries
-                .iter()
-                .map(|entry| entry.path.clone())
-                .collect();
+    /// Retrieves the next most popular directories in the collection and removes them
+    pub async fn take_many(&self, amount: u64) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
+        // Fetch the entry with the highest priority (biggest number)
+        let next_entries = self.get_next_entries(amount).await?;
+        // Collect the paths of the fetched entries
+        self.delete_many(&next_entries).await?;
+        // Return the fetched entries
+        Ok(next_entries)
+    }
 
-            // Delete the fetched entries using the 'IN' filter
-            indexed_dir::Entity::delete_many()
-                .filter(indexed_dir::Column::Path.is_in(paths_to_delete))
-                .exec(&txn)
-                .await?;
+    /// Retrieves the next most popular directories in the collection without removing them
+    pub async fn get_many(&self, amount: u64) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
+        let next_entries = self.get_next_entries(amount).await?;
+        self.mark_taken(&next_entries, true).await?;
 
-            // Commit the transaction
-            txn.commit().await?;
-
-            // Return the fetched entries
-            Ok(next_entries)
-        }
+        Ok(next_entries)
     }
 
     pub async fn count_dirs(&self) -> Result<u64, sea_orm::DbErr> {
-        let count = indexed_dir::Entity::find().count(&self.db).await?;
+        let count = indexed_dir::Entity::find().count(&*self.db).await?;
         Ok(count)
     }
 
@@ -111,7 +111,10 @@ impl CrawlerQueueTable {
         &self,
         limit: u64,
     ) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
-        indexed_dir::Entity::find().limit(limit).all(&self.db).await
+        indexed_dir::Entity::find()
+            .limit(limit)
+            .all(&*self.db)
+            .await
     }
 
     /**
@@ -132,12 +135,49 @@ impl CrawlerQueueTable {
             .column_as(Expr::col(indexed_dir::Column::Priority).count(), "count") // Count occurrences
             .group_by(indexed_dir::Column::Priority) // Group by priority
             .into_tuple::<(u32, i64)>() // Convert the result into (priority, count) tuples
-            .all(&self.db)
+            .all(&*self.db)
             .await?;
 
         // Convert the results into a HashMap for easier use
         let priority_counts = results.into_iter().collect::<HashMap<u32, i64>>();
 
         Ok(priority_counts)
+    }
+
+    pub async fn mark_all_as_not_taken(&self) -> Result<(), sea_orm::DbErr> {
+        indexed_dir::Entity::update_many()
+            .col_expr(indexed_dir::Column::Taken, false.into())
+            .exec(&*self.db)
+            .await?;
+        Ok(())
+    }
+
+    /// Finds the next most popular models from the database that aren't taken
+    async fn get_next_entries(
+        &self,
+        amount: u64,
+    ) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
+        indexed_dir::Entity::find()
+            .filter(indexed_dir::Column::Taken.eq(false))
+            .order_by_asc(indexed_dir::Column::Priority)
+            // Order by ascending to ensure that lower numbers are nearer to the top (The lower the number, the higher the priority)
+            .limit(amount)
+            .all(&*self.db)
+            .await
+    }
+
+    /// Example: passing in `is_taken` as true will set the `taken` field in all of the provided models to `true`
+    async fn mark_taken(
+        &self,
+        models: &[indexed_dir::Model],
+        is_taken: bool,
+    ) -> Result<sea_orm::UpdateResult, sea_orm::DbErr> {
+        let paths_to_modify: Vec<String> = models.iter().map(|entry| entry.path.clone()).collect();
+
+        indexed_dir::Entity::update_many()
+            .filter(indexed_dir::Column::Path.is_in(paths_to_modify))
+            .col_expr(indexed_dir::Column::Taken, is_taken.into())
+            .exec(&*self.db)
+            .await
     }
 }

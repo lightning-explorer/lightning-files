@@ -1,47 +1,102 @@
-use std::{sync::Arc, time::Duration};
+use std::{fmt::Display, future::Future, ops::Fn, sync::Arc, time::Duration};
 
-use tokio::sync::Notify;
+use rand::Rng;
+use rand_chacha::rand_core::SeedableRng;
+use tantivy::{schema::Schema, IndexWriter};
+use tokio::{
+    sync::{Mutex, Notify},
+    task::JoinSet,
+};
 
-use super::super::crawler_queue::CrawlerQueue;
+use crate::tantivy_file_indexer::shared::indexing_crawler::traits::{
+    crawler_queue_api::CrawlerQueueApi, files_collection_api::FilesCollectionApi,
+};
 
-/*
-Workflow:
-The manager pulls a batch of directories from the crawler queue, then, that many threads will get spawned to crawl and make DTOs out of them.
-then they all get indexed
-*/
+use super::worker;
 
-pub async fn manager_task(
-    crawler_queue: Arc<CrawlerQueue>,
+pub type TantivyInput = (Arc<Mutex<IndexWriter>>, Schema);
+
+/// Returns the handles to the workers that were spawned
+///
+/// Because an intial database call is made, this function must be awaited.
+pub async fn spawn_worker_pool<C, F>(
+    crawler_queue: Arc<C>,
+    files_collection: Arc<F>,
+    tantivy: TantivyInput,
     notify: Arc<Notify>,
+    worker_batch_size: usize,
     max_concurrent_tasks: usize,
-) {
-    loop {
-        let mut paths_batch = Vec::new();
-        let mut none_left = false;
+) -> JoinSet<()>
+where
+    C: CrawlerQueueApi,
+    F: FilesCollectionApi,
+{
+    // Because a new session has started, all of the items in the queue are fair game
+    if let Err(err) = crawler_queue.set_taken_to_false_all().await {
+        println!(
+            "Crawler worker manager: unable to reset taken status of all items: {}",
+            err
+        );
+    }
 
-        // Attempt to pop from the queue
-        match crawler_queue.pop().await {
-            Ok(Some(path)) => paths_batch.push(path),
-            Ok(None) => {
-                // Queue is empty
-                none_left = true;
+    println!(
+        "Spawning pool of {} file crawler indexers",
+        max_concurrent_tasks
+    );
+
+    let mut tasks: JoinSet<()> = JoinSet::new();
+    let (ref writer, ref schema) = tantivy;
+    for _ in 0..max_concurrent_tasks {
+        let worker = worker::IndexingCrawlerWorker::new(
+            Arc::clone(&crawler_queue),
+            Arc::clone(&files_collection),
+            (Arc::clone(writer), schema.clone()),
+            Arc::clone(&notify),
+            worker_batch_size,
+        );
+        tasks.spawn(async move {
+            worker.worker_task().await;
+        });
+    }
+    tasks
+}
+
+/// Applies a jitter + exponential backoff
+pub async fn retry_with_backoff<T, E, F, Fut>(
+    function: F,
+    max_retries: usize,
+    initial_delay: Duration,
+) -> Result<T, String>
+where
+    F: Fn() -> Fut,
+    Fut: Future<Output = Result<T, E>>,
+    E: Display,
+{
+    let mut delay = initial_delay;
+    // Use a thread-safe RNG
+    let mut rng = rand_chacha::ChaChaRng::from_entropy();
+
+    for attempt in 1..=max_retries {
+        match function().await {
+            Ok(result) => return Ok(result),
+            Err(_) if attempt < max_retries => {
+                // Add jitter: Randomize delay within 50%-150% of the current delay
+                let jitter: f64 = rng.gen_range(0.5..1.5);
+                let jittered_delay = delay.mul_f64(jitter);
+
+                tokio::time::sleep(jittered_delay).await;
+
+                // Exponential backoff: Double the delay for the next attempt
+                delay *= 2;
             }
             Err(err) => {
-                eprintln!(
-                    "File crawler task manager encountered an error: {}. Retrying in 1 second.",
-                    err
-                );
-                tokio::time::sleep(Duration::from_secs(1)).await;
-                continue;
+                return Err(format!(
+                    "Function failed after {} attempts. Last error: {}",
+                    max_retries, err
+                ));
             }
         }
-
-        if paths_batch.len() >= max_concurrent_tasks || (none_left && !paths_batch.is_empty()) {
-            // Process the batch of paths here
-        } else if none_left {
-            // If queue is empty, wait for notification
-            println!("No tasks available. Waiting for notification...");
-            notify.notified().await;
-        }
     }
+
+    unreachable!() // This should never be reached because all cases are handled above.
 }
