@@ -4,7 +4,12 @@ use std::{
     time::{Duration, UNIX_EPOCH},
 };
 
-use crate::tantivy_file_indexer::{dtos::file_dto_input::FileDTOInput, shared::indexing_crawler::{models::crawler_file::CrawlerFile, traits::crawler_queue_api::CrawlerQueueApi}};
+use crate::tantivy_file_indexer::{
+    dtos::file_dto_input::FileDTOInput,
+    shared::indexing_crawler::{
+        models::crawler_file::CrawlerFile, traits::crawler_queue_api::CrawlerQueueApi,
+    },
+};
 
 use super::worker_manager::retry_with_backoff;
 
