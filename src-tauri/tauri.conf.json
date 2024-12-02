@@ -8,11 +8,11 @@
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "yarn build",
     "frontendDist": "../dist/desktop-search/browser"
+    
   },
   "app": {
     "windows": [
       {
-        "url": "http://localhost:1420",
         "title": "desktop-search",
         "width": 800,
         "height": 600,
@@ -28,7 +28,7 @@
       }
     ],
     "security": {
-      "csp": "default-src self http://localhost:1420"
+      "csp": null
     }
   },
   "bundle": {

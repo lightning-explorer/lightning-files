@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::tantivy_file_indexer::services::local_db::table_creator::generate_table_lenient;
 use sea_orm::{
     ActiveValue::NotSet, DatabaseConnection, EntityTrait, InsertResult, PaginatorTrait, Set,
@@ -7,11 +9,11 @@ use super::entities::directory_payload;
 
 #[derive(Clone)]
 pub struct IndexerQueueTable {
-    db: DatabaseConnection,
+    db: Arc<DatabaseConnection>,
 }
 
 impl IndexerQueueTable {
-    pub async fn new_async(db: DatabaseConnection) -> Self {
+    pub async fn new_async(db: Arc<DatabaseConnection>) -> Self {
         generate_table_lenient(&db, directory_payload::Entity).await;
 
         Self { db }
@@ -31,15 +33,15 @@ impl IndexerQueueTable {
             files: Set(model.files.to_owned()),
         };
         directory_payload::Entity::insert(entry)
-            .exec(&self.db)
+            .exec(&*self.db)
             .await
     }
 
     pub async fn pop(&self) -> Result<Option<directory_payload::Model>, sea_orm::DbErr> {
-        if let Some(entry) = directory_payload::Entity::find().one(&self.db).await? {
+        if let Some(entry) = directory_payload::Entity::find().one(&*self.db).await? {
             // Delete the fetched entry:
             _ = directory_payload::Entity::delete_by_id(entry.id)
-                .exec(&self.db)
+                .exec(&*self.db)
                 .await?;
             return Ok(Some(entry));
         }
@@ -47,7 +49,7 @@ impl IndexerQueueTable {
     }
 
     pub async fn get_len(&self) -> Result<u64, sea_orm::DbErr> {
-        let count = directory_payload::Entity::find().count(&self.db).await?;
+        let count = directory_payload::Entity::find().count(&*self.db).await?;
         Ok(count)
     }
 }

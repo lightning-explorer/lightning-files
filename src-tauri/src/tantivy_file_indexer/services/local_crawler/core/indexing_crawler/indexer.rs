@@ -6,11 +6,14 @@ use std::{
 };
 
 use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, MutexGuard};
 
 use crate::tantivy_file_indexer::{
-    converters::date_converter::unix_time_to_tantivy_datetime, dtos::file_dto_input::FileDTOInput,
-    shared::indexing_crawler::{models::file_model::FileModel, traits::files_collection_api::FilesCollectionApi},
+    converters::date_converter::unix_time_to_tantivy_datetime,
+    dtos::file_dto_input::FileDTOInput,
+    shared::indexing_crawler::{
+        models::file_model::FileModel, traits::files_collection_api::FilesCollectionApi,
+    },
 };
 
 use super::worker_manager::TantivyInput;
@@ -40,6 +43,7 @@ where
 
     remove_unseen_entries(stale_paths, writer_clone, schema, files_collection_clone).await?;
 
+    println!("Files successfully committed to index");
     Ok(())
 }
 
@@ -52,19 +56,19 @@ async fn process_files_and_commit<F>(
 where
     F: FilesCollectionApi,
 {
-    let writer_lock = writer.lock().await;
-    // Remove from index and add document within a single lock
     let mut db_file_models = Vec::new();
+    {
+        let writer_lock = writer.lock().await;
 
-    for dto in dtos.iter() {
-        // Use the name field as the primary key
-        writer_lock.delete_term(tantivy::Term::from_field_text(
-            schema
-                .get_field("name")
-                .map_err(|x| format!("Field doesn't exist: {}", x))?,
-            &dto.file_path,
-        ));
-        writer_lock.add_document(doc! {
+        for dto in dtos.iter() {
+            // Use the name field as the primary key
+            writer_lock.delete_term(tantivy::Term::from_field_text(
+                schema
+                    .get_field("name")
+                    .map_err(|x| format!("Field doesn't exist: {}", x))?,
+                &dto.file_path,
+            ));
+            writer_lock.add_document(doc! {
         //schema.get_field("file_id").unwrap() => dto.file_id,
         schema.get_field("name").unwrap() => dto.name.clone(),
         schema.get_field("date_modified").unwrap() => unix_time_to_tantivy_datetime(dto.date_modified),
@@ -73,16 +77,19 @@ where
         schema.get_field("popularity").unwrap() => dto.popularity,
         }).map_err(|x| format!("Failed to add document: {}",x))?;
 
-        // Create model for DTO but dont add it to DB
-        let path_clone = dto.file_path.clone();
-        let parent_path = get_parent_path(path_clone);
-        let file_model = FileModel {
-            path: dto.file_path.clone(),
-            parent_path,
-        };
-        db_file_models.push(file_model);
+            // Create model for DTO but dont add it to DB
+            let path_clone = dto.file_path.clone();
+            let parent_path = get_parent_path(path_clone);
+            let file_model = FileModel {
+                path: dto.file_path.clone(),
+                parent_path,
+            };
+            db_file_models.push(file_model);
+        }
+        // Writer lock is dropped here
     }
 
+    // Writer lock must be dropped so this function can use it
     if let Err(err) = commit_and_retry(Arc::clone(&writer)).await {
         return Err(format!("Error committing files to Tantivy index: {}", err));
     }

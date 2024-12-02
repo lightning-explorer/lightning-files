@@ -1,5 +1,6 @@
 use std::{sync::Arc, time::Duration};
 
+use rand::{Rng, RngCore, SeedableRng};
 use tokio::sync::Notify;
 
 use crate::tantivy_file_indexer::{
@@ -56,15 +57,26 @@ where
         let mut dtos_bank: Vec<(CrawlerFile, Vec<FileDTOInput>)> = Vec::new();
         let mut num_files_processed = 0;
 
+        self.random_wait().await;
         loop {
-            println!("Worker is alive");
             // Since not every directory will have a lot of files, save up a bunch of files and then commit all of them
             match self.staggered_fetch_next().await {
                 Ok(file_option) => match file_option {
                     Some(file) => {
+                        // not needed if the log isn't there
+                        let file_clone = file.clone();
+
                         let dtos = self.handle_crawl(&file).await;
                         num_files_processed += dtos.len();
                         dtos_bank.push((file, dtos));
+
+                        // optional log
+                        println!(
+                            "Crawler worker finished processing {}. Priority: {}. Num files processed: {}",
+                            file_clone.path.to_string_lossy(),
+                            file_clone.priority,
+                            num_files_processed
+                        );
 
                         if num_files_processed >= self.batch_size {
                             // Commit all and drain the bank of files
@@ -80,14 +92,15 @@ where
                     None => {
                         println!("No tasks available. Waiting for notification...");
                         self.notify.notified().await;
+                        self.random_wait().await;
                     }
                 },
                 Err(err) => {
                     eprintln!(
-                    "File crawler task encountered an error trying to fetch item from queue: {}. Retrying in 1 second.",
+                    "File crawler task encountered an error trying to fetch item from queue: {}. Retrying.",
                     err
                 );
-                    tokio::time::sleep(Duration::from_secs(1)).await;
+                    self.random_wait().await;
                 }
             }
         }
@@ -165,8 +178,9 @@ where
         &self,
         mut dtos: Vec<(CrawlerFile, Vec<FileDTOInput>)>,
     ) -> Vec<(CrawlerFile, Vec<FileDTOInput>)> {
-        println!("Crawler worker committing dtos batch");
+        println!("Crawler is committing dtos bank");
         for (dir, files) in dtos.drain(..) {
+            println!("Draining {}", dir.path.to_string_lossy());
             self.handle_index(&dir, &files).await;
         }
         dtos
@@ -181,8 +195,20 @@ where
         .await
     }
 
-    /// Attempt to fetch the next item from the crawler queue
-    async fn staggered_fetch_next(&self)->Result<Option<CrawlerFile>, String>{
-        retry_with_backoff(|| self.crawler_queue.fetch_next(), 8, Duration::from_millis(200)).await
+    /// Attempt to fetch the next item from the crawler queue, applying backoff if failing
+    async fn staggered_fetch_next(&self) -> Result<Option<CrawlerFile>, String> {
+        retry_with_backoff(
+            || self.crawler_queue.fetch_next(),
+            8,
+            Duration::from_millis(200),
+        )
+        .await
+    }
+
+    /// Stall for 100-2000 ms
+    async fn random_wait(&self) {
+        // thread safe rng
+        let mut rng = rand_chacha::ChaChaRng::from_entropy();
+        tokio::time::sleep(Duration::from_millis(rng.gen_range(100..=2000))).await;
     }
 }

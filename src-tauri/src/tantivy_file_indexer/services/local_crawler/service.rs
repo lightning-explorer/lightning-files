@@ -9,8 +9,10 @@ use crate::tantivy_file_indexer::{
 };
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Duration;
 
 use super::core::indexing_crawler;
+use super::core::indexing_crawler::worker_manager::retry_with_backoff;
 use super::{
     analyzer::service::FileCrawlerAnalyzerService,
     core::crawler_queue::queue::{CrawlerQueue, Priority},
@@ -81,7 +83,7 @@ impl FileCrawlerService {
         &self,
         index_writer: Arc<Mutex<IndexWriter>>,
         schema: Schema,
-        worker_batch_size:usize,
+        worker_batch_size: usize,
     ) -> JoinSet<()> {
         let files_collection = self.local_db.files_table().clone();
         indexing_crawler::worker_manager::spawn_worker_pool(
@@ -96,7 +98,18 @@ impl FileCrawlerService {
     }
 
     pub async fn push_dirs(&self, paths: Vec<(PathBuf, Priority)>) {
-        self.queue.push_many(&paths).await;
+        if let Err(err) = retry_with_backoff(
+            || self.queue.push_many(&paths),
+            4,
+            Duration::from_millis(1000),
+        )
+        .await
+        {
+            println!(
+                "FileCrawlerService - Failed to push directories to queue. Err: {}",
+                err
+            );
+        }
     }
 
     pub async fn push_dirs_default(&self, paths: Vec<PathBuf>) {

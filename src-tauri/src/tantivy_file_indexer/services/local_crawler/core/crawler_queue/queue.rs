@@ -67,7 +67,7 @@ impl CrawlerQueue {
     }
 
     pub async fn delete_many(&self, models: Vec<indexed_dir::Model>) -> Result<(), DbErr> {
-        self.get_crawler_queue_table().delete_many(&models).await
+        self.get_crawler_queue_table().delete_many(&models).await.map(|_| ())
     }
 
     pub async fn set_taken_to_false_all(&self) -> Result<(), DbErr> {
@@ -102,7 +102,7 @@ impl CrawlerQueue {
 
     /// This function automatically gates off files that have been indexed recently, meaning that the fetch functions do not need to worry
     /// about grabbing entries that just got indexed.
-    pub async fn push_many(&self, entries: &[(PathBuf, u32)]) {
+    pub async fn push_many(&self, entries: &[(PathBuf, u32)]) -> Result<(), DbErr> {
         // Remove the old directories to ensure that they can be indexed again
         // cutoff time is a value in minutes
 
@@ -121,7 +121,7 @@ impl CrawlerQueue {
         }
 
         // Filter out the entries that were indexed recently
-        let entries = self.filter_out_recent_directories(entries).await;
+        let entries = self.filter_out_recent_directories(entries).await?;
 
         // Optional logging:
         if entries.is_empty() {
@@ -130,44 +130,51 @@ impl CrawlerQueue {
         }
 
         let indexed_dir_models = self.entries_to_indexed_dir_model(&entries);
+
         // Add to the crawler queue
-        if let Err(err) = self
-            .get_crawler_queue_table()
+        self.get_crawler_queue_table()
             .upsert_many(&indexed_dir_models)
             .await
-        {
-            println!("Error pushing directories into queue: {}", err);
-        }
+            .map_err(|err| {
+                DbErr::Custom(format!(
+                    "Error upserting directories to crawler queue: {}",
+                    err
+                ))
+            })?;
+
+        // Notify all workers
+        self.notify.notify_waiters();
 
         let recently_indexed_dir_models = self.entries_to_recently_indexed_model(&entries);
         // Add to recently indexed
-        if let Err(err) = self
-            .get_recently_indexed_dirs_table()
+        self.get_recently_indexed_dirs_table()
             .upsert_many(&recently_indexed_dir_models)
             .await
-        {
-            println!("Error adding directories to recently indexed: {}", err);
-        }
-        // Notify all workers
-        self.notify.notify_waiters();
+            .map_err(|err| {
+                DbErr::Custom(format!(
+                    "Error upserting directories to crawler queue: {}",
+                    err
+                ))
+            })?;
+
+        Ok(())
     }
 
     async fn filter_out_recent_directories(
         &self,
         entries: &[(PathBuf, u32)],
-    ) -> Vec<(PathBuf, u32)> {
+    ) -> Result<Vec<(PathBuf, u32)>, DbErr> {
         let mut res: Vec<(PathBuf, u32)> = Vec::new();
         for (path, priority) in entries.iter() {
             let is_recent = self
                 .get_recently_indexed_dirs_table()
                 .contains_dir(path.to_string_lossy().into_owned())
-                .await
-                .expect("Failed to check if directory was indexed recently");
+                .await?;
             if !is_recent {
                 res.push((path.clone(), *priority));
             }
         }
-        res
+        Ok(res)
     }
 
     /**
