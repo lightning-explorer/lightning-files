@@ -26,4 +26,6 @@ pub trait FilesCollectionApi: Clone + Send + Sync + 'static {
         &self,
         paths: &HashSet<String>,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
+
+    fn commit_all(&self) -> impl Future<Output = Result<(), Self::Error>> + Send;
 }

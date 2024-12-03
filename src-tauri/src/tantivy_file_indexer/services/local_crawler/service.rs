@@ -4,6 +4,7 @@ use tokio::sync::Mutex;
 use tokio::task::JoinSet;
 
 use crate::tantivy_file_indexer::services::local_db::service::LocalDbService;
+use crate::tantivy_file_indexer::services::search_index::service::SearchIndexService;
 use crate::tantivy_file_indexer::shared::async_retry;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -16,18 +17,21 @@ pub struct FileCrawlerService {
     max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,
     local_db: Arc<LocalDbService>,
+    search_index: Arc<SearchIndexService>
 }
 
 impl FileCrawlerService {
     pub async fn new_async(
         max_concurrent_tasks: usize,
         local_db_service: Arc<LocalDbService>,
+        search_index: Arc<SearchIndexService>
     ) -> Self {
         let queue = Arc::new(CrawlerQueue::new(Arc::clone(&local_db_service)));
         Self {
             max_concurrent_tasks,
             queue,
             local_db: Arc::clone(&local_db_service),
+            search_index: Arc::clone(&search_index)
         }
     }
 
@@ -37,7 +41,7 @@ impl FileCrawlerService {
         schema: Schema,
         worker_batch_size: usize,
     ) -> JoinSet<()> {
-        let files_collection = self.local_db.files_table().clone();
+        let files_collection = Arc::clone(&self.search_index.files_collection);
         indexing_crawler::worker_manager::spawn_worker_pool(
             self.queue.clone(),
             files_collection.into(),

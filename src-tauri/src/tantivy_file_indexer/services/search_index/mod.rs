@@ -1,4 +1,5 @@
 mod core {
+    pub mod files_collection;
     pub mod querier;
     pub mod tantivy_setup;
 }
