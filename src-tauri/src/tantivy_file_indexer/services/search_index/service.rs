@@ -1,8 +1,9 @@
-use crate::tantivy_file_indexer::{models::{
-    search_params_model::SearchParamsModel, tantivy_file_model::TantivyFileModel,
-}, services::vector_db::service::VectorDbService};
+use crate::tantivy_file_indexer::{
+    models::{search_params_model::SearchParamsModel, tantivy_file_model::TantivyFileModel},
+    services::vector_db::service::VectorDbService,
+};
 
-use super::core::{files_collection::TantivyFilesCollection, querier, tantivy_setup};
+use super::{core::{querier, tantivy_setup}, files_collection::TantivyFilesCollection};
 use std::{path::PathBuf, sync::Arc};
 use tantivy::{schema::Schema, IndexReader, IndexWriter};
 
@@ -13,7 +14,7 @@ pub struct SearchIndexService {
     pub index_writer: Arc<Mutex<IndexWriter>>,
     index_reader: Arc<IndexReader>,
     vector_db_service: Arc<VectorDbService>,
-    pub files_collection:Arc<TantivyFilesCollection>
+    pub files_collection: Arc<TantivyFilesCollection>,
 }
 
 impl SearchIndexService {
@@ -30,15 +31,18 @@ impl SearchIndexService {
         let index_writer = Arc::new(Mutex::new(index_writer));
         let index_reader = Arc::new(index_reader);
 
-        let files_collection =  Arc::new(TantivyFilesCollection::new(
-            Arc::clone(&index_writer), schema.clone(), Arc::clone(&index_reader)));
+        let files_collection = Arc::new(TantivyFilesCollection::new(
+            Arc::clone(&index_writer),
+            schema.clone(),
+            Arc::clone(&index_reader),
+        ));
 
         Self {
             schema,
             index_writer,
             index_reader,
             vector_db_service,
-            files_collection
+            files_collection,
         }
     }
 

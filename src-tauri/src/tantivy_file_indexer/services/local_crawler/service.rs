@@ -4,6 +4,7 @@ use tokio::sync::Mutex;
 use tokio::task::JoinSet;
 
 use crate::tantivy_file_indexer::services::local_db::service::LocalDbService;
+use crate::tantivy_file_indexer::services::search_index::files_collection::TantivyFilesCollection;
 use crate::tantivy_file_indexer::services::search_index::service::SearchIndexService;
 use crate::tantivy_file_indexer::shared::async_retry;
 use std::path::PathBuf;
@@ -41,8 +42,8 @@ impl FileCrawlerService {
         schema: Schema,
         worker_batch_size: usize,
     ) -> JoinSet<()> {
-        let files_collection = Arc::clone(&self.search_index.files_collection);
-        indexing_crawler::worker_manager::spawn_worker_pool(
+        let files_collection:Arc<TantivyFilesCollection> = Arc::clone(&self.search_index.files_collection);
+        indexing_crawler::worker_manager::spawn_worker_pool::<CrawlerQueue,TantivyFilesCollection>(
             self.queue.clone(),
             files_collection.into(),
             (index_writer, schema),
