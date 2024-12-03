@@ -7,6 +7,7 @@ use crate::tantivy_file_indexer::services::local_db::service::LocalDbService;
 use crate::tantivy_file_indexer::services::search_index::files_collection::TantivyFilesCollection;
 use crate::tantivy_file_indexer::services::search_index::service::SearchIndexService;
 use crate::tantivy_file_indexer::shared::async_retry;
+use crate::tantivy_file_indexer::shared::indexing_crawler::traits::files_collection_api::FilesCollectionApi;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
@@ -18,34 +19,77 @@ pub struct FileCrawlerService {
     max_concurrent_tasks: usize,
     queue: Arc<CrawlerQueue>,
     local_db: Arc<LocalDbService>,
-    search_index: Arc<SearchIndexService>
+    search_index: Arc<SearchIndexService>,
 }
 
 impl FileCrawlerService {
     pub async fn new_async(
         max_concurrent_tasks: usize,
         local_db_service: Arc<LocalDbService>,
-        search_index: Arc<SearchIndexService>
+        search_index: Arc<SearchIndexService>,
     ) -> Self {
         let queue = Arc::new(CrawlerQueue::new(Arc::clone(&local_db_service)));
         Self {
             max_concurrent_tasks,
             queue,
             local_db: Arc::clone(&local_db_service),
-            search_index: Arc::clone(&search_index)
+            search_index: Arc::clone(&search_index),
         }
     }
 
-    pub async fn spawn_indexing_crawlers(
+    /// Spawn crawlers that treat Tantivy as simply the search index and SQLite as the main database
+    ///
+    /// ### NOTE:
+    /// Faster, but uses much more disk space
+    pub async fn spawn_indexing_crawlers_sqlite(
         &self,
         index_writer: Arc<Mutex<IndexWriter>>,
         schema: Schema,
         worker_batch_size: usize,
     ) -> JoinSet<()> {
-        let files_collection:Arc<TantivyFilesCollection> = Arc::clone(&self.search_index.files_collection);
-        indexing_crawler::worker_manager::spawn_worker_pool::<CrawlerQueue,TantivyFilesCollection>(
-            self.queue.clone(),
+        let files_collection = self.local_db.files_table().clone();
+        self.spawn_indexing_crawlers_internal(
+            index_writer,
+            schema,
+            worker_batch_size,
             files_collection.into(),
+        )
+        .await
+    }
+
+    /// Spawn crawlers that treat the Tantivy index as a database for the files and an index simultaneously
+    ///
+    /// ### NOTE:
+    /// May be slower than using SQLite
+    pub async fn spawn_indexing_crawlers_tantivy(
+        &self,
+        index_writer: Arc<Mutex<IndexWriter>>,
+        schema: Schema,
+        worker_batch_size: usize,
+    ) -> JoinSet<()> {
+        let files_collection = Arc::clone(&self.search_index.files_collection);
+        self.spawn_indexing_crawlers_internal::<TantivyFilesCollection>(
+            index_writer,
+            schema,
+            worker_batch_size,
+            files_collection.into(),
+        )
+        .await
+    }
+
+    async fn spawn_indexing_crawlers_internal<F>(
+        &self,
+        index_writer: Arc<Mutex<IndexWriter>>,
+        schema: Schema,
+        worker_batch_size: usize,
+        files_collection: Arc<F>,
+    ) -> JoinSet<()>
+    where
+        F: FilesCollectionApi,
+    {
+        indexing_crawler::worker_manager::spawn_worker_pool(
+            self.queue.clone(),
+            files_collection,
             (index_writer, schema),
             self.queue.get_notifier(),
             worker_batch_size,

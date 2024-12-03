@@ -35,6 +35,7 @@ pub fn run() {
             get_drives,
             search_files_inline,
             search_index_query,
+            search_index_query_streaming,
             add_dirs_to_crawler_queue,
             //get_num_stored_files,
             save_json_local,
@@ -49,7 +50,7 @@ pub fn run() {
 }
 
 async fn initialize_app(handle: AppHandle) {
-    let index_files = true;
+    let index_files = false;
 
     let service_container = AppServiceContainer::new_async(&handle).await;
     let crawler_service = Arc::clone(&service_container.crawler_service);
@@ -69,7 +70,7 @@ async fn initialize_app(handle: AppHandle) {
         let index_writer = Arc::clone(&search_service.index_writer);
         let schema = search_service.schema.clone();
         let handles = crawler_service
-            .spawn_indexing_crawlers(index_writer, schema, 128)
+            .spawn_indexing_crawlers_sqlite(index_writer, schema, 128)
             .await;
 
         crawler_service

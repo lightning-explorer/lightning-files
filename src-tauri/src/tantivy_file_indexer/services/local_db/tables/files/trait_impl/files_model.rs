@@ -10,8 +10,6 @@ impl From<InternalSystemFileModel> for file::Model {
         Self {
             path: val.file_path,
             parent_path,
-            date_created: val.date_created.to_string(),
-            date_modified: val.date_modified.to_string()
         }
     }
 }

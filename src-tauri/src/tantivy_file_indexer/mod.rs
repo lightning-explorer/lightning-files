@@ -1,10 +1,9 @@
 pub mod service_container;
-mod schemas {
-    pub mod file_schema;
-}
 mod dtos {
     pub mod add_to_crawler_queue;
     pub mod vector_search_result;
+    pub mod search_params_dto;
+    pub mod streaming_search_dto;
 }
 mod converters {
     pub mod date_converter;
@@ -18,7 +17,6 @@ pub mod services {
     pub mod vector_db;
 }
 mod models {
-    pub mod search_params_model;
     pub mod tantivy_file_model;
     pub mod vector_search_params_model;
     pub mod interal_system_file;

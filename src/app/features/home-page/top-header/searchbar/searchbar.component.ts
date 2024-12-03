@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, NgZone, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs';
 import { SearchParamsDTO } from '../../../../core/dtos/output/search-params-dto';
@@ -13,6 +13,8 @@ import { VectorSearchParamsModel } from '../../../../core/services/search/vector
 import { DirectoryNavigatorService } from '../../../../core/services/files/directory-navigator/directory-navigator.service';
 import { vectorResultToModel } from '../../../../core/models/converters/VectorResultToModel';
 import { InlineSearchService } from '../../../../core/services/search/text/inline-search.service';
+import { LocalStreamingSearchService } from '../../../../core/services/search/text/local-streaming-search.service';
+import { StreamingSearchParamsDTO } from '../../../../core/dtos/output/streaming-search-params-dtos';
 
 @Component({
   selector: 'app-searchbar',
@@ -27,36 +29,42 @@ export class SearchbarComponent implements OnInit {
   inputControl = new FormControl();
 
   constructor(
-    private searchEngineService: LocalSearchEngineService,
-    private vectorSearchService: VectorSearchEngineService,
+    private searchEngineService: LocalStreamingSearchService,
     private directoryNavService: DirectoryNavigatorService,
-    private inlineSearchService: InlineSearchService
+    private inlineSearchService: InlineSearchService,
+    private zone: NgZone // Allows forced change detection
   ) { }
 
   ngOnInit(): void {
 
     this.inputControl.valueChanges.pipe(
       debounceTime(100)
-    ).subscribe(value =>
-      this.search(value)
-    )
-  }
+    ).subscribe(async value =>
+      await this.search(value)
+    );
 
-  async vectorSearch(value: string) {
-    let params: VectorSearchParamsModel = { Query: value, Collection: 'files' };
-    console.log("vector query");
-    let results = await this.vectorSearchService.query(params);
-    console.log(results);
-    console.log("vector query finished");
-    this.searchResults = results.map(x => vectorResultToModel(x));
+    this.searchEngineService.files$.subscribe(newFiles => {
+      this.zone.run(() => { // Tell the component to update itself
+        this.searchResults = newFiles;
+      })
+    });
   }
 
   async search(value: string) {
+
     let searchParams: SearchParamsDTO = {
-      FilePath: value
+      FilePath: value,
+      NumResults: 500
     }
-    let results = await this.searchEngineService.query(searchParams);
-    this.searchResults = results;
+
+    let streamParams: StreamingSearchParamsDTO = {
+      StreamIdentifier: "search",
+      StartingSize: 10,
+      NumEvents: 10,
+      Params: searchParams,
+    }
+    this.searchEngineService.query(streamParams);
+
   }
 
   onResultClick(model: FileModel) {
@@ -67,10 +75,10 @@ export class SearchbarComponent implements OnInit {
   }
 
   onBlur() {
+    // This doesn't cause any rendering issues
     setTimeout(() => {
       this.searchResults.length = 0;
     }, 100)
-
   }
 
 }

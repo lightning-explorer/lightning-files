@@ -24,7 +24,10 @@ impl FilesCollectionApi for FilesTable {
         &self,
         models: &[InternalSystemFileModel],
     ) -> impl std::future::Future<Output = Result<(), Self::Error>> + Send {
-        let models: Vec<file::Model> = models.into_iter().map(|model| model.clone().into()).collect();
+        let models: Vec<file::Model> = models
+            .into_iter()
+            .map(|model| model.clone().into())
+            .collect();
         async move {
             self.upsert_many(&models)
                 .await
@@ -41,5 +44,10 @@ impl FilesCollectionApi for FilesTable {
                 .await
                 .map_err(|err| err.to_string())
         }
+    }
+
+    /// All of the other operations automatically commit themselves
+    fn commit_all(&self) -> impl std::future::Future<Output = Result<(), Self::Error>> + Send {
+        async move { Ok(()) }
     }
 }

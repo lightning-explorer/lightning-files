@@ -10,7 +10,7 @@ export class LocalSearchEngineService {
     constructor() { }
 
     async query(params: SearchParamsDTO): Promise<FileModel[]> {
-        return invoke<FileModel[]>("search_index_query", {
+        return invoke<FileModel[]>("search_index_query_async", {
             params
         }).then(result =>
             result

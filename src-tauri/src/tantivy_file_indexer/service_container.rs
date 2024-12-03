@@ -22,13 +22,11 @@ impl AppServiceContainer {
         let app_name = "DesktopSearch";
 
         // Ensure that the app service is initialized before the rest to ensure that the AppData save path is created
-        let app_save_service =
-            Self::initialize_app_save_service(AppSavePath::Other(PathBuf::from("H:\\")), app_name);
+        let app_save_service = Self::initialize_app_save_service(AppSavePath::AppData, app_name);
         let app_path = app_save_service.save_dir.clone();
 
         let vector_db_service = Self::initialize_vector_service();
-        let search_service =
-            Self::initialize_search_service(50_000_000, app_path, &vector_db_service);
+        let search_service = Self::initialize_search_service(50_000_000, app_path, handle);
 
         // TODO: Remove this:
         vector_db_service.delete_all_collections().await;
@@ -62,17 +60,8 @@ impl AppServiceContainer {
         }
     }
 
-    fn initialize_search_service(
-        buffer_size: usize,
-        app_path: PathBuf,
-        vector_db_service: &Arc<VectorDbService>,
-    ) -> Arc<SearchIndexService> {
-        let vector_db_clone = Arc::clone(vector_db_service);
-        Arc::new(SearchIndexService::new(
-            buffer_size,
-            app_path,
-            vector_db_clone,
-        ))
+    fn initialize_search_service(buffer_size: usize, app_path: PathBuf, app_handle:&AppHandle) -> Arc<SearchIndexService> {
+        Arc::new(SearchIndexService::new(buffer_size, app_path, app_handle))
     }
 
     fn initialize_app_save_service(save_dir: AppSavePath, app_name: &str) -> Arc<AppSaveService> {
