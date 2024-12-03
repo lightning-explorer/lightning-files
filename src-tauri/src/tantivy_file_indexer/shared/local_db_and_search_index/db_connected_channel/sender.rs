@@ -3,11 +3,11 @@ use std::{sync::Arc, time::Instant};
 use tokio::sync::mpsc::error::SendError;
 
 use crate::tantivy_file_indexer::{
-    services::{
-        local_db::tables::indexer_queue::api::IndexerQueueTable,
-        search_index::models::index_worker::file_input::FileInputModel,
+    services::local_db::tables::indexer_queue::api::IndexerQueueTable,
+    shared::{
+        indexing_crawler::models::system_directory_model::InternalSystemDirectoryModel,
+        local_db_and_search_index::traits::file_sender_receiver::FileIndexerSender,
     },
-    shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerSender,
 };
 
 #[derive(Clone)]
@@ -24,9 +24,9 @@ impl DbConnectedSender {
 impl FileIndexerSender for DbConnectedSender {
     fn send(
         &self,
-        value: FileInputModel,
-    ) -> impl std::future::Future<Output = Result<(), SendError<FileInputModel>>> + Send {
-        let value_clone: FileInputModel = value.clone();
+        value: InternalSystemDirectoryModel,
+    ) -> impl std::future::Future<Output = Result<(), SendError<InternalSystemDirectoryModel>>> + Send {
+        let value_clone: InternalSystemDirectoryModel = value.clone();
         let indexer_table_clone = Arc::new(&self.indexer_table);
         let time = Instant::now();
         Box::pin(async move {

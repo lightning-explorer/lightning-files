@@ -1,3 +1,5 @@
+use crate::FilesDisplayState;
+
 use super::services::{
     app_save::service::{AppSavePath, AppSaveService},
     local_crawler::{analyzer::service::FileCrawlerAnalyzerService, service::FileCrawlerService},
@@ -8,9 +10,6 @@ use super::services::{
 use std::{path::PathBuf, sync::Arc};
 
 use tauri::{AppHandle, Manager};
-
-use crate::FilesDisplayState;
-
 pub struct AppServiceContainer {
     pub search_service: Arc<SearchIndexService>,
     pub local_db_service: Arc<LocalDbService>,

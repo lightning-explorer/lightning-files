@@ -6,16 +6,13 @@ use crate::{
     get_directory_path,
     tantivy_file_indexer::{
         models::interal_system_file::InternalSystemFileModel,
-        services::{
-            search_index::models::index_worker::file_input::FileInputModel,
-            vector_db::models::embeddable_file_model::EmbeddableFileModel,
-        },
+        services::vector_db::models::embeddable_file_model::EmbeddableFileModel, shared::indexing_crawler::models::system_directory_model::InternalSystemDirectoryModel,
     },
 };
 
 pub struct VectorDbIndexer {
     vector: Arc<VevtorService>,
-    indexer: Indexer<EmbeddableFileModel>, 
+    indexer: Indexer<EmbeddableFileModel>,
 }
 
 impl VectorDbIndexer {
@@ -29,7 +26,7 @@ impl VectorDbIndexer {
     */
     pub async fn index_files(
         &self,
-        model: &FileInputModel,
+        model: &InternalSystemDirectoryModel,
         stale_paths: &HashSet<String>,
     ) -> tokio::task::JoinHandle<()> {
         let vector_clone = Arc::clone(&self.vector);
@@ -64,12 +61,15 @@ impl VectorDbIndexer {
                         .collect(),
                 )
                 .await;
-        
+
             indexer_clone.index(paths).await;
         })
     }
 
-    fn file_dtos_to_models(&self, dtos: &Vec<&InternalSystemFileModel>) -> Vec<EmbeddableFileModel> {
+    fn file_dtos_to_models(
+        &self,
+        dtos: &Vec<&InternalSystemFileModel>,
+    ) -> Vec<EmbeddableFileModel> {
         dtos.iter()
             .map(|dto| EmbeddableFileModel {
                 name: dto.name.clone(),

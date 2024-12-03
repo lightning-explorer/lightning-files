@@ -2,7 +2,7 @@ use directory_nav_service::tauri_exports::*;
 use std::{path::Path, sync::Arc};
 use tantivy_file_indexer::{
     service_container::AppServiceContainer, services::app_save::tauri_exports::*,
-    services::local_crawler::tauri_exports::*, services::local_db::tables::files::tauri_exports::*,
+    services::local_crawler::tauri_exports::*, /*services::local_db::tables::files::tauri_exports::*,*/
     services::local_db::tauri_exports::*, services::search_index::tauri_exports::*,
     services::vector_db::tauri_exports::*,
 };
@@ -36,7 +36,7 @@ pub fn run() {
             search_files_inline,
             search_index_query,
             add_dirs_to_crawler_queue,
-            get_num_stored_files,
+            //get_num_stored_files,
             save_json_local,
             load_json_local,
             vector_db_query,
