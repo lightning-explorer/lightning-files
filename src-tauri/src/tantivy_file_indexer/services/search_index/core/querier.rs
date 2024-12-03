@@ -30,10 +30,17 @@ pub fn advanced_query(
         queries.push((Occur::Should, Box::new(query)));
     }
 
-    if let Some(date_range) = &search_params.date_range {
+    if let Some(date_range) = &search_params.date_modified_range {
         let start_date = DateTime::from_utc(date_range.start);
         let end_date = DateTime::from_utc(date_range.end);
         let query = RangeQuery::new_date("date_modified".to_string(), start_date..end_date);
+        queries.push((Occur::Must, Box::new(query)));
+    }
+
+    if let Some(date_range) = &search_params.date_created_range {
+        let start_date = DateTime::from_utc(date_range.start);
+        let end_date = DateTime::from_utc(date_range.end);
+        let query = RangeQuery::new_date("date_created".to_string(), start_date..end_date);
         queries.push((Occur::Must, Box::new(query)));
     }
 

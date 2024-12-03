@@ -8,7 +8,6 @@ use super::services::{
 use std::{path::PathBuf, sync::Arc};
 
 use tauri::{AppHandle, Manager};
-use tokio::sync::RwLock;
 
 use crate::FilesDisplayState;
 

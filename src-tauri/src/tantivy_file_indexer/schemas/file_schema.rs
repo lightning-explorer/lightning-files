@@ -6,7 +6,11 @@ pub fn create_schema() -> Schema {
     //schema_builder.add_text_field("file_id", TEXT | STORED); // UID
 
     schema_builder.add_text_field("name", TEXT | STORED);
+
     schema_builder.add_date_field("date_modified", INDEXED | STORED);
+
+    schema_builder.add_date_field("date_created", INDEXED | STORED);
+
     schema_builder.add_text_field("metadata", TEXT | STORED);
 
     // PRIMARY KEY

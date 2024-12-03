@@ -5,7 +5,7 @@ use vevtor::{Indexable, Indexer, VevtorService};
 use crate::{
     get_directory_path,
     tantivy_file_indexer::{
-        dtos::file_dto_input::FileDTOInput,
+        models::interal_system_file::InternalSystemFileModel,
         services::{
             search_index::models::index_worker::file_input::FileInputModel,
             vector_db::models::embeddable_file_model::EmbeddableFileModel,
@@ -69,7 +69,7 @@ impl VectorDbIndexer {
         })
     }
 
-    fn file_dtos_to_models(&self, dtos: &Vec<&FileDTOInput>) -> Vec<EmbeddableFileModel> {
+    fn file_dtos_to_models(&self, dtos: &Vec<&InternalSystemFileModel>) -> Vec<EmbeddableFileModel> {
         dtos.iter()
             .map(|dto| EmbeddableFileModel {
                 name: dto.name.clone(),

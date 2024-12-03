@@ -18,7 +18,7 @@ impl IndexerQueueTable {
 
         Self { db }
     }
-
+ 
     pub async fn add<T>(
         &self,
         model: T,
