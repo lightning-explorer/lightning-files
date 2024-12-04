@@ -40,7 +40,7 @@
 }
 
 .content-button.active:hover{
-    background-color: var(--background-transparent);
+    background-color: var(--transparent-select-color);
 }
 
 .dropdown-button{
@@ -48,4 +48,8 @@
     border: 0px;
     border-radius: 20px;
     transition: .1s ease all;
+}
+
+.dropdown-button:hover{
+    background-color: var(--transparent-select-color);
 }

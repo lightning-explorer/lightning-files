@@ -10,6 +10,10 @@ export class DirectoryNavigatorService {
     private currentDirSubject = new BehaviorSubject<string>('C:\\');
     public currentDir$ = this.currentDirSubject.asObservable();
 
+    // True if the service is trying to load in the files asynchronously
+    private isLoadingSubject = new BehaviorSubject<boolean>(false);
+    public isLoading$ = this.isLoadingSubject.asObservable();
+
     private currentFilesSubject = new BehaviorSubject<FileModel[]>([]);
     public currentFiles$ = this.currentFilesSubject.asObservable();
 
@@ -17,7 +21,9 @@ export class DirectoryNavigatorService {
 
     async setCurrentDir(dir: string, params?: GetFilesParamsModel) {
         this.currentDirSubject.next(await this.formatPathIntoDir(dir, this.currentDirSubject.getValue()));
+        this.isLoadingSubject.next(true);
         await this.setDriveFiles(params);
+        this.isLoadingSubject.next(false);
     }
 
     async setDriveFiles(params?: GetFilesParamsModel) {

@@ -12,11 +12,12 @@ import { DirectoryNavigatorService } from '../../../core/services/files/director
 import { FileContextMenuService } from './services/context-menu.service';
 import { ContextMenuComponent } from "../../../shared/components/popups/context-menu/context-menu.component";
 import { InlineSearchBarComponent } from "./components/inline-search-bar/inline-search-bar.component";
+import { FolderLoaderComponent } from "../../../shared/components/loaders/folder-loader/folder-loader.component";
 
 @Component({
   selector: 'app-files-display',
   standalone: true,
-  imports: [CommonModule, FileResultComponent, ScrollingModule, MoveItemsPopupComponent, ContextMenuComponent, InlineSearchBarComponent],
+  imports: [CommonModule, FileResultComponent, ScrollingModule, MoveItemsPopupComponent, ContextMenuComponent, InlineSearchBarComponent, FolderLoaderComponent],
   providers: [SelectService, DragDropService, FileContextMenuService],
   templateUrl: './files-display.component.html',
   styleUrl: './files-display.component.scss',
@@ -37,6 +38,7 @@ export class FilesDisplayComponent implements OnInit, OnChanges {
   @ViewChild('moveItemsPopup') moveItemsPopup!: MoveItemsPopupComponent;
   @ViewChild('contextMenu') contextMenu!: ContextMenuComponent;
   @Input() files: FileModel[] = [];
+  @Input() isLoading:boolean = false;
 
   currentDirectory: string = "";
   animationState = 'visible';
@@ -103,7 +105,7 @@ export class FilesDisplayComponent implements OnInit, OnChanges {
     this.contextMenuService.openMenu(this.contextMenu, event, file);
   }
 
-  onDragStart(event: DragEvent, index: number, item: FileModel) {
+  onFileDragStart(event: DragEvent, index: number, item: FileModel) {
     this.selectService.populateSelected(this.files);
     const selectedSet = new Set(this.selectedItems);
     if (!selectedSet.has(item)) {
@@ -114,11 +116,11 @@ export class FilesDisplayComponent implements OnInit, OnChanges {
     this.dragService.onDragStart(event, selectedSet, this.dragPreview);
   }
 
-  onDragOver(event: DragEvent) {
+  onFileDragOver(event: DragEvent) {
     this.dragService.onDragOver(event);
   }
 
-  onDrop(event: DragEvent, targetItem: FileModel) {
+  onFileDrop(event: DragEvent, targetItem: FileModel) {
     if (!this.dragService.onDrop(event, targetItem, 0)) {
       this.moveItemsPopup.open(this.currentDirectory, this.dragService.draggingItemsTo, this.selectService.selectedIndices.size, () => {
         this.dragService.moveItems(targetItem);

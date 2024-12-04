@@ -1,16 +1,16 @@
 import { Component } from '@angular/core';
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { TauriLifecycleService } from '../../core/services/tauri/lifecycle.service';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
-/** This is the mac traffic light lookin window chrome */
+/** chrome with square buttons like windows */
 @Component({
-  selector: 'app-window-chrome',
+  selector: 'app-windows-window-chrome',
   standalone: true,
   imports: [],
-  templateUrl: './window-chrome.component.html',
-  styleUrl: './window-chrome.component.scss'
+  templateUrl: './windows-window-chrome.component.html',
+  styleUrl: './windows-window-chrome.component.css'
 })
-export class WindowChromeComponent {
+export class WindowsWindowChromeComponent {
 
   constructor(private lifecycleService: TauriLifecycleService) { }
 

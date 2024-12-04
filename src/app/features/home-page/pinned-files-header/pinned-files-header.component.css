@@ -16,7 +16,6 @@
 }
 
 .file {
-
     display: flex;
     font-family: "Fredoka";
     font-size: 1em;
@@ -35,6 +34,7 @@
 label {
     text-wrap: nowrap;
     pointer-events: none;
+    color: var(--contrast-color);
 }
 
 button {

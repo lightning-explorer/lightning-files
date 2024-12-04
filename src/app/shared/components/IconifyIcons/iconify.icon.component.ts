@@ -1,7 +1,5 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { IconService } from './icon.service';
-import { SafeHtmlPipe } from './safehtml.pipe';
-import { CssVarWatcherService } from '../../../core/services/customization/css-var-watcher.service';
 
 /**
  * ### Usage example:
@@ -28,13 +26,10 @@ export class IconifyIconComponent implements OnInit, OnChanges {
     @Input() color: string | undefined;
     svgIcon: string = "";
 
-    constructor(private iconService: IconService, private cssWatcherService: CssVarWatcherService) { }
+    constructor(private iconService: IconService) { }
 
     ngOnInit(): void {
         this.updateIcon();
-        this.cssWatcherService.cssVariables$.subscribe(() =>
-            this.updateIcon()
-        );
     }
 
     ngOnChanges(changes: SimpleChanges): void {

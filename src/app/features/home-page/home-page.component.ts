@@ -28,6 +28,7 @@ export class HomePageComponent implements OnInit {
 
   inputControl = new FormControl();
   driveFiles: FileModel[] = [];
+  loadingFiles = false;
 
   constructor(
     private directoryService: DirectoryNavigatorService,
@@ -37,9 +38,14 @@ export class HomePageComponent implements OnInit {
   ngOnInit(): void {
     this.directoryService.setDriveFiles();
 
-    this.directoryService.currentFiles$.subscribe(files =>
-      this.driveFiles = files
+    this.directoryService.isLoading$.subscribe(loading =>
+      this.loadingFiles = loading
     );
+
+    this.directoryService.currentFiles$.subscribe(files => {
+      // console.log(files.length);
+      return this.driveFiles = files;
+    });
   }
 
   @HostListener('window:keydown', ['$event'])

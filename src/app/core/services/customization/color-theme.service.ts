@@ -13,10 +13,10 @@ export class ColorThemeService {
 
   setTheme(themeName: string): void {
     if (this.themeClass) {
-      this.renderer.removeClass(document.body, this.themeClass);
+      this.renderer.removeClass(document.documentElement, this.themeClass);
     }
     this.themeClass = themeName;
-    this.renderer.addClass(document.body, themeName);
+    this.renderer.addClass(document.documentElement, themeName);
   }
 
   getCurrentTheme(): string | null {
