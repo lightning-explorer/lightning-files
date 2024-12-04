@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ButtonModel } from './models/ButtonModel';
-import { RadioButtonComponent } from "../radio-button/radio-button.component";
 import { RadioButtonModel } from './models/RadioButtonModel';
+import { RadioButtonComponent } from '../../buttons/radio-button/radio-button.component';
 
 @Component({
   selector: 'app-modal-popup',

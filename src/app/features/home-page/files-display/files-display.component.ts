@@ -10,7 +10,7 @@ import { DragDropService } from './services/dragdrop.service';
 import { MoveItemsPopupComponent } from "./components/move-items-popup/move-items-popup.component";
 import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator/directory-navigator.service';
 import { FileContextMenuService } from './services/context-menu.service';
-import { ContextMenuComponent } from "../../../shared/components/context-menu/context-menu.component";
+import { ContextMenuComponent } from "../../../shared/components/popups/context-menu/context-menu.component";
 import { InlineSearchBarComponent } from "./components/inline-search-bar/inline-search-bar.component";
 
 @Component({

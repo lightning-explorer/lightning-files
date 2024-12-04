@@ -1,15 +1,20 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { IconService } from './icon.service';
 import { SafeHtmlPipe } from './safehtml.pipe';
+import { CssVarWatcherService } from '../../../core/services/customization/css-var-watcher.service';
 
 /**
- * Usage example:
+ * ### Usage example:
  * 
- * `<iconify-icon icon="hardDrive" size="1.2em" color="#fff" />`
+ * ```<iconify-icon icon="hardDrive" size="1.2em" color="#fff" />```
  * 
- * You are also able to pass in a CSS variable for the color:
+ * ### You are also able to pass in a CSS variable for the color:
  * 
- * `<iconify-icon icon="hardDrive" size="1.2em" color="--background-color" />`
+ * ```<iconify-icon icon="hardDrive" size="1.2em" color="--background-color" />```
+ * 
+ * ### To use a linear gradient, you can pass in two colors:
+ * 
+ * ```<iconify-icon icon="hardDrive" size="1.2em" color="--first-color --second-color" />```
  */
 @Component({
     selector: 'iconify-icon',
@@ -23,10 +28,13 @@ export class IconifyIconComponent implements OnInit, OnChanges {
     @Input() color: string | undefined;
     svgIcon: string = "";
 
-    constructor(private iconService: IconService) { }
+    constructor(private iconService: IconService, private cssWatcherService: CssVarWatcherService) { }
 
     ngOnInit(): void {
         this.updateIcon();
+        this.cssWatcherService.cssVariables$.subscribe(() =>
+            this.updateIcon()
+        );
     }
 
     ngOnChanges(changes: SimpleChanges): void {

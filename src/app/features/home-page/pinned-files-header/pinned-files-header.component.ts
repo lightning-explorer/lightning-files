@@ -9,7 +9,7 @@ import { getIconFromPath } from '../../../core/other/util/get-icon-from-path';
 import { IconifyIconModule } from '../../../shared/components/IconifyIcons/icon.module';
 import { truncateText } from '../../../core/other/util/text-truncator';
 import { SelectService } from '../files-display/services/select.service';
-import { ContextMenuComponent } from "../../../shared/components/context-menu/context-menu.component";
+import { ContextMenuComponent } from "../../../shared/components/popups/context-menu/context-menu.component";
 import { FileContextMenuService } from '../files-display/services/context-menu.service';
 
 @Component({
