@@ -43,7 +43,6 @@ export class CssVarWatcherService {
                 cssVariables[name] = root.getPropertyValue(name).trim();
             }
         }
-        console.log("cjange");
         this.cssVariableSubject.next(cssVariables);
     }
 
