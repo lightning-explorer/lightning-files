@@ -5,6 +5,7 @@ import { DirectoryNavigatorService } from '../../../../core/services/files/direc
 import { debounceTime, Subscription } from 'rxjs';
 import { truncateText } from '../../../../core/util/text-truncator';
 import { simplifyPath } from './util/overflow-checker';
+import { BreadcrumbModel } from './models/breadcrumb-model';
 
 @Component({
   selector: 'app-current-directory-bar',
@@ -19,7 +20,7 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnInit, OnDe
   @ViewChild('textInput') textInput!: ElementRef;
 
   directory = "";
-  visibleDirectories: string[] = [];
+  visibleDirectories: BreadcrumbModel[] = [];
   showEllipsis: boolean = false;
 
   hasChanged = false;
@@ -61,6 +62,10 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnInit, OnDe
     this.hasChanged = false;
   }
 
+  async onBreadcrumbClicked(model: BreadcrumbModel) {
+    await this.directoryService.setCurrentDir(model.fullPath);
+  }
+
   selectText() {
     if (this.textInput && this.textInput.nativeElement) {
       this.textInput.nativeElement.select();
@@ -68,12 +73,19 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnInit, OnDe
   }
 
   private updateVisibleDirectories() {
-    this.visibleDirectories = this.directory.split('\\');
+    const parts = this.directory.split('\\');
+    let dirBuilder: string = "";
+    this.visibleDirectories.length = 0;
+    parts.forEach(x => {
+      dirBuilder += `${x}\\`;
+      this.visibleDirectories.push({ fullPath: dirBuilder, section: x });
+    });
+
     this.cdr.detectChanges();
 
     const containerWidth = this.textInput.nativeElement.offsetWidth;
     const breadcrumbElements = Array.from(this.textInput.nativeElement.querySelectorAll('.breadcrumb')) as HTMLElement[];
-    const padding = 1.2; // Arbitrary padding. But it seems to work
+    const padding = 1.2; // Arbitrary padding
     const elementWidths = breadcrumbElements.map(element => element.offsetWidth * padding);
     const totalWidth = elementWidths.reduce((sum, width) => sum + width, 0);
 

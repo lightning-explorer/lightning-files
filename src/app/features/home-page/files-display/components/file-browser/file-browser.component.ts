@@ -24,7 +24,7 @@ import { debounceTime, Subject, Subscription, tap } from 'rxjs';
   imports: [CommonModule, FileResultComponent, ScrollingModule, MoveItemsPopupComponent, ContextMenuComponent, InlineSearchBarComponent, FolderLoaderComponent],
   providers: [SelectService, DragDropService, FileContextMenuService],
   templateUrl: './file-browser.component.html',
-  styleUrl: './file-browser.component.scss',
+  styleUrl: './file-browser.component.css',
   animations: [
     trigger('fadeAnimation', [
       state('hidden', style({ opacity: 0, display: 'none' })),

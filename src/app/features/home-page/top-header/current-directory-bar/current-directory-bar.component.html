@@ -5,7 +5,7 @@
         (keydown.enter)="onEnterPressed()" /> -->
 
     <div *ngFor="let block of visibleDirectories" class="block">
-        <div class="breadcrumb">{{block}}</div>
+        <div class="breadcrumb" (click)="onBreadcrumbClicked(block)">{{block.section}}</div>
     </div>
 
 </div>

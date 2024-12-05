@@ -22,7 +22,7 @@ export class FilesDisplayComponent implements OnDestroy {
   inputControl = new FormControl();
   driveFiles: FileModel[] = [];
 
-  loadingFiles = false;
+  loadingFiles = true;
 
   // The file that the user last selected on (clicked)
   previewFile: FileModel | undefined;
@@ -35,6 +35,7 @@ export class FilesDisplayComponent implements OnDestroy {
   ngOnInit(): void {
     this.directoryService.setDriveFiles();
 
+    // TODO: remove. This is to test loading
     this.subscription.add(this.directoryService.isLoading$.subscribe(loading =>
       this.loadingFiles = loading
     ));
