@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon'
 import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator/directory-navigator.service';
 import { IconifyIconModule } from '../../../shared/components/IconifyIcons/icon.module';
-import { getIconFromPath } from '../../../core/other/util/get-icon-from-path';
+import { getIconFromPath } from '../../../core/util/get-icon-from-path';
 import { CssVarToHexService } from '../../../core/services/misc/css-var-to-hex.service';
 import { FileModel } from '../../../core/models/file-model';
 import { HighlightableLabelComponent } from "../../../shared/components/highlightable-label/highlightable-label.component";

@@ -1,5 +1,5 @@
 import { ElementRef, Injectable } from '@angular/core';
-import { FileModel } from '../../../../core/models/file-model';
+import { FileModel } from '../../../../../../core/models/file-model';
 
 @Injectable()
 export class DragDropService {

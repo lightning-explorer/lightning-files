@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { FileCrawlerService } from '../../core/services/files/file_crawler.service';
 import { IndexedDirModel } from '../../core/models/indexed-dir-model';
 import { CommonModule } from '@angular/common';
-import { interval, Subject, switchMap, takeUntil } from 'rxjs';
+import { interval, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-settings-page',
@@ -12,7 +12,8 @@ import { interval, Subject, switchMap, takeUntil } from 'rxjs';
   templateUrl: './settings-page.component.html',
   styleUrl: './settings-page.component.css'
 })
-export class SettingsPageComponent implements OnInit {
+export class SettingsPageComponent implements OnInit, OnDestroy {
+
   crawlerQueue: IndexedDirModel[] = [];
   crawlerPriorityCounts: Array<{ priority: number; count: number }> = [];
   crawlerAnalyzerData: Array<{ label: string, data: string }> = [];

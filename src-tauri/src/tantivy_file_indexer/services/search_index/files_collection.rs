@@ -87,7 +87,11 @@ impl FilesCollectionApi for TantivyFilesCollection {
             }
 
             // TODO: remove debug print:
-            println!("Get stored paths for tantivy returned {} entries for given path: {}", filtered_paths.len(), dir_path_str);
+            println!(
+                "Get stored paths for tantivy returned {} entries for given path: {}",
+                filtered_paths.len(),
+                dir_path_str
+            );
 
             Ok(filtered_paths)
         }

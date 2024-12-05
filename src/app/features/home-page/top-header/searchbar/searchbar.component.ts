@@ -1,6 +1,6 @@
-import { Component, Input, NgZone, OnInit } from '@angular/core';
+import { Component, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime } from 'rxjs';
+import { debounceTime, Subscription } from 'rxjs';
 import { SearchParamsDTO } from '../../../../core/dtos/output/search-params-dto';
 import { CommonModule } from '@angular/common';
 import { FileResultComponent } from "../../file-result/file-result.component";
@@ -23,7 +23,8 @@ import { StreamingSearchParamsDTO } from '../../../../core/dtos/output/streaming
   templateUrl: './searchbar.component.html',
   styleUrl: './searchbar.component.scss'
 })
-export class SearchbarComponent implements OnInit {
+export class SearchbarComponent implements OnInit, OnDestroy {
+  subscription = new Subscription();
 
   searchResults: FileModel[] = [];
   inputControl = new FormControl();
@@ -37,17 +38,21 @@ export class SearchbarComponent implements OnInit {
 
   ngOnInit(): void {
 
-    this.inputControl.valueChanges.pipe(
+    this.subscription.add(this.inputControl.valueChanges.pipe(
       debounceTime(100)
     ).subscribe(async value =>
       await this.search(value)
-    );
+    ));
 
-    this.searchEngineService.files$.subscribe(newFiles => {
+    this.subscription.add(this.searchEngineService.files$.subscribe(newFiles => {
       this.zone.run(() => { // Tell the component to update itself
         this.searchResults = newFiles;
       })
-    });
+    }));
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   async search(value: string) {

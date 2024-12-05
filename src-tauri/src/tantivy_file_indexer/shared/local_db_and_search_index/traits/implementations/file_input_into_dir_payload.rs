@@ -1,4 +1,7 @@
-use crate::tantivy_file_indexer::{services::local_db::tables::indexer_queue::entities::directory_payload, shared::indexing_crawler::models::system_directory_model::InternalSystemDirectoryModel};
+use crate::tantivy_file_indexer::{
+    services::local_db::tables::indexer_queue::entities::directory_payload,
+    shared::indexing_crawler::models::system_directory_model::InternalSystemDirectoryModel,
+};
 
 impl From<InternalSystemDirectoryModel> for directory_payload::Model {
     fn from(val: InternalSystemDirectoryModel) -> Self {

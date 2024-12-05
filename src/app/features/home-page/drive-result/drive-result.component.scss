@@ -46,7 +46,7 @@ button:hover::before {
 button:hover {
     color: #212121;
     scale: 1.1;
-    box-shadow: 0 0px 20px rgba(193, 163, 98, 0.4);
+    box-shadow: 0 0px 8px var(--fourth-color);
 }
 
 button:active {

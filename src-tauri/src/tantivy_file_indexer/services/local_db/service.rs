@@ -43,7 +43,7 @@ impl LocalDbService {
         }
     }
 
-    pub fn files_table(&self)-> &FilesTable{
+    pub fn files_table(&self) -> &FilesTable {
         &self.files_table
     }
 

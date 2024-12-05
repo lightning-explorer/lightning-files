@@ -5,7 +5,7 @@ mod core {
 mod schemas {
     pub mod file_schema;
 }
-mod services{
+mod services {
     pub mod task_manager;
 }
 pub mod files_collection;

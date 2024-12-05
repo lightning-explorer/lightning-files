@@ -1,5 +1,6 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { IconService } from './icon.service';
+import { Subscription } from 'rxjs';
 
 /**
  * ### Usage example:
@@ -20,7 +21,7 @@ import { IconService } from './icon.service';
     styles: [],
     providers: [IconService]
 })
-export class IconifyIconComponent implements OnInit, OnChanges {
+export class IconifyIconComponent implements OnInit, OnChanges{
     @Input() icon: string = 'default';
     @Input() size: string | undefined;
     @Input() color: string | undefined;

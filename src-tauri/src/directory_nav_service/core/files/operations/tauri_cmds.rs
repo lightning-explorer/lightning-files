@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use super::super::super::super::util::path_ops;
+use super::{super::super::super::util::path_ops, file_reader};
 
 #[tauri::command]
 pub fn get_directory_path(file_path: &str) -> String {
@@ -34,20 +34,42 @@ pub fn get_parent_directory(file_path: &str) -> String {
     }
 }
 
+/// Returns a Uint8Array
+#[tauri::command]
+pub fn read_file_bytes(file_path: String, buffer_size:usize)-> Result<Vec<u8>, String>{
+    file_reader::read_file_bytes(file_path, buffer_size)
+}
+
+/// Returns a String and yields the entire file contents
+#[tauri::command]
+pub fn read_file(file_path: String)-> Result<String, String>{
+    file_reader::read_file(file_path)
+}
+
+#[tauri::command]
+pub fn read_file_range(file_path: String, start:u64, length:usize)-> Result<String, String>{
+    file_reader::read_file_range(file_path, start, length).map_err(|err| err.to_string())
+}
+
+#[tauri::command]
+pub fn read_file_range_bytes(file_path: String, start:u64, length:usize)-> Result<Vec<u8>, String>{
+    file_reader::read_file_range_bytes(file_path, start, length).map_err(|err| err.to_string())
+}
+
 /**
  * As opposed to being a directory
  */
 #[tauri::command]
-pub fn is_path_a_file(file_path:&str)->bool{
+pub fn is_path_a_file(file_path: &str) -> bool {
     let path = Path::new(file_path);
     !path.is_dir()
 }
 
 #[tauri::command]
-pub async fn open_file(file_path:&str)-> Result<(),String>{
+pub async fn open_file(file_path: &str) -> Result<(), String> {
     tokio::process::Command::new("cmd")
-    .args(["/C","start","",file_path])
-    .spawn()
-    .map_err(|x| x.to_string())?;
+        .args(["/C", "start", "", file_path])
+        .spawn()
+        .map_err(|x| x.to_string())?;
     Ok(())
 }

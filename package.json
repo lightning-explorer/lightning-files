@@ -21,7 +21,10 @@
     "@angular/platform-browser-dynamic": "^17.0.0",
     "@angular/router": "^17.0.0",
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-fs": "~2",
     "@tauri-apps/plugin-shell": "^2",
+    "file-type": "^19.6.0",
+    "ng2-pdfjs-viewer": "^18.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.2"

@@ -12,5 +12,5 @@ pub struct StreamingSearchParamsDTO {
     pub num_events: usize,
     /// The number of results to return initially
     pub starting_size: usize,
-    pub params: SearchParamsDTO
+    pub params: SearchParamsDTO,
 }

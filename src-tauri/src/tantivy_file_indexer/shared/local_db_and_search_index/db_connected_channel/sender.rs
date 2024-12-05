@@ -25,7 +25,8 @@ impl FileIndexerSender for DbConnectedSender {
     fn send(
         &self,
         value: InternalSystemDirectoryModel,
-    ) -> impl std::future::Future<Output = Result<(), SendError<InternalSystemDirectoryModel>>> + Send {
+    ) -> impl std::future::Future<Output = Result<(), SendError<InternalSystemDirectoryModel>>> + Send
+    {
         let value_clone: InternalSystemDirectoryModel = value.clone();
         let indexer_table_clone = Arc::new(&self.indexer_table);
         let time = Instant::now();

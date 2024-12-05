@@ -14,6 +14,7 @@ mod tantivy_file_indexer;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .setup(|app| {
             let app_handle = app.handle().clone();
 
@@ -31,6 +32,10 @@ pub fn run() {
             get_root_path,
             get_parent_directory,
             open_file,
+            read_file_bytes,
+            read_file,
+            read_file_range,
+            read_file_range_bytes,
             is_path_a_file,
             get_drives,
             search_files_inline,

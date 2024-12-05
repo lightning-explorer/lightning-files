@@ -9,7 +9,9 @@ use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
 use tokio::sync::Mutex;
 
 use crate::tantivy_file_indexer::{
-    converters::date_converter::chrono_time_to_tantivy_datetime, models::interal_system_file::InternalSystemFileModel, shared::indexing_crawler::traits::files_collection_api::FilesCollectionApi
+    converters::date_converter::chrono_time_to_tantivy_datetime,
+    models::interal_system_file::InternalSystemFileModel,
+    shared::indexing_crawler::traits::files_collection_api::FilesCollectionApi,
 };
 
 use super::worker_manager::TantivyInput;

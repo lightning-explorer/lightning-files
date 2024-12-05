@@ -1,58 +1,14 @@
 :host {
+    display: flex;
     scrollbar-width: thin;
     scrollbar-color: var(--secondary-color) transparent;
     flex: 1;
 }
 
-.content {
+.layout {
     display: flex;
+    flex-direction: row;
+
     height: 100%;
-
-    overflow-x: hidden;
-    overflow-y: hidden;
-}
-
-.content .item {
-    margin-right: 1em;
-    margin-left: 1em;
-}
-
-.drag-preview {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    font-family: "Fredoka";
-    top: -1000px;
-    /* Hide it off-screen */
-    left: -1000px;
-    pointer-events: none;
-    display: flex;
-    align-items: left;
-    gap: 5px;
-    color: var(--contrast-color);
-    background-color: var(--background-color);
-    padding: 5px;
-    border-radius: 4px;
-    font-size: 12px;
-}
-
-.no-files {
-    display: flex;
     width: 100%;
-    height: 100%;
-    align-items: center;
-    justify-content: center;
-}
-
-.no-files label {
-    overflow-wrap: anywhere;
-    font-family: "Poppins";
-    color: var(--contrast-color);
-}
-
-app-inline-search-bar {
-    position: absolute;
-    margin: 0.5em;
-    pointer-events: none;
-    z-index: 10;
 }

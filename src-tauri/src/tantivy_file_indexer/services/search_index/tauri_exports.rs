@@ -1,15 +1,12 @@
 use std::sync::Arc;
 
 use tauri::{AppHandle, Emitter, State};
-use tokio::sync::{mpsc, watch};
+use tokio::sync::watch;
 
 use crate::{
     shared::models::sys_file_model::SystemFileModel,
-    tantivy_file_indexer::{
-        dtos::{
-            search_params_dto::SearchParamsDTO, streaming_search_dto::StreamingSearchParamsDTO,
-        },
-        models::tantivy_file_model::TantivyFileModel,
+    tantivy_file_indexer::dtos::{
+        search_params_dto::SearchParamsDTO, streaming_search_dto::StreamingSearchParamsDTO,
     },
 };
 
@@ -29,7 +26,8 @@ pub async fn search_index_query(
         match service.query(&params) {
             Ok(result) => Ok(result
                 .into_iter()
-                .map(|x| x.into())
+                .map(|x| x.to_sys_file())
+                .flatten() // Ignore conversion errors
                 .collect::<Vec<SystemFileModel>>()),
             Err(err) => Err(err.to_string()),
         }

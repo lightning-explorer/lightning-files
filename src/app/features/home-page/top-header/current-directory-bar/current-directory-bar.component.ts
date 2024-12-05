@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DirectoryNavigatorService } from '../../../../core/services/files/directory-navigator/directory-navigator.service';
-import { debounceTime } from 'rxjs';
-import { truncateText } from '../../../../core/other/util/text-truncator';
+import { debounceTime, Subscription } from 'rxjs';
+import { truncateText } from '../../../../core/util/text-truncator';
 import { simplifyPath } from './util/overflow-checker';
 
 @Component({
@@ -13,22 +13,38 @@ import { simplifyPath } from './util/overflow-checker';
   templateUrl: './current-directory-bar.component.html',
   styleUrl: './current-directory-bar.component.scss'
 })
-export class CurrentDirectoryBarComponent implements AfterViewInit {
+export class CurrentDirectoryBarComponent implements AfterViewInit, OnInit, OnDestroy {
+  subscription = new Subscription();
 
   @ViewChild('textInput') textInput!: ElementRef;
+
   directory = "";
-  truncatedDirectory = "";
+  visibleDirectories: string[] = [];
+  showEllipsis: boolean = false;
+
   hasChanged = false;
   inputControl = new FormControl();
 
-  constructor(private directoryService: DirectoryNavigatorService) { }
+  constructor(private directoryService: DirectoryNavigatorService, private cdr: ChangeDetectorRef) { }
+
+  ngOnInit(): void {
+    this.updateVisibleDirectories();
+  }
 
   ngAfterViewInit(): void {
-    this.directoryService.currentDir$.subscribe(x => {
+    this.subscription.add(this.directoryService.currentDir$.subscribe(x => {
       this.directory = x;
-      this.truncatedDirectory = simplifyPath(x);
-    }
-    )
+      this.updateVisibleDirectories();
+    }));
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.updateVisibleDirectories();
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   onInputChange() {
@@ -49,5 +65,25 @@ export class CurrentDirectoryBarComponent implements AfterViewInit {
     if (this.textInput && this.textInput.nativeElement) {
       this.textInput.nativeElement.select();
     }
+  }
+
+  private updateVisibleDirectories() {
+    this.visibleDirectories = this.directory.split('\\');
+    this.cdr.detectChanges();
+
+    const containerWidth = this.textInput.nativeElement.offsetWidth;
+    const breadcrumbElements = Array.from(this.textInput.nativeElement.querySelectorAll('.breadcrumb')) as HTMLElement[];
+    const padding = 1.2; // Arbitrary padding. But it seems to work
+    const elementWidths = breadcrumbElements.map(element => element.offsetWidth * padding);
+    const totalWidth = elementWidths.reduce((sum, width) => sum + width, 0);
+
+    let currentWidth = totalWidth;
+
+    while (currentWidth > containerWidth && this.visibleDirectories.length > 1) {
+      currentWidth -= elementWidths.shift()!;
+      this.visibleDirectories.shift();
+    }
+
+    this.showEllipsis = this.visibleDirectories.length > 0;
   }
 }

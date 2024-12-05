@@ -81,14 +81,6 @@ export class DirectoryNavigatorService {
         )
     }
 
-    async isPathAFile(filePath: string): Promise<boolean> {
-        return invoke<boolean>("is_path_a_file", {
-            filePath
-        }).then(result =>
-            result
-        )
-    }
-
     async openFileCmd(filePath: string): Promise<boolean> {
         return invoke<void>("open_file", {
             filePath

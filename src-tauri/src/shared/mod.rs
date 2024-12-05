@@ -1,3 +1,3 @@
-pub mod models{
+pub mod models {
     pub mod sys_file_model;
 }

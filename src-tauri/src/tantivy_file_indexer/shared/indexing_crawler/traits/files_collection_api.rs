@@ -20,7 +20,10 @@ pub trait FilesCollectionApi: Clone + Send + Sync + 'static {
         directory: &Path,
     ) -> impl Future<Output = Result<HashSet<String>, Self::Error>> + Send;
 
-    fn upsert_many(&self, models: &[InternalSystemFileModel]) -> impl Future<Output = Result<(), Self::Error>> + Send;
+    fn upsert_many(
+        &self,
+        models: &[InternalSystemFileModel],
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
     fn remove_paths(
         &self,

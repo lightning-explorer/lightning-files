@@ -60,7 +60,11 @@ impl AppServiceContainer {
         }
     }
 
-    fn initialize_search_service(buffer_size: usize, app_path: PathBuf, app_handle:&AppHandle) -> Arc<SearchIndexService> {
+    fn initialize_search_service(
+        buffer_size: usize,
+        app_path: PathBuf,
+        app_handle: &AppHandle,
+    ) -> Arc<SearchIndexService> {
         Arc::new(SearchIndexService::new(buffer_size, app_path, app_handle))
     }
 
