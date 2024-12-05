@@ -1,3 +1,5 @@
+use std::{os::windows::fs::MetadataExt, path::PathBuf};
+
 use serde::{Deserialize, Serialize};
 
 use crate::shared::models::sys_file_model::SystemFileModel;
@@ -13,14 +15,18 @@ pub struct TantivyFileModel {
     pub is_directory: bool,
 }
 
-impl From<TantivyFileModel> for SystemFileModel{
-    fn from(val: TantivyFileModel) -> Self {
-        SystemFileModel{
-            name:val.name,
-            file_path:val.file_path,
-            date_modified:"".to_string(),
-            score:val.score,
-            is_directory:val.is_directory
-        }
+impl TantivyFileModel {
+    pub fn to_sys_file(self) -> Result<SystemFileModel,std::io::Error> {
+        let path = PathBuf::from(self.file_path.clone());
+        let meta = path.metadata()?;
+        Ok(
+        SystemFileModel {
+            name: self.name,
+            file_path: self.file_path,
+            date_modified: "".to_string(),
+            size: meta.file_size(),
+            score: self.score,
+            is_directory: self.is_directory,
+        })
     }
 }

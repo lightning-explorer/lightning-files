@@ -29,7 +29,7 @@ impl FileCrawlerAnalyzerService {
         }
     }
 
-    pub fn add_to_files_processed(&self, val:usize) {
+    pub fn add_to_files_processed(&self, val: usize) {
         self.files_processed.fetch_add(val, Ordering::Relaxed);
     }
 

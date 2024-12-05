@@ -6,7 +6,8 @@ use tantivy::time::OffsetDateTime;
 pub struct SearchParamsModel {
     pub name: Option<String>,
     pub metadata: Option<String>,
-    pub date_range: Option<DateRange>,
+    pub date_modified_range: Option<DateRange>,
+    pub date_created_range: Option<DateRange>,
     pub file_path: Option<String>,
 }
 

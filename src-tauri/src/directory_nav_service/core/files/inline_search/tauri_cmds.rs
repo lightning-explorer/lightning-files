@@ -8,6 +8,6 @@ use tauri::State;
 pub async fn search_files_inline(
     query: InlineQueryDTO,
     files_display: State<'_, Arc<FilesDisplayState>>,
-) -> Result<Vec<SystemFileModel>,()> {
+) -> Result<Vec<SystemFileModel>, ()> {
     Ok(files_display.query(query).await)
 }

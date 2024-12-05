@@ -27,5 +27,5 @@ pub trait CrawlerQueueApi: Clone + Send + Sync + 'static {
         -> impl Future<Output = Result<(), Self::Error>> + Send;
 
     /// Set the `taken` status of every item in the database to `false`
-    fn set_taken_to_false_all(&self)->impl Future<Output = Result<(), Self::Error>> + Send;
+    fn set_taken_to_false_all(&self) -> impl Future<Output = Result<(), Self::Error>> + Send;
 }

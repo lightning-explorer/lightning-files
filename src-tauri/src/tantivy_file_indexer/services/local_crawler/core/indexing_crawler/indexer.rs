@@ -6,21 +6,19 @@ use std::{
 };
 
 use tantivy::{doc, schema::Schema, IndexWriter, TantivyError};
-use tokio::sync::{Mutex, MutexGuard};
+use tokio::sync::Mutex;
 
 use crate::tantivy_file_indexer::{
-    converters::date_converter::unix_time_to_tantivy_datetime,
-    dtos::file_dto_input::FileDTOInput,
-    shared::indexing_crawler::{
-        models::file_model::FileModel, traits::files_collection_api::FilesCollectionApi,
-    },
+    converters::date_converter::chrono_time_to_tantivy_datetime,
+    models::interal_system_file::InternalSystemFileModel,
+    shared::indexing_crawler::traits::files_collection_api::FilesCollectionApi,
 };
 
 use super::worker_manager::TantivyInput;
 
 /// The files also get committed to the Tantivy index and database at the end of this function
 pub async fn index_files<F>(
-    files: &[FileDTOInput],
+    files: &[InternalSystemFileModel],
     tantivy: TantivyInput,
     parent_path: PathBuf,
     files_collection: Arc<F>,
@@ -48,7 +46,7 @@ where
 }
 
 async fn process_files_and_commit<F>(
-    dtos: &[FileDTOInput],
+    dtos: &[InternalSystemFileModel],
     writer: Arc<Mutex<IndexWriter>>,
     schema: Schema,
     files_collection: Arc<F>,
@@ -56,7 +54,6 @@ async fn process_files_and_commit<F>(
 where
     F: FilesCollectionApi,
 {
-    let mut db_file_models = Vec::new();
     {
         let writer_lock = writer.lock().await;
 
@@ -68,23 +65,17 @@ where
                     .map_err(|x| format!("Field doesn't exist: {}", x))?,
                 &dto.file_path,
             ));
-            writer_lock.add_document(doc! {
-        //schema.get_field("file_id").unwrap() => dto.file_id,
-        schema.get_field("name").unwrap() => dto.name.clone(),
-        schema.get_field("date_modified").unwrap() => unix_time_to_tantivy_datetime(dto.date_modified),
-        schema.get_field("path").unwrap() => dto.file_path.clone(),
-        schema.get_field("metadata").unwrap() => dto.metadata.clone(),
-        schema.get_field("popularity").unwrap() => dto.popularity,
-        }).map_err(|x| format!("Failed to add document: {}",x))?;
-
-            // Create model for DTO but dont add it to DB
-            let path_clone = dto.file_path.clone();
-            let parent_path = get_parent_path(path_clone);
-            let file_model = FileModel {
-                path: dto.file_path.clone(),
-                parent_path,
-            };
-            db_file_models.push(file_model);
+            writer_lock
+                .add_document(doc! {
+                //schema.get_field("file_id").unwrap() => dto.file_id, // UNUSED SCHEMA FIELD
+                schema.get_field("name").unwrap() => dto.name.clone(),
+                schema.get_field("date_modified").unwrap() => chrono_time_to_tantivy_datetime(dto.date_modified), 
+                schema.get_field("date_created").unwrap() => chrono_time_to_tantivy_datetime(dto.date_created), 
+                schema.get_field("path").unwrap() => dto.file_path.clone(),
+                schema.get_field("metadata").unwrap() => dto.metadata.clone(),
+                schema.get_field("popularity").unwrap() => dto.popularity,
+                })
+                .map_err(|x| format!("Failed to add document: {}", x))?;
         }
         // Writer lock is dropped here
     }
@@ -94,7 +85,7 @@ where
         return Err(format!("Error committing files to Tantivy index: {}", err));
     }
 
-    if let Err(err) = files_collection.upsert_many(db_file_models).await {
+    if let Err(err) = files_collection.upsert_many(dtos).await {
         return Err(format!("Error upserting file models: {}", err));
     }
 

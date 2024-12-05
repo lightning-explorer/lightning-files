@@ -26,5 +26,5 @@ pub fn is_hidden(path: &Path) -> bool {
 
 #[cfg(not(target_os = "windows"))]
 pub fn is_hidden(path: &Path) -> bool {
-    path.to_str().map(|x|x.starts_with('.')).unwrap_or(false)
+    path.to_str().map(|x| x.starts_with('.')).unwrap_or(false)
 }

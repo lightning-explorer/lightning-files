@@ -1,4 +1,5 @@
 import { Injectable, Renderer2 } from '@angular/core';
+import { replaceColorWithGradient } from './util/svg';
 
 @Injectable()
 export class IconService {
@@ -18,21 +19,49 @@ export class IconService {
         markdown: '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 1024 1024"><path fill="currentColor" d="M854.6 288.7c6 6 9.4 14.1 9.4 22.6V928c0 17.7-14.3 32-32 32H192c-17.7 0-32-14.3-32-32V96c0-17.7 14.3-32 32-32h424.7c8.5 0 16.7 3.4 22.7 9.4zM790.2 326L602 137.8V326zM426.13 600.93l59.11 132.97a16 16 0 0 0 14.62 9.5h24.06a16 16 0 0 0 14.63-9.51l59.1-133.35V758a16 16 0 0 0 16.01 16H641a16 16 0 0 0 16-16V486a16 16 0 0 0-16-16h-34.75a16 16 0 0 0-14.67 9.62L512.1 662.2l-79.48-182.59a16 16 0 0 0-14.67-9.61H383a16 16 0 0 0-16 16v272a16 16 0 0 0 16 16h27.13a16 16 0 0 0 16-16z"/></svg>',
         gear: '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97s-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1s.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64z"/></svg>',
         pdf: '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16"><path fill="none" stroke="#ed8796" stroke-linecap="round" stroke-linejoin="round" d="M2.8 14.34c1.81-1.25 3.02-3.16 3.91-5.5c.9-2.33 1.86-4.33 1.44-6.63c-.06-.36-.57-.73-.83-.7c-1.02.06-.95 1.21-.85 1.9c.24 1.71 1.56 3.7 2.84 5.56c1.27 1.87 2.32 2.16 3.78 2.26c.5.03 1.25-.14 1.37-.58c.77-2.8-9.02-.54-12.28 2.08c-.4.33-.86 1-.6 1.46c.2.36.87.4 1.23.15h0Z"/></svg>',
+        dropDown: '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="m8.71 11.71l2.59 2.59c.39.39 1.02.39 1.41 0l2.59-2.59c.63-.63.18-1.71-.71-1.71H9.41c-.89 0-1.33 1.08-.7 1.71"/></svg>',
+        dropUp: '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M8.2 14q-.225 0-.362-.15T7.7 13.5q0-.05.15-.35l3.625-3.625q.125-.125.25-.175T12 9.3t.275.05t.25.175l3.625 3.625q.075.075.113.163t.037.187q0 .2-.137.35T15.8 14z"/></svg>',
+        hardDisk: '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 14 14"><path fill="currentColor" fill-rule="evenodd" d="M1 1.5A1.5 1.5 0 0 1 2.5 0h9A1.5 1.5 0 0 1 13 1.5v11a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 1 12.5zm5.991 6.692a.625.625 0 0 0-.653-.947a.57.57 0 0 0-.401.276l-1.75 2.75a.625.625 0 1 0 1.054.671zm.258 3.414c0-.345.28-.625.625-.625h2.5a.625.625 0 0 1 0 1.25h-2.5a.625.625 0 0 1-.625-.625M6.99 1.897A3.875 3.875 0 0 0 4 8.237l.882-1.387c.298-.468.76-.768 1.284-.843c.49-.071.946.064 1.293.285c.348.221.664.578.807 1.051a1.83 1.83 0 0 1-.22 1.52l-.471.74a3.876 3.876 0 0 0-.585-7.706m.082 5.815a.62.62 0 0 1-.08.48a.58.58 0 0 0 .08-.48" clip-rule="evenodd"/></svg>',
+
     };
 
-    getIcon(name: string, size: string = '2em', path_fill: string = '#000'): string {
+    getIcon(name: string, size: string = '2em', color: string = '#000'): string {
         const iconSvg = this.icons[name];
         if (!iconSvg) {
             return this.icons['default'];
         }
 
-        // If the user passes in a CSS variable, get its underlying hex color
-        if (path_fill.startsWith("--")) {
-            path_fill = this.getCssVarHex(path_fill);
-        }
+        let tokens: string[] = color.split(' ');
+        if (tokens.length == 2) {
+            // The user wants a gradient color
+            let hex1 = "#000";
+            let hex2 = "#000";
 
-        const replaced = iconSvg.replace(/1em/g, size).replace(/currentColor/g, path_fill);
-        return replaced;
+            if (tokens.at(0)!.startsWith("--")) {
+                // Its a CSS variable
+                hex1 = this.getCssVarHex(tokens.at(0)!);
+            } else if (tokens.at(0)!.startsWith("#")) {
+                hex1 = tokens.at(0)!;
+            }
+
+            if (tokens.at(1)!.startsWith("--")) {
+                // Its a CSS variable
+                hex2 = this.getCssVarHex(tokens.at(1)!);
+            } else if (tokens.at(1)!.startsWith("#")) {
+                hex2 = tokens.at(1)!;
+            }
+
+            const replaced = replaceColorWithGradient(iconSvg, hex1, hex2).replace(/1em/g, size);
+            return replaced;
+
+        } else {
+            if (color.startsWith("--")) {
+                color = this.getCssVarHex(color);
+            }
+
+            const replaced = iconSvg.replace(/1em/g, size).replace(/currentColor/g, color);
+            return replaced;
+        }
     }
 
     getCssVarHex(variable: string): string {

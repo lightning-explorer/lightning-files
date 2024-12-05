@@ -1,21 +1,22 @@
 
-import { Injectable, OnInit } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
+import { Injectable, OnDestroy, OnInit } from "@angular/core";
+import { BehaviorSubject, Subscription } from "rxjs";
 import { DriveModel } from "../../models/drive-model";
 import { invoke } from "@tauri-apps/api/core";
 import { FileModel } from "../../models/file-model";
 import { PersistentConfigService } from "../persistence/config.service";
 
 @Injectable({ 'providedIn': 'root' })
-export class PinService {
+export class PinService implements OnDestroy {
 
+    private subscription = new Subscription();
     private pinnedFilesSubject = new BehaviorSubject<FileModel[]>([]);
     public pinnedFiles$ = this.pinnedFilesSubject.asObservable();
 
     constructor(private configService: PersistentConfigService) {
-        this.configService.config$.subscribe(x => {
+        this.subscription.add(this.configService.config$.subscribe(x => {
             this.pinnedFilesSubject.next(x.pinnedFiles)
-        })
+        }));
     }
 
     isFilePinned(file: FileModel): boolean {
@@ -28,5 +29,9 @@ export class PinService {
 
     unpinFile(file: FileModel) {
         this.configService.update("pinnedFiles", this.pinnedFilesSubject.getValue().filter(x => x.FilePath != file.FilePath));
+    }
+
+    ngOnDestroy(): void {
+        this.subscription.unsubscribe();
     }
 }

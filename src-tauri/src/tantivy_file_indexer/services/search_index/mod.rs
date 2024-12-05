@@ -1,12 +1,13 @@
 mod core {
-    pub mod index_worker;
     pub mod querier;
     pub mod tantivy_setup;
 }
-pub mod models {
-    pub mod index_worker {
-        pub mod file_input;
-    }
+mod schemas {
+    pub mod file_schema;
 }
+mod services {
+    pub mod task_manager;
+}
+pub mod files_collection;
 pub mod service;
 pub mod tauri_exports;

@@ -1,10 +1,12 @@
+:host {
+    margin-right: 1.2em;
+}
 
 .heading {
     display: flex;
-    
+    height: 2em;
     width: 100%;
     flex-direction: row;
-    margin-right: 1em;
 }
 
 .heading button {
@@ -13,11 +15,11 @@
     transition:
         background-color 0.15s ease,
         color 0.01s ease;
-    
+
 }
 
 .heading button:hover {
     letter-spacing: 3px;
-    background-color: var(--secondary-color);
-    color: var(--primary-color);
+    background-color: var(--transparent-select-color);
+    color: var(--secondary-color);
 }

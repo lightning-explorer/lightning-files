@@ -1,18 +1,15 @@
-use std::{
-    path::PathBuf,
-    sync::Arc,
-    time::{Duration, UNIX_EPOCH},
-};
+use std::{os::windows::fs::MetadataExt, path::PathBuf, sync::Arc, time::Duration};
 
 use crate::tantivy_file_indexer::{
-    dtos::file_dto_input::FileDTOInput,
-    shared::indexing_crawler::{
-        models::crawler_file::CrawlerFile, traits::crawler_queue_api::CrawlerQueueApi,
+    converters::date_converter::system_time_to_chrono_datetime,
+    models::interal_system_file::InternalSystemFileModel,
+    shared::{
+        async_retry,
+        indexing_crawler::{
+            models::crawler_file::CrawlerFile, traits::crawler_queue_api::CrawlerQueueApi,
+        },
     },
 };
-
-use super::worker_manager::retry_with_backoff;
-
 pub enum CrawlerError {
     ReadDirError(String),
     PushToQueueError(String),
@@ -22,7 +19,10 @@ pub enum CrawlerError {
 /// Returns an `Error` if the found directories failed to get pushed to the crawler queue or there was an error reading the directory.
 ///
 /// Note that the write operation to the queue will retry up to 5 times before finally returning an error.
-pub async fn crawl<C>(file: &CrawlerFile, queue: Arc<C>) -> Result<Vec<FileDTOInput>, CrawlerError>
+pub async fn crawl<C>(
+    file: &CrawlerFile,
+    queue: Arc<C>,
+) -> Result<Vec<InternalSystemFileModel>, CrawlerError>
 where
     C: CrawlerQueueApi,
 {
@@ -36,21 +36,42 @@ where
 
     let mut dtos = Vec::new();
     let mut dir_paths_found: Vec<CrawlerFile> = Vec::new();
+
     while let Ok(Some(entry)) = dir.next_entry().await {
         let entry_path = entry.path();
-        if entry_path.is_dir() {
-            dir_paths_found.push(CrawlerFile {
-                path: entry_path.clone(),
-                priority: file.priority + 1,
-                taken: false,
-            });
-        }
-        if let Ok(dto) = create_dto(entry_path).await {
-            dtos.push(dto);
+
+        match entry.metadata().await {
+            Ok(metadata) => match create_dto(entry_path.clone(), &metadata) {
+                Ok(dto) => {
+                    dtos.push(dto);
+                    // If it is a directory, push it to the queue so that it can get processed
+                    if metadata.is_dir() {
+                        dir_paths_found.push(CrawlerFile {
+                            path: entry_path,
+                            priority: file.priority + 1,
+                            taken: false,
+                        });
+                    }
+                }
+                Err(err) => {
+                    println!(
+                        "Crawler failed to generate DTO for file: {}. Error: {}",
+                        entry_path.to_string_lossy(),
+                        err
+                    );
+                }
+            },
+            Err(err) => {
+                println!(
+                    "Crawler failed to get metadata for file: {}. Error: {}",
+                    entry_path.to_string_lossy(),
+                    err
+                );
+            }
         }
     }
     // Push the entries in bulk
-    retry_with_backoff(
+    async_retry::retry_with_backoff(
         || queue.push(&dir_paths_found),
         5,
         Duration::from_millis(1000),
@@ -61,26 +82,32 @@ where
     Ok(dtos)
 }
 
-async fn create_dto(entry: PathBuf) -> Result<FileDTOInput, String> {
-    let metadata = entry.metadata().map_err(|x| x.to_string())?;
+fn create_dto(
+    entry: PathBuf,
+    entry_meta: &std::fs::Metadata,
+) -> Result<InternalSystemFileModel, String> {
+    let size = entry_meta.file_size();
 
-    let modified_time = metadata.modified().map_err(|x| x.to_string())?;
+    let date_modified =
+        system_time_to_chrono_datetime(entry_meta.modified().map_err(|err| err.to_string())?);
 
-    let unix_timestamp = modified_time
-        .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards")
-        .as_secs();
+    let date_created =
+        system_time_to_chrono_datetime(entry_meta.created().map_err(|err| err.to_string())?);
 
     let name = entry
         .file_name()
-        .unwrap_or_default()
+        .ok_or("File name was badly formatted")
+        .map_err(|err| err.to_string())?
         .to_string_lossy()
         .to_string();
-    let dto = FileDTOInput {
+
+    let dto = InternalSystemFileModel {
         name,
         file_path: entry.to_string_lossy().to_string(),
         metadata: "test metadata".to_string(),
-        date_modified: unix_timestamp,
+        date_modified,
+        date_created,
+        size,
         popularity: 1.0,
     };
     Ok(dto)

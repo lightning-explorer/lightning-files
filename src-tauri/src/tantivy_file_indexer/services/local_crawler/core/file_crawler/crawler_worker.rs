@@ -5,7 +5,7 @@ use tokio::sync::Notify;
 use crate::tantivy_file_indexer::services::local_crawler::analyzer::service::FileCrawlerAnalyzerService;
 use crate::tantivy_file_indexer::shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerSender;
 use crate::tantivy_file_indexer::{
-    dtos::file_dto_input::FileDTOInput,
+    dtos::interal_system_file::InternalSystemFileModel,
     services::search_index::models::index_worker::file_input::FileInputModel,
 };
 
@@ -64,7 +64,7 @@ pub async fn worker_task<T>(
                     }
 
                     // Await the metadata fetch tasks
-                    let input_dtos: Vec<FileDTOInput> = futures::future::join_all(input_dtos_tasks)
+                    let input_dtos: Vec<InternalSystemFileModel> = futures::future::join_all(input_dtos_tasks)
                         .await
                         .into_iter()
                         .flatten()
@@ -111,7 +111,7 @@ pub async fn worker_task<T>(
     }
 }
 
-async fn create_model(directory_from: PathBuf, dtos: Vec<FileDTOInput>) -> FileInputModel {
+async fn create_model(directory_from: PathBuf, dtos: Vec<InternalSystemFileModel>) -> FileInputModel {
     FileInputModel {
         dtos,
         directory_from,
@@ -120,7 +120,7 @@ async fn create_model(directory_from: PathBuf, dtos: Vec<FileDTOInput>) -> FileI
 
 // This function takes around 60ms to complete so look at this
 // After some testing and removing 'metadata', the function still takes about the same amount of time
-async fn create_dto(entry: PathBuf) -> Result<FileDTOInput, String> {
+async fn create_dto(entry: PathBuf) -> Result<InternalSystemFileModel, String> {
     let metadata = entry.metadata().map_err(|x| x.to_string())?;
 
     let modified_time = metadata.modified().map_err(|x| x.to_string())?;
@@ -143,7 +143,7 @@ async fn create_dto(entry: PathBuf) -> Result<FileDTOInput, String> {
         .unwrap_or_default()
         .to_string_lossy()
         .to_string();
-    let dto = FileDTOInput {
+    let dto = InternalSystemFileModel {
         name,
         file_path: entry.to_string_lossy().to_string(),
         metadata: "test metadata".to_string(),

@@ -3,6 +3,7 @@ export interface SearchParamsDTO {
     Metadata?: string,
     DateRange?: DateRange,
     FilePath?: string,
+    NumResults: number,
 }
 
 interface DateRange {

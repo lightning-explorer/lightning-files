@@ -1,11 +1,11 @@
 use std::path::Path;
 
 use crate::tantivy_file_indexer::{
-    services::{
-        local_db::tables::indexer_queue::api::IndexerQueueTable,
-        search_index::models::index_worker::file_input::FileInputModel,
+    services::local_db::tables::indexer_queue::api::IndexerQueueTable,
+    shared::{
+        indexing_crawler::models::system_directory_model::InternalSystemDirectoryModel,
+        local_db_and_search_index::traits::file_sender_receiver::FileIndexerReceiver,
     },
-    shared::local_db_and_search_index::traits::file_sender_receiver::FileIndexerReceiver,
 };
 
 pub struct DbConnectedReceiver {
@@ -19,12 +19,12 @@ impl DbConnectedReceiver {
 }
 
 impl FileIndexerReceiver for DbConnectedReceiver {
-    async fn recv(&mut self) -> Option<FileInputModel> {
+    async fn recv(&mut self) -> Option<InternalSystemDirectoryModel> {
         match self.indexer_table.pop().await {
             Ok(val) => {
                 if let Some(m) = val {
-                    return Some(FileInputModel {
-                        directory_from: Path::new(&m.directory_from).to_path_buf(),
+                    return Some(InternalSystemDirectoryModel {
+                        path: Path::new(&m.directory_from).to_path_buf(),
                         dtos: m.get_files(),
                     });
                 }

@@ -1,12 +1,14 @@
+use super::super::schemas::file_schema;
 use std::{fs, path::PathBuf};
 use tantivy::{schema::Schema, Index, IndexReader, IndexWriter};
-use crate::tantivy_file_indexer::schemas::file_schema;
 
 /**
- Creates the Tantivy index at the given directory
- */
-pub fn initialize_tantity(buffer_size:usize, index_path:PathBuf)->(Schema,IndexReader,IndexWriter){
-
+Creates the Tantivy index at the given directory
+*/
+pub fn initialize_tantity(
+    buffer_size: usize,
+    index_path: PathBuf,
+) -> (Schema, IndexReader, IndexWriter) {
     let schema = file_schema::create_schema();
     // Create the Tantivy index
     let index = if index_path.exists() {
@@ -23,5 +25,5 @@ pub fn initialize_tantity(buffer_size:usize, index_path:PathBuf)->(Schema,IndexR
     let index_writer: IndexWriter = index.writer(buffer_size).unwrap();
 
     let index_reader = index.reader().unwrap();
-    (schema,index_reader,index_writer)
+    (schema, index_reader, index_writer)
 }

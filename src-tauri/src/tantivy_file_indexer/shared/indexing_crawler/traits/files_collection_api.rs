@@ -7,7 +7,8 @@ use std::{
     path::Path,
 };
 
-use super::super::models::file_model::FileModel;
+use crate::tantivy_file_indexer::models::interal_system_file::InternalSystemFileModel;
+
 pub trait FilesCollectionApi: Clone + Send + Sync + 'static {
     type Error: Display + Debug;
 
@@ -19,10 +20,15 @@ pub trait FilesCollectionApi: Clone + Send + Sync + 'static {
         directory: &Path,
     ) -> impl Future<Output = Result<HashSet<String>, Self::Error>> + Send;
 
-    fn upsert_many(&self, models: Vec<FileModel>) -> impl Future<Output = Result<(), Self::Error>> + Send;
+    fn upsert_many(
+        &self,
+        models: &[InternalSystemFileModel],
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
     fn remove_paths(
         &self,
         paths: &HashSet<String>,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
+
+    fn commit_all(&self) -> impl Future<Output = Result<(), Self::Error>> + Send;
 }

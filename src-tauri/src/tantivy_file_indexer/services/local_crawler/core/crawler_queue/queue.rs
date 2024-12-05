@@ -67,7 +67,10 @@ impl CrawlerQueue {
     }
 
     pub async fn delete_many(&self, models: Vec<indexed_dir::Model>) -> Result<(), DbErr> {
-        self.get_crawler_queue_table().delete_many(&models).await.map(|_| ())
+        self.get_crawler_queue_table()
+            .delete_many(&models)
+            .await
+            .map(|_| ())
     }
 
     pub async fn set_taken_to_false_all(&self) -> Result<(), DbErr> {

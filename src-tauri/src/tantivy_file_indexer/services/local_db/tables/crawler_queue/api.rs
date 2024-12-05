@@ -68,7 +68,7 @@ impl CrawlerQueueTable {
     }
 
     /// Completely removes the given models from the database
-    /// 
+    ///
     /// Returns the number of items that were deleted
     pub async fn delete_many(&self, models: &[indexed_dir::Model]) -> Result<u64, sea_orm::DbErr> {
         let paths_to_delete: Vec<String> = models.iter().map(|entry| entry.path.clone()).collect();

@@ -11,8 +11,8 @@ use sea_orm::DatabaseConnection;
 use sqlx::sqlite::SqlitePool;
 
 pub struct LocalDbService {
-    files_table: FilesTable,
     recently_indexed_dirs_table: RecentlyIndexedDirectoriesTable,
+    files_table: FilesTable,
     crawler_queue_table: CrawlerQueueTable,
     indexer_queue_table: IndexerQueueTable,
 }
@@ -28,15 +28,16 @@ impl LocalDbService {
             Arc::new(SqlitePool::connect(&db_url).await.unwrap().into());
 
         // initialize the tables
-        let files_table = FilesTable::new_async(db.clone()).await;
         let recently_indexed_dirs_table =
             RecentlyIndexedDirectoriesTable::new_async(db.clone()).await;
+
+        let files_table = FilesTable::new_async(db.clone()).await;
         let crawler_queue_table = CrawlerQueueTable::new_async(db.clone()).await;
         let indexer_queue_table = IndexerQueueTable::new_async(db.clone()).await;
 
         Self {
-            files_table,
             recently_indexed_dirs_table,
+            files_table,
             crawler_queue_table,
             indexer_queue_table,
         }

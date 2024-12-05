@@ -3,6 +3,7 @@ import { Injectable } from "@angular/core";
 import { SearchParamsDTO } from "../../../dtos/output/search-params-dto";
 import { environment } from "../../../../../environments/environment";
 import { FileModel } from "../../../models/file-model";
+import { StreamingSearchParamsDTO } from "../../../dtos/output/streaming-search-params-dtos";
 
 // Expects the 'SearchForJunk' service to be active
 @Injectable({ 'providedIn': 'root' })

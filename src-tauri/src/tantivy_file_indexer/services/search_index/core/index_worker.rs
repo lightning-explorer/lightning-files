@@ -9,8 +9,8 @@ use std::{
 };
 
 use crate::tantivy_file_indexer::{
-    converters::date_converter::unix_time_to_tantivy_datetime,
-    dtos::file_dto_input::FileDTOInput,
+    converters::date_converter::{chrono_time_to_tantivy_datetime, unix_time_to_tantivy_datetime},
+    dtos::interal_system_file::InternalSystemFileModel,
     services::{
         local_db::{
             service::LocalDbService,
@@ -144,7 +144,7 @@ pub async fn spawn_worker<T>(
 
 // THIS one is the bottleneck
 async fn process_files(
-    dtos: Vec<FileDTOInput>,
+    dtos: Vec<InternalSystemFileModel>,
     writer: Arc<Mutex<IndexWriter>>,
     schema: Arc<Schema>,
     db_service: Arc<LocalDbService>,
@@ -152,14 +152,12 @@ async fn process_files(
     let writer = writer.lock().await;
     // Remove from index and add document within a single lock
 
-    let mut db_file_models: Vec<files::entities::file::Model> = Vec::new();
-
     // Only used in speed_profile feature
     let time = Instant::now();
     let num_of_dtos = dtos.len();
     //
 
-    for dto in dtos.into_iter() {
+    for dto in dtos.iter() {
         // Use the name field as the primary key
         writer.delete_term(tantivy::Term::from_field_text(
             schema
@@ -170,20 +168,12 @@ async fn process_files(
         writer.add_document(doc! {
         //schema.get_field("file_id").unwrap() => dto.file_id,
         schema.get_field("name").unwrap() => dto.name,
-        schema.get_field("date_modified").unwrap() => unix_time_to_tantivy_datetime(dto.date_modified),
+        schema.get_field("date_modified").unwrap() => chrono_time_to_tantivy_datetime(dto.date_modified),
         schema.get_field("path").unwrap() => dto.file_path.clone(),
         schema.get_field("metadata").unwrap() => dto.metadata,
         schema.get_field("popularity").unwrap() => dto.popularity,
         }).map_err(|x| format!("Failed to add document: {}",x))?;
 
-        // Create model for DTO but dont add it to DB
-        let path_clone = dto.file_path.clone();
-        let parent_path = get_parent_path(path_clone);
-        let file_model = files::entities::file::Model {
-            path: dto.file_path,
-            parent_path,
-        };
-        db_file_models.push(file_model);
     }
     #[cfg(feature = "speed_profile")]
     println!(
@@ -195,7 +185,7 @@ async fn process_files(
     #[cfg(feature = "speed_profile")]
     let time = Instant::now();
 
-    if let Err(err) = db_service.files_table().upsert_many(&db_file_models).await {
+    if let Err(err) = db_service.files_table().upsert_many(&dtos).await {
         return Err(format!("Error upserting file models: {}", err));
     }
 

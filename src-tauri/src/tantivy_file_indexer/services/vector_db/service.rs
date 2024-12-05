@@ -19,7 +19,7 @@ impl VectorDbService {
         Self { vevtor }
     }
 
-    pub async fn delete_all_collections(&self) -> Result<(),&str> {
+    pub async fn delete_all_collections(&self) -> Result<(), &str> {
         self.vevtor.delete_all_collections().await;
         Ok(())
     }

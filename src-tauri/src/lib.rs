@@ -2,11 +2,11 @@ use directory_nav_service::tauri_exports::*;
 use std::{path::Path, sync::Arc};
 use tantivy_file_indexer::{
     service_container::AppServiceContainer, services::app_save::tauri_exports::*,
-    services::local_crawler::tauri_exports::*, services::local_db::tables::files::tauri_exports::*,
+    services::local_crawler::tauri_exports::*, /*services::local_db::tables::files::tauri_exports::*,*/
     services::local_db::tauri_exports::*, services::search_index::tauri_exports::*,
     services::vector_db::tauri_exports::*,
 };
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 mod directory_nav_service;
 mod shared;
 mod tantivy_file_indexer;
@@ -14,6 +14,7 @@ mod tantivy_file_indexer;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .setup(|app| {
             let app_handle = app.handle().clone();
 
@@ -31,12 +32,17 @@ pub fn run() {
             get_root_path,
             get_parent_directory,
             open_file,
+            read_file_bytes,
+            read_file,
+            read_file_range,
+            read_file_range_bytes,
             is_path_a_file,
             get_drives,
             search_files_inline,
             search_index_query,
+            search_index_query_streaming,
             add_dirs_to_crawler_queue,
-            get_num_stored_files,
+            //get_num_stored_files,
             save_json_local,
             load_json_local,
             vector_db_query,
@@ -49,7 +55,7 @@ pub fn run() {
 }
 
 async fn initialize_app(handle: AppHandle) {
-    let index_files = true;
+    let index_files = false;
 
     let service_container = AppServiceContainer::new_async(&handle).await;
     let crawler_service = Arc::clone(&service_container.crawler_service);
@@ -69,7 +75,7 @@ async fn initialize_app(handle: AppHandle) {
         let index_writer = Arc::clone(&search_service.index_writer);
         let schema = search_service.schema.clone();
         let handles = crawler_service
-            .spawn_indexing_crawlers(index_writer, schema, 128)
+            .spawn_indexing_crawlers_sqlite(index_writer, schema, 128)
             .await;
 
         crawler_service

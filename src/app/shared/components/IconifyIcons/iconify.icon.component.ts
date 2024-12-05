@@ -1,15 +1,19 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { IconService } from './icon.service';
-import { SafeHtmlPipe } from './safehtml.pipe';
+import { Subscription } from 'rxjs';
 
 /**
- * Usage example:
+ * ### Usage example:
  * 
- * `<iconify-icon icon="hardDrive" size="1.2em" color="#fff" />`
+ * ```<iconify-icon icon="hardDrive" size="1.2em" color="#fff" />```
  * 
- * You are also able to pass in a CSS variable for the color:
+ * ### You are also able to pass in a CSS variable for the color:
  * 
- * `<iconify-icon icon="hardDrive" size="1.2em" color="--background-color" />`
+ * ```<iconify-icon icon="hardDrive" size="1.2em" color="--background-color" />```
+ * 
+ * ### To use a linear gradient, you can pass in two colors:
+ * 
+ * ```<iconify-icon icon="hardDrive" size="1.2em" color="--first-color --second-color" />```
  */
 @Component({
     selector: 'iconify-icon',
@@ -17,7 +21,7 @@ import { SafeHtmlPipe } from './safehtml.pipe';
     styles: [],
     providers: [IconService]
 })
-export class IconifyIconComponent implements OnInit, OnChanges {
+export class IconifyIconComponent implements OnInit, OnChanges{
     @Input() icon: string = 'default';
     @Input() size: string | undefined;
     @Input() color: string | undefined;

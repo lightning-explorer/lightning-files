@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { TauriLifecycleService } from '../../core/services/tauri/lifecycle.service';
 
+/** This is the mac traffic light lookin window chrome */
 @Component({
   selector: 'app-window-chrome',
   standalone: true,

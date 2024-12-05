@@ -1,0 +1,44 @@
+.window-chrome {
+    display: flex;
+    align-items: center;
+    -webkit-app-region: drag;
+    margin: 0px;
+    justify-content: space-between;
+}
+
+.window-chrome label {
+    margin-left: 10px;
+    color: var(--font-color);
+}
+
+.buttons{
+    display: flex;
+    margin: 0px;
+    display: flex;
+    height: 30px;
+}
+
+.buttons button {
+    display: flex;
+    font-size: 1.6em;
+    width: 48px;
+    border: none;
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+    align-items: center;
+    justify-content: center;
+    transition: all .1s ease;
+}
+
+.maximize{
+    padding-bottom: 7px;
+}
+
+.maximize:hover, .minimize:hover{
+    background-color: var(--transparent-select-color);
+}
+
+.close:hover{
+    color: white;
+    background-color: red;
+}

@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { ModalPopupComponent } from "../../../../../shared/components/modal-popup/modal-popup.component";
-import { ButtonModel } from '../../../../../shared/components/modal-popup/models/ButtonModel';
-import { RadioButtonComponent } from "../../../../../shared/components/radio-button/radio-button.component";
-import { RadioButtonModel } from '../../../../../shared/components/modal-popup/models/RadioButtonModel';
+import { ModalPopupComponent } from "../../../../../shared/components/popups/modal-popup/modal-popup.component";
+import { ButtonModel } from '../../../../../shared/components/popups/modal-popup/models/ButtonModel';
+import { RadioButtonComponent } from "../../../../../shared/components/buttons/radio-button/radio-button.component";
+import { RadioButtonModel } from '../../../../../shared/components/popups/modal-popup/models/RadioButtonModel';
 import { PersistentConfigService } from '../../../../../core/services/persistence/config.service';
 import { BehaviorSubject } from 'rxjs';
 
@@ -20,10 +20,10 @@ export class MoveItemsPopupComponent {
   pathFrom = "test";
   destPath = "test";
 
-  private get dontAskAgain():boolean{
+  private get dontAskAgain(): boolean {
     return this.config.read("moveItemsDontAskAgain");
   }
-  private set dontAskAgain(val:boolean){
+  private set dontAskAgain(val: boolean) {
     this.config.update("moveItemsDontAskAgain", val);
   }
 

@@ -1,3 +1,5 @@
+use crate::FilesDisplayState;
+
 use super::services::{
     app_save::service::{AppSavePath, AppSaveService},
     local_crawler::{analyzer::service::FileCrawlerAnalyzerService, service::FileCrawlerService},
@@ -8,10 +10,6 @@ use super::services::{
 use std::{path::PathBuf, sync::Arc};
 
 use tauri::{AppHandle, Manager};
-use tokio::sync::RwLock;
-
-use crate::FilesDisplayState;
-
 pub struct AppServiceContainer {
     pub search_service: Arc<SearchIndexService>,
     pub local_db_service: Arc<LocalDbService>,
@@ -24,15 +22,11 @@ impl AppServiceContainer {
         let app_name = "DesktopSearch";
 
         // Ensure that the app service is initialized before the rest to ensure that the AppData save path is created
-        let app_save_service = Self::initialize_app_save_service(
-            AppSavePath::Other(PathBuf::from("D:\\DesktopSearch")),
-            app_name,
-        );
+        let app_save_service = Self::initialize_app_save_service(AppSavePath::AppData, app_name);
         let app_path = app_save_service.save_dir.clone();
 
         let vector_db_service = Self::initialize_vector_service();
-        let search_service =
-            Self::initialize_search_service(50_000_000, app_path, &vector_db_service);
+        let search_service = Self::initialize_search_service(50_000_000, app_path, handle);
 
         // TODO: Remove this:
         vector_db_service.delete_all_collections().await;
@@ -42,8 +36,12 @@ impl AppServiceContainer {
         // TODO: Attach the analyzer to the crawling operation
         let crawler_analyzer_service = Self::initialize_crawler_analyzer_service(15);
 
-        let crawler_service =
-            Self::initialize_crawler_service(8, Arc::clone(&local_db_service)).await;
+        let crawler_service = Self::initialize_crawler_service(
+            8,
+            Arc::clone(&local_db_service),
+            Arc::clone(&search_service),
+        )
+        .await;
 
         handle.manage(Arc::new(FilesDisplayState::new()));
         handle.manage(Arc::clone(&search_service));
@@ -65,14 +63,9 @@ impl AppServiceContainer {
     fn initialize_search_service(
         buffer_size: usize,
         app_path: PathBuf,
-        vector_db_service: &Arc<VectorDbService>,
+        app_handle: &AppHandle,
     ) -> Arc<SearchIndexService> {
-        let vector_db_clone = Arc::clone(vector_db_service);
-        Arc::new(SearchIndexService::new(
-            buffer_size,
-            app_path,
-            vector_db_clone,
-        ))
+        Arc::new(SearchIndexService::new(buffer_size, app_path, app_handle))
     }
 
     fn initialize_app_save_service(save_dir: AppSavePath, app_name: &str) -> Arc<AppSaveService> {
@@ -92,8 +85,9 @@ impl AppServiceContainer {
     async fn initialize_crawler_service(
         max_concurrent: usize,
         db_service: Arc<LocalDbService>,
+        search_service: Arc<SearchIndexService>,
     ) -> Arc<FileCrawlerService> {
-        Arc::new(FileCrawlerService::new_async(max_concurrent, db_service).await)
+        Arc::new(FileCrawlerService::new_async(max_concurrent, db_service, search_service).await)
     }
 
     fn initialize_crawler_analyzer_service(analyze_every: u64) -> Arc<FileCrawlerAnalyzerService> {
