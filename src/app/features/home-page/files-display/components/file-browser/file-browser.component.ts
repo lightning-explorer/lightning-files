@@ -36,11 +36,10 @@ import { debounceTime, Subject, Subscription, tap } from 'rxjs';
     ])
   ]
 })
-export class FileBrowserComponent implements OnInit, OnChanges, AfterViewChecked, OnDestroy {
+export class FileBrowserComponent implements OnInit, OnChanges, OnDestroy {
   subscription = new Subscription();
   @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
   // Ensures that the virtual scroller renders correctly and is refreshes to compensate
-  private viewportRefreshCheckerSubject = new Subject<void>();
 
   @ViewChild('dragPreview') dragPreview!: ElementRef;
   @ViewChild('moveItemsPopup') moveItemsPopup!: MoveItemsPopupComponent;
@@ -68,33 +67,28 @@ export class FileBrowserComponent implements OnInit, OnChanges, AfterViewChecked
   ) { }
 
   ngOnInit(): void {
+
     this.subscription.add(this.inlineSearchService.firstOccurenceOfQueryIndex$.subscribe(x =>
       this.inlineSearchToFirstOccurence(x)
     ));
+
     this.subscription.add(this.directoryService.currentDir$.subscribe(x => {
       this.selectService.clearSelection();
       this.currentDirectory = x
     }));
-    this.subscription.add(this.viewportRefreshCheckerSubject.pipe(
-      debounceTime(1000),
-      tap(() => {
-        const renderedItems = document.querySelectorAll('.item');
-        if (renderedItems.length < this.files.length) {
-          this.viewport.checkViewportSize();
-        }
-        console.warn("Re-rendered cdk viewport");
-      })
-    ).subscribe());
+
+    // Ensure that the CDK viewport renders correctly on startup
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => this.viewport.checkViewportSize(), 200 * (i + 1));
+    }
+
+    this.hideAndFadeIn();
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['files']) {
       this.hideAndFadeIn();
     }
-  }
-
-  ngAfterViewChecked(): void {
-    this.viewportRefreshCheckerSubject.next();
   }
 
   ngOnDestroy(): void {
@@ -105,8 +99,8 @@ export class FileBrowserComponent implements OnInit, OnChanges, AfterViewChecked
     this.animationState = 'hidden';
 
     setTimeout(() => {
-      this.viewport.checkViewportSize();
       this.animationState = 'visible';
+      this.viewport?.checkViewportSize();
     }, 100); // Match this to the duration of the hide animation
   }
 

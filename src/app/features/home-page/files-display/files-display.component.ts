@@ -35,7 +35,6 @@ export class FilesDisplayComponent implements OnDestroy {
   ngOnInit(): void {
     this.directoryService.setDriveFiles();
 
-    // TODO: remove. This is to test loading
     this.subscription.add(this.directoryService.isLoading$.subscribe(loading =>
       this.loadingFiles = loading
     ));

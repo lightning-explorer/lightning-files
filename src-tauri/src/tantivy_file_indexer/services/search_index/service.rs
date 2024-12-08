@@ -4,7 +4,7 @@ use crate::tantivy_file_indexer::{
 };
 
 use super::{
-    core::{querier, tantivy_setup},
+    core::{query::querier, tantivy_setup},
     files_collection::TantivyFilesCollection,
     services::task_manager::TaskManagerService,
 };
@@ -12,10 +12,7 @@ use std::{path::PathBuf, sync::Arc};
 use tantivy::{schema::Schema, IndexReader, IndexWriter};
 
 use tauri::{AppHandle, Manager};
-use tokio::{
-    sync::{mpsc, Mutex},
-    task::JoinHandle,
-};
+use tokio::{sync::Mutex, task::JoinHandle};
 
 pub struct SearchIndexService {
     pub schema: Schema,

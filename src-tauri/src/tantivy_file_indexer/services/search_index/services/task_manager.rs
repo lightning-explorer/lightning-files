@@ -1,16 +1,13 @@
-use tokio::{
-    sync::{watch, RwLock},
-    task::JoinHandle,
-};
+use crate::tantivy_file_indexer::shared::cancel_task::CancellableTask;
 
 pub struct TaskManagerService {
-    pub current_task: RwLock<Option<(watch::Sender<()>, JoinHandle<()>)>>,
+    pub task: CancellableTask,
 }
 
 impl TaskManagerService {
     pub fn new() -> Self {
         Self {
-            current_task: RwLock::new(None),
+            task: CancellableTask::new(),
         }
     }
 }

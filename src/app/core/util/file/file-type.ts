@@ -1,5 +1,4 @@
 import { invoke } from '@tauri-apps/api/core';
-import { readFile } from '@tauri-apps/plugin-fs';
 import { fileTypeFromBuffer } from 'file-type';
 
 export async function detectFileType(filePath: string): Promise<string | undefined> {

@@ -1,6 +1,9 @@
 mod core {
-    pub mod querier;
     pub mod tantivy_setup;
+    pub mod query{
+        pub mod querier;
+        pub mod constructor;
+    }
 }
 mod schemas {
     pub mod file_schema;
