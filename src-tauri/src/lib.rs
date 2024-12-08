@@ -41,11 +41,11 @@ pub fn run() {
             search_files_inline,
             search_index_query,
             search_index_query_streaming,
-            add_dirs_to_crawler_queue,
             //get_num_stored_files,
             save_json_local,
             load_json_local,
-            vector_db_query,
+            //vector_db_query,
+            add_dirs_to_crawler_queue,
             view_crawler_queue,
             view_crawler_priority_counts,
             get_crawler_analyzer_data

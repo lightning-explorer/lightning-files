@@ -1,8 +1,6 @@
 
 import { Injectable, OnDestroy, OnInit } from "@angular/core";
 import { BehaviorSubject, Subscription } from "rxjs";
-import { DriveModel } from "../../models/drive-model";
-import { invoke } from "@tauri-apps/api/core";
 import { FileModel } from "../../models/file-model";
 import { PersistentConfigService } from "../persistence/config.service";
 

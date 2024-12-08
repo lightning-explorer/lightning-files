@@ -2,8 +2,6 @@ import { Injectable } from "@angular/core";
 import { PersistentConfigService } from "../persistence/config.service";
 import { listen } from "@tauri-apps/api/event";
 
-
-
 @Injectable({ 'providedIn': 'root' })
 export class TauriLifecycleService {
     constructor(private configService: PersistentConfigService) { }

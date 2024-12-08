@@ -1,15 +1,17 @@
 import { Injectable, input } from "@angular/core";
 import { InlineQueryDTO } from "../../../dtos/output/inline-query-dto";
-import { invoke } from "@tauri-apps/api/core";
 import { FileModel } from "../../../models/file-model";
 import { filterAlphanumeric } from "../../../../shared/services/keyboard-press-filter";
 import { BehaviorSubject, Observable } from "rxjs";
+import { TauriCommandsService } from "../../tauri/commands.service";
 
 /**
  Calls the Rust backend to handle the query operation
  */
 @Injectable({ 'providedIn': 'root' })
 export class InlineSearchService {
+
+    constructor(private commandsService:TauriCommandsService){}
 
     private searchQuerySubject = new BehaviorSubject<string>("");
     searchQuery$ = this.searchQuerySubject.asObservable();
@@ -68,10 +70,6 @@ export class InlineSearchService {
     }
 
     private async query(query: InlineQueryDTO): Promise<FileModel[]> {
-        return invoke<FileModel[]>("search_files_inline", {
-            query
-        }).then(result =>
-            result
-        )
+        return await this.commandsService.searchFilesInline(query);
     }
 }

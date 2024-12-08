@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
-import { invoke } from "@tauri-apps/api/core";
 import { BehaviorSubject } from "rxjs";
 import { ConfigKeys, getDefaultConfig } from "./config-keys";
+import { TauriCommandsService } from "../tauri/commands.service";
 
 @Injectable({ 'providedIn': 'root' })
 export class PersistentConfigService {
@@ -10,27 +10,21 @@ export class PersistentConfigService {
     private configSubject = new BehaviorSubject<ConfigKeys>(getDefaultConfig());
     public config$ = this.configSubject.asObservable();
 
+    constructor(private commandsService: TauriCommandsService) { }
+
     /** Save the config  to disk */
     async save(): Promise<boolean> {
-        await invoke<void>("save_json_local", {
-            data: this.configSubject.getValue(),
-            name: this.configFileName
-        }).catch(x => {
-            console.log(`error saving to JSON: ${x}`);
-            return false;
-        })
-
-        return true;
+        return await this.commandsService.saveJsonLocal(this.configSubject.getValue(), this.configFileName);
     }
 
     /** Load the config from disk */
     async load(): Promise<boolean> {
-        const config = await invoke<ConfigKeys>("load_json_local", {
-            name: this.configFileName
-        }).catch(x => {
-            console.log(`error loading from JSON: ${x}`);
-            return undefined;
-        })
+        const config = await this.commandsService.loadJsonLocal<ConfigKeys>(this.configFileName).catch(
+            err => {
+                console.log(`error loading config: ${err}`);
+                return undefined;
+            }
+        );
         if (config) {
             this.configSubject.next(config);
             return true;

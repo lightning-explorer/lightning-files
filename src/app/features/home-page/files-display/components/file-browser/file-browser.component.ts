@@ -77,11 +77,6 @@ export class FileBrowserComponent implements OnInit, OnChanges, OnDestroy {
       this.currentDirectory = x
     }));
 
-    // Ensure that the CDK viewport renders correctly on startup
-    for (let i = 0; i < 5; i++) {
-      setTimeout(() => this.viewport.checkViewportSize(), 200 * (i + 1));
-    }
-
     this.hideAndFadeIn();
   }
 
@@ -102,6 +97,11 @@ export class FileBrowserComponent implements OnInit, OnChanges, OnDestroy {
       this.animationState = 'visible';
       this.viewport?.checkViewportSize();
     }, 100); // Match this to the duration of the hide animation
+
+    // Ensure that the CDK viewport renders correctly
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => this.viewport.checkViewportSize(), 200 * (i + 1));
+    }
   }
 
   // scroll to the first occurence of a file/directory with offset
