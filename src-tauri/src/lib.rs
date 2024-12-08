@@ -6,16 +6,27 @@ use tantivy_file_indexer::{
     services::local_db::tauri_exports::*, services::search_index::tauri_exports::*,
     services::vector_db::tauri_exports::*,
 };
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 mod directory_nav_service;
 mod shared;
 mod tantivy_file_indexer;
+use window_vibrancy::{apply_acrylic, apply_blur, apply_vibrancy};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .setup(|app| {
+            // let window = app.get_webview_window("main").unwrap();
+
+            // #[cfg(target_os = "macos")]
+            // apply_vibrancy(&window, NSVisualEffectMaterial::HudWindow, None, None)
+            //     .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
+
+            // #[cfg(target_os = "windows")]
+            // apply_acrylic(&window, Some((18, 18, 18, 125)))
+            //     .expect("Unsupported platform! 'apply_blur' is only supported on Windows");
+
             let app_handle = app.handle().clone();
 
             tauri::async_runtime::spawn(async move {

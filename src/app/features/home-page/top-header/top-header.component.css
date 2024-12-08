@@ -7,6 +7,7 @@
     height: 2em;
     width: 100%;
     flex-direction: row;
+    color: var(--primary);
 }
 
 .heading button {
@@ -20,6 +21,6 @@
 
 .heading button:hover {
     letter-spacing: 3px;
-    background-color: var(--transparent-select-color);
-    color: var(--secondary-color);
+    background-color: var(--select-transparent);
+    color: var(--text-primary);
 }

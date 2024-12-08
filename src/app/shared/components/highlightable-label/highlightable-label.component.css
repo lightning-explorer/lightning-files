@@ -1,9 +1,9 @@
 label{
-    color: var(--contrast-color);
+    color: var(--text-primary);
     pointer-events: none;
 }
 
 label .highlight{
-    color: var(--contrast-color);
-    background-color: var(--fourth-color);
+    color: var(--text-primary);
+    background-color: var(--primary);
 }

@@ -1,23 +1,51 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");
+@font-face {
+  font-family: "Jaro";
+  src: url("./assets/fonts/Jaro-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "REM";
+  src: url("./assets/fonts/REM-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("./assets/fonts/Poppins-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("./assets/fonts/Poppins-SemiBold.ttf") format("truetype");
+  font-weight: bold;
+  font-style: normal;
+}
 
 :root {
   margin: 0px;
-  --background-color: #121212;
-  --background-transparent: #33333389;
-  --background-secondary: #333333;
-  --background-darker: #252525;
-  --background-ambient: #231c2c;
-  --primary-color: #1b1b1b;
-  --primary-darker: #37345a;
-  --contrast-color: #ffffff;
-  --font-color: #3d7bff;
-  --secondary-color: #3478ff;
-  --secondary-color-contrast: #ffffff;
-  --selected-color: #82c2ff;
-  --third-color: #b38bff;
-  --fourth-color: #34aeff;
-  --icon-color: #fef6ff;
-  --transparent-select-color: #3149ff9a;
+  --bg-primary: #1d1a2f;
+  --bg-dark: #13121c;
+  --bg-transparent: #1d1a2f89;
+
+  --input: #2d2c31;
+
+  --bg-grad1: #281c30;
+  --bg-grad2: #1d171ffb;
+
+  --primary: #ff2050;
+  --primary-light: #ff5096;
+
+  --text-primary: #ffffff;
+  --text-muted: #c4c4c4;
+
+  --icon: #ffffff;
+
+  --select-transparent: #d0aaff71;
 }
 
 .light-theme {
@@ -39,15 +67,15 @@
   --transparent-select-color: #7fddff9a;
 }
 
-body,
 html {
   background: radial-gradient(
     circle at 100% 107%,
-    var(--background-color) 0%,
-    var(--background-transparent) 30%,
-    var(--background-ambient) 60%,
-    var(--background-transparent) 100%
+    var(--bg-primary) 0%,
+    var(--bg-grad1) 30%,
+    var(--bg-grad2) 60%,
+    var(--bg-primary) 100%
   );
+  backdrop-filter: blur(10px);
   width: 100%;
   height: 100%;
   margin: 0px;

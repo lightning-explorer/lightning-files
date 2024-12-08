@@ -11,24 +11,24 @@
   }
   
   .folder .top {
-    background-color: var(--secondary-color);
+    background-color: var(--primary);
     width: 60px;
     height: 12px;
     border-top-right-radius: 10px;
   }
   
   .folder .bottom {
-    background-color: var(--fourth-color);
+    background-color: var(--primary-light);
     width: 100px;
     height: 70px;
-    box-shadow: 5px 5px 0 0 #4c4c4c81;
+    box-shadow: 5px 5px 0 0 #00000064;
     border-top-right-radius: 8px;
   }
   
   .container .title {
     font-family: "Poppins";
     font-size: .9em;
-    color: var(--contrast-color);
+    color: var(--text-muted);
     text-align: center;
     margin-top: 15px;
   }

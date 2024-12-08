@@ -2,9 +2,7 @@ import { CommonModule } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DirectoryNavigatorService } from '../../../../core/services/files/directory-navigator/directory-navigator.service';
-import { debounceTime, Subscription } from 'rxjs';
-import { truncateText } from '../../../../core/util/text-truncator';
-import { simplifyPath } from './util/overflow-checker';
+import { Subscription } from 'rxjs';
 import { BreadcrumbModel } from './models/breadcrumb-model';
 
 @Component({

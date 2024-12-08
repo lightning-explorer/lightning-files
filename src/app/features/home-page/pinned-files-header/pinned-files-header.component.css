@@ -5,7 +5,7 @@
     padding: .2em;
     padding-left: 1em;
     gap: .3em;
-
+    margin: .2em;
     align-items: center;
 }
 
@@ -19,7 +19,7 @@
     display: flex;
     font-family: "Fredoka";
     font-size: 1em;
-    background-color: var(--background-color);
+    background-color: var(--bg-primary);
     border: 0px;
     padding: .2em;
     padding-left: .5em;
@@ -34,7 +34,7 @@
 label {
     text-wrap: nowrap;
     pointer-events: none;
-    color: var(--contrast-color);
+    color: var(--text-primary);
 }
 
 button {
@@ -42,7 +42,7 @@ button {
 }
 
 button:hover {
-    background-color: var(--fourth-color);
+    background-color: var(--select-transparent);
 }
 
 .file-container {
@@ -53,16 +53,16 @@ button:hover {
 
 .tooltiptext {
     position: absolute;
-    z-index: 321222234;
+    z-index: 321;
     top: 120%;
     left: 50%;
     transform: translateX(-50%);
     padding: 0.3em 0.6em;
     opacity: 0;
     pointer-events: none;
-    background: var(--background-color);
+    background: var(--bg-primary);
     border-radius: 8px;
-    color: var(--fourth-color);
+    color: var(--primary);
     font-weight: 400;
     font-size: .8em;
     box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;

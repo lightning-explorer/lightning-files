@@ -6,7 +6,7 @@
             <button class="file" (click)="onFileClick(file)" (contextmenu)="onFileRightClick($event,file)">
 
                 <span class="pin">
-                    <iconify-icon icon="pin" size="1.2em" color="--contrast-color" />
+                    <iconify-icon icon="pin" size="1.2em" color="--text-primary" />
                     <label>{{processFilename(file.Name)}}</label>
                 </span>
 
@@ -15,7 +15,7 @@
                 </div>
 
                 <ng-template #elseBlock class="icon">
-                    <iconify-icon [icon]="getIcon(file)" color="--contrast-color" size="1.2em" />
+                    <iconify-icon [icon]="getIcon(file)" color="--text-primary" size="1.2em" />
                 </ng-template>
 
             </button>

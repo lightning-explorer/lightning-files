@@ -1,5 +1,4 @@
 import { Component, OnDestroy } from '@angular/core';
-import { ButtonWIconComponent } from "../../../shared/components/buttons/button-w-icon/button-w-icon.component";
 import { DriveService } from '../../../core/services/files/drive.service';
 import { DriveModel } from '../../../core/models/drive-model';
 import { CommonModule } from '@angular/common';

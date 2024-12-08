@@ -5,15 +5,19 @@
     flex: 1;
 }
 
+.app-name {
+    font-family: "Jaro";
+    color: var(--primary);
+    font-size: 1.4em;
+}
+
 .content {
     display: flex;
     flex-direction: column;
     min-width: 10em;
     max-width: 15em;
-    background-color: var(--background-transparent);
+    background-color: var(--bg-dark);
     padding: 1em;
-    border-radius: 20px;
-    margin-bottom: 1em;
     justify-content: space-between;
 }
 
@@ -21,8 +25,7 @@
     display: flex;
     height: 100%;
     overflow-y: auto;
-    padding-left: 1em;
-    padding-right: 1em;
+    overflow-x: hidden;
 }
 
 .divider {

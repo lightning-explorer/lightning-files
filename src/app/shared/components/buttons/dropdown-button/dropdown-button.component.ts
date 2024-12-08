@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { IconifyIconModule } from "../../IconifyIcons/icon.module";
 import { animate, state, style, transition, trigger } from '@angular/animations';
 
@@ -18,32 +18,32 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
     ]),
   ],
 })
-export class DropdownButtonComponent implements OnInit{
+export class DropdownButtonComponent implements OnInit {
   @Input() text = "";
-  @Input() onClick:(()=>void)|undefined;
-  @Input() icon:string|undefined;
-  @Input() iconColor:string|undefined;
+  @Input() onClick: (() => void) | undefined;
+  @Input() icon: string | undefined;
+  @Input() iconColor: string | undefined;
   @Input() expanded = false;
 
   dropDownIcon = "dropDown";
-  dropdownColor = "--secondary-color";
+  dropdownColor = "--text-primary";
 
   ngOnInit(): void {
-    if(this.expanded){
+    if (this.expanded) {
       this.dropDownIcon = "dropUp";
     }
   }
-  
+
   onDropdownClick() {
     this.expanded = !this.expanded;
     this.dropDownIcon = this.expanded ? "dropUp" : "dropDown";
   }
 
   dropdownHoverEnter() {
-    this.dropdownColor = "--contrast-color";
+    this.dropdownColor = "--primary";
   }
 
   dropdownHoverExit() {
-    this.dropdownColor = "--secondary-color";
+    this.dropdownColor = "--text-primary";
   }
 }

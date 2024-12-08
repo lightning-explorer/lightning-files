@@ -1,10 +1,12 @@
 <div class="content">
+    <p class="app-name">FILE EXPLORER 2
+    </p>
 
     <div class="top">
         <div class="scroll-region">
 
-            <app-dropdown-button text="Drives" [onClick]="drivesButtonClick" icon="hardDisk"
-                iconColor="--secondary-color --fourth-color" [expanded]="true">
+            <app-dropdown-button text="DRIVES" [onClick]="drivesButtonClick" icon="hardDisk"
+                iconColor="--primary --primary-light" [expanded]="true">
                 <div *ngFor="let drive of drives">
                     <app-drive-result [drive]="drive" />
                 </div>
