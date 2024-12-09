@@ -22,16 +22,13 @@ import { PinnedFilesHeaderComponent } from "./pinned-files-header/pinned-files-h
   providers: []
 })
 export class HomePageComponent implements OnInit {
-
-
-  constructor(
+ 
+  constructor( 
 
   ) { }
 
   ngOnInit(): void {
 
   }
-
-
 
 }

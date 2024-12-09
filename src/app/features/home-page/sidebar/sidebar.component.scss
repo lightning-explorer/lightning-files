@@ -9,16 +9,18 @@
     font-family: "Jaro";
     color: var(--primary);
     font-size: 1.4em;
+    text-wrap: nowrap;
 }
 
 .content {
     display: flex;
+    position: relative;
     flex-direction: column;
-    min-width: 10em;
-    max-width: 15em;
+    width: 200px;
     background-color: var(--bg-dark);
     padding: 1em;
-    justify-content: space-between;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .top {

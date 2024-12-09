@@ -47,8 +47,6 @@ rand = "0.8.5"
 rand_chacha = "0.3"
 sqlx = { version = "0.8.2", features = ["sqlite" ] }
 vevtor = "0.1.0"
-tauri-plugin-fs = "2"
-window-vibrancy = "0.5.2"
 
 [package.metadata.tauri.windows]
 requiresAdmin = true
