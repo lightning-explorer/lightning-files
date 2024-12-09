@@ -1,16 +1,13 @@
 import { Component, OnDestroy, ViewChild } from '@angular/core';
-import { PinService } from '../../../core/services/files/pin.service';
-import { FileModel } from '../../../core/models/file-model';
+import { PinService } from '@core/services/files/pin.service';
+import { FileModel } from '@core/models/file-model';
 import { CommonModule } from '@angular/common';
-import { FileResultComponent } from "../file-result/file-result.component";
-import { DirectoryNavigatorService } from '../../../core/services/files/directory-navigator/directory-navigator.service';
-import { CssVarToHexService } from '../../../core/services/misc/css-var-to-hex.service';
-import { getIconFromPath } from '../../../core/util/get-icon-from-path';
-import { IconifyIconModule } from '../../../shared/components/IconifyIcons/icon.module';
-import { truncateText } from '../../../core/util/text-truncator';
-import { SelectService } from '../files-display/components/file-browser/services/select.service';
-import { ContextMenuComponent } from "../../../shared/components/popups/context-menu/context-menu.component";
-import { FileContextMenuService } from '../files-display/components/file-browser/services/context-menu.service';
+import { getIconFromPath } from '@core/util/get-icon-from-path';
+import { IconifyIconModule } from '@shared/components/IconifyIcons/icon.module';
+import { truncateText } from '@core/util/text-truncator';
+import { SelectService } from '../files-display/components/file-browser/services/interaction/select.service';
+import { ContextMenuComponent } from "@shared/components/popups/context-menu/context-menu.component";
+import { FileContextMenuService } from '../files-display/components/file-browser/services/interaction/context-menu.service';
 import { Subscription } from 'rxjs';
 
 @Component({

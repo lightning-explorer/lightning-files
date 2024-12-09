@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { FileModel } from '../../../../../../core/models/file-model';
-import { DirectoryNavigatorService } from '../../../../../../core/services/files/directory-navigator/directory-navigator.service';
-import { FileCrawlerService } from '../../../../../../core/services/files/file_crawler.service';
-import { isPathAFile } from '../../../../../../core/util/file/general';
+import { FileModel } from '@core/models/file-model';
+import { DirectoryNavigatorService } from '@core/services/files/directory-navigator/directory-navigator.service';
+import { FileCrawlerService } from '@core/services/files/file_crawler.service';
+import { isPathAFile } from '@core/util/file/general';
 
 @Injectable()
 /**

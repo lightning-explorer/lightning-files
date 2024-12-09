@@ -1,9 +1,9 @@
 import { Component, HostListener, OnDestroy } from "@angular/core";
 import { FileBrowserComponent } from "./components/file-browser/file-browser.component";
-import { DirectoryNavigatorService } from "../../../core/services/files/directory-navigator/directory-navigator.service";
-import { InlineSearchService } from "../../../core/services/search/text/inline-search.service";
+import { DirectoryNavigatorService } from "@core/services/files/directory-navigator/directory-navigator.service";
+import { InlineSearchService } from "@core/services/search/text/inline-search.service";
 import { FormControl } from "@angular/forms";
-import { FileModel } from "../../../core/models/file-model";
+import { FileModel } from "@core/models/file-model";
 import { FilePreviewComponent } from "./components/file-preview/file-preview.component";
 import { Subscription } from "rxjs";
 

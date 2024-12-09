@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { ContextMenuComponent } from '../../../../../../shared/components/popups/context-menu/context-menu.component';
-import { ContextMenuButton } from '../../../../../../shared/components/popups/context-menu/models/ContextMenuButton';
-import { FileModel } from '../../../../../../core/models/file-model';
-import { PinService } from '../../../../../../core/services/files/pin.service';
+import { ContextMenuComponent } from '@shared/components/popups/context-menu/context-menu.component';
+import { FileModel } from '@core/models/file-model';
+import { PinService } from '@core/services/files/pin.service';
 
 @Injectable()
 export class FileContextMenuService {

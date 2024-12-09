@@ -1,10 +1,10 @@
 import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { getFileExtension } from '../../../../../core/util/file/get-extension';
-import { detectFileType, isFileBinary } from '../../../../../core/util/file/file-type';
-import { readFileContents, readFileRange } from '../../../../../core/util/file/read';
+import { getFileExtension } from '@core/util/file/get-extension';
+import { detectFileType, isFileBinary } from '@core/util/file/file-type';
+import { readFileContents, readFileRange } from '@core/util/file/read';
 import { CommonModule } from '@angular/common';
 import { ExtendBarComponent } from "./extend-bar/extend-bar.component";
-import { isPathAFile } from '../../../../../core/util/file/general';
+import { isPathAFile } from '@core/util/file/general';
 import { Subscription } from 'rxjs';
 
 @Component({

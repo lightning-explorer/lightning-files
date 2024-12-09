@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { ModalPopupComponent } from "../../../../../shared/components/popups/modal-popup/modal-popup.component";
-import { ButtonModel } from '../../../../../shared/components/popups/modal-popup/models/ButtonModel';
-import { RadioButtonComponent } from "../../../../../shared/components/buttons/radio-button/radio-button.component";
-import { RadioButtonModel } from '../../../../../shared/components/popups/modal-popup/models/RadioButtonModel';
-import { PersistentConfigService } from '../../../../../core/services/persistence/config.service';
+import { ModalPopupComponent } from "@shared/components/popups/modal-popup/modal-popup.component";
+import { ButtonModel } from '@shared/components/popups/modal-popup/models/ButtonModel';
+import { RadioButtonComponent } from "@shared/components/buttons/radio-button/radio-button.component";
+import { RadioButtonModel } from '@shared/components/popups/modal-popup/models/RadioButtonModel';
+import { PersistentConfigService } from '@core/services/persistence/config.service';
 import { BehaviorSubject } from 'rxjs';
 
 @Component({
