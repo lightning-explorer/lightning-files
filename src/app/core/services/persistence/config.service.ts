@@ -14,11 +14,13 @@ export class PersistentConfigService {
 
     /** Save the config  to disk */
     async save(): Promise<boolean> {
-        return await this.commandsService.saveJsonLocal(this.configSubject.getValue(), this.configFileName);
+        const result = await this.commandsService.saveJsonLocal(this.configSubject.getValue(), this.configFileName);
+        return result;
     }
 
     /** Load the config from disk */
     async load(): Promise<boolean> {
+        console.log("Attempting to load JSON config from disk");
         const config = await this.commandsService.loadJsonLocal<ConfigKeys>(this.configFileName).catch(
             err => {
                 console.log(`error loading config: ${err}`);

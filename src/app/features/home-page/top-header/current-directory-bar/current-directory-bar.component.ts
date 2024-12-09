@@ -12,7 +12,7 @@ import { BreadcrumbModel } from './models/breadcrumb-model';
   templateUrl: './current-directory-bar.component.html',
   styleUrl: './current-directory-bar.component.scss'
 })
-export class CurrentDirectoryBarComponent implements AfterViewInit, OnInit, OnDestroy {
+export class CurrentDirectoryBarComponent implements AfterViewInit, OnDestroy {
   subscription = new Subscription();
 
   @ViewChild('textInput') textInput!: ElementRef;
@@ -26,11 +26,8 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnInit, OnDe
 
   constructor(private directoryService: DirectoryNavigatorService, private cdr: ChangeDetectorRef) { }
 
-  ngOnInit(): void {
-    this.updateVisibleDirectories();
-  }
-
   ngAfterViewInit(): void {
+    this.updateVisibleDirectories();
     this.subscription.add(this.directoryService.currentDir$.subscribe(x => {
       this.directory = x;
       this.updateVisibleDirectories();
@@ -75,8 +72,10 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnInit, OnDe
     let dirBuilder: string = "";
     this.visibleDirectories.length = 0;
     parts.forEach(x => {
-      dirBuilder += `${x}\\`;
-      this.visibleDirectories.push({ fullPath: dirBuilder, section: x });
+      if (x != "") {
+        dirBuilder += `${x}\\`;
+        this.visibleDirectories.push({ fullPath: dirBuilder, section: x });
+      }
     });
 
     this.cdr.detectChanges();

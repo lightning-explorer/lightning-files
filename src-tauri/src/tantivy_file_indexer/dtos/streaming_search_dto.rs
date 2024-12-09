@@ -1,6 +1,4 @@
 use serde::{Deserialize, Serialize};
-use tantivy::time::OffsetDateTime;
-use vevtor::qdrant_client::qdrant::SearchParams;
 
 use super::search_params_dto::SearchParamsDTO;
 

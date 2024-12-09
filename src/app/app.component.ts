@@ -22,7 +22,7 @@ export class AppComponent implements OnInit {
 
   async ngOnInit() {
     //this.themeService.setTheme('light-theme');
-    //await this.lifecycleService.onStartup();
+    await this.lifecycleService.onStartup();
   }
 
 }

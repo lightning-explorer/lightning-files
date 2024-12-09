@@ -7,14 +7,33 @@ export class TauriLifecycleService {
     constructor(private configService: PersistentConfigService) { }
 
     async onStartup() {
-        await listen<void>("tauri://init", () => {
-            console.log("tauri://init has been emitting. Frontend is intializing.")
-            this.configService.load();
+        //this.configService.load();
+        if (localStorage.getItem("APP_INITIALIZED") == "true") {
+            this.initializeApp();
+        }
+        await listen<void>("READY", () => {
+            console.log("READY has bee emit. Frontend is intializing.")
+            this.initializeApp();
+            localStorage.setItem("APP_INITIALIZED", "true");
         });
     }
 
     async onShutdown() {
         console.log("OnShutdown called");
+        this.uninitializeApp();
+    }
+
+    /**
+     Put app-specific logic in here
+     */
+    async initializeApp() {
+        this.configService.load();
+    }
+
+    /**
+     Put app-specific logic in here
+     */
+    async uninitializeApp() {
         this.configService.save();
     }
 }
