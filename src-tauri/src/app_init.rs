@@ -9,7 +9,6 @@ use crate::tantivy_file_indexer::service_container::AppServiceContainer;
 named <b>READY</b> telling it that it is ready and should be allowed to call commands.
 */
 pub async fn initialize_app(handle: AppHandle) {
-    println!("Initializing app");
     let index_files = false;
 
     let service_container = AppServiceContainer::new_async(&handle).await;
@@ -19,7 +18,7 @@ pub async fn initialize_app(handle: AppHandle) {
     //let db_service = Arc::clone(&service_container.local_db_service);
 
     handle
-        .emit("READY", true)
+        .emit("READY", true) 
         .expect("Could not emit READY event to tell frontend that the backend is ready");
     if index_files {
         // Old file crawlers + indexers:

@@ -9,7 +9,7 @@ export class TauriLifecycleService {
     async onStartup() {
         //this.configService.load();
         if (localStorage.getItem("APP_INITIALIZED") == "true") {
-            this.initializeApp();
+            //this.initializeApp();
         }
         await listen<void>("READY", () => {
             console.log("READY has bee emit. Frontend is intializing.")
