@@ -10,6 +10,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { TopHeaderComponent } from "./top-header/top-header.component";
 import { PinnedFilesHeaderComponent } from "./pinned-files-header/pinned-files-header.component";
 
+// Home page has multiple subpages:
+// * File browser
+// * Extended search
+
 // TODO:
 // put search bar in Shared and then make a simpler one in features to manage its own state
 
@@ -22,8 +26,8 @@ import { PinnedFilesHeaderComponent } from "./pinned-files-header/pinned-files-h
   providers: []
 })
 export class HomePageComponent implements OnInit {
- 
-  constructor( 
+
+  constructor(
 
   ) { }
 
