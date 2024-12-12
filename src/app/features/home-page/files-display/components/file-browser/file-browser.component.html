@@ -1,25 +1,33 @@
 <div class="content" [@fadeAnimation]="animationState">
-    <app-inline-search-bar />
+    <div *ngIf="currentDirectoryMetadata?.isAccessible; else isInaccessible" class="content">
+        <app-inline-search-bar />
 
-    <div *ngIf="files.length==0; else elseBlock" class="no-files">
-        <app-folder-loader *ngIf="isLoading; else emptyLabel" />
-        <ng-template #emptyLabel>
-            <label><b>{{currentDirectory}}</b> is empty</label>
+        <div *ngIf="files.length==0; else elseBlock" class="no-files">
+            <app-folder-loader *ngIf="isLoading; else emptyLabel" />
+            <ng-template #emptyLabel>
+                <label><b>{{currentDirectory}}</b> is empty</label>
+            </ng-template>
+        </div>
+
+
+        <ng-template #elseBlock>
+            <cdk-virtual-scroll-viewport itemSize="50" style="height: 100%; width: 100%;">
+
+                <div *cdkVirtualFor="let file of files; let i = index" class="item">
+                    <app-file-result [file]="file" [draggable]="true" (dragstart)="onFileDragStart($event, i, file)"
+                        (dragover)="onFileDragOver($event)" (drop)="onFileDrop($event, file)"
+                        [selected]="selectedIndices.has(i)" (click)="onFileClick(i, $event)"
+                        (dblclick)="onFileDoubleClick(file)" (contextmenu)="this.onFileRightClick(file, $event)" />
+                </div>
+
+            </cdk-virtual-scroll-viewport>
         </ng-template>
     </div>
 
-
-    <ng-template #elseBlock>
-        <cdk-virtual-scroll-viewport itemSize="50" style="height: 100%; width: 100%;">
-
-            <div *cdkVirtualFor="let file of files; let i = index" class="item">
-                <app-file-result [file]="file" [draggable]="true" (dragstart)="onFileDragStart($event, i, file)"
-                    (dragover)="onFileDragOver($event)" (drop)="onFileDrop($event, file)"
-                    [selected]="selectedIndices.has(i)" (click)="onFileClick(i, $event)"
-                    (dblclick)="onFileDoubleClick(file)" (contextmenu)="this.onFileRightClick(file, $event)" />
-            </div>
-
-        </cdk-virtual-scroll-viewport>
+    <ng-template #isInaccessible>
+        <div class="no-files">
+            <label>Unable to access <b>{{currentDirectory}}</b>. Permission denied</label>
+        </div>
     </ng-template>
 </div>
 

@@ -31,9 +31,9 @@ export class TauriCommandsService {
         }
     }
 
-    async formatPathIntoDir(path: string, prevPath: string): Promise<string> {
+    async formatPathIntoDir(path: string): Promise<string> {
         return await invoke<string | undefined>("format_path_into_dir", { path: path }).then((newPath) => {
-            return newPath == undefined ? prevPath : newPath;
+            return newPath == undefined ? path : newPath;
         });
     }
 
@@ -207,7 +207,7 @@ export class TauriCommandsService {
         return await invoke<T>("load_json_local", {
             name
         }).catch(err => {
-            console.log(err)
+            throw err;
         })
     }
 
@@ -254,5 +254,21 @@ export class TauriCommandsService {
             ));
         }
         return [];
+    }
+
+    /**
+     * Returns `true` if the backend is active and all state has been fully managed.
+     */
+    async isRunning(): Promise<boolean> {
+        return await invoke<boolean>("is_running").then(running => running).catch(_ => false);
+    }
+
+    /**
+     * 
+     * @param dir_path 
+     * @returns `false` if a file path was provided or the directory was unable to be opened
+     */
+    async isDirectoryAccessible(dirPath: string): Promise<boolean> {
+        return await invoke<boolean>("is_directory_accessible", { dirPath });
     }
 }

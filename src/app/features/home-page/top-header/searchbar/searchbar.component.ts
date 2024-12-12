@@ -4,7 +4,7 @@ import { debounceTime, Subscription } from 'rxjs';
 import { SearchParamsDTO } from '../../../../core/dtos/output/search-params-dto';
 import { CommonModule } from '@angular/common';
 import { FileResultComponent } from "../../file-result/file-result.component";
-import { FileModel } from '../../../../core/models/file-model';
+import { FileModel, newDefaultFileModel } from '../../../../core/models/file-model';
 
 import { LocalSearchEngineService } from '../../../../core/services/search/text/local-search-engine.service';
 import { VectorSearchEngineService } from '../../../../core/services/search/vector/vector-search.service';
@@ -26,6 +26,9 @@ import { StreamingSearchParamsDTO } from '../../../../core/dtos/output/streaming
 export class SearchbarComponent implements OnInit, OnDestroy {
   subscription = new Subscription();
 
+  exceededSearchResults = false;
+  maxSearchResults = 50;
+
   searchResults: FileModel[] = [];
   inputControl = new FormControl();
 
@@ -46,9 +49,12 @@ export class SearchbarComponent implements OnInit, OnDestroy {
 
     this.subscription.add(this.searchEngineService.files$.subscribe(newFiles => {
       this.zone.run(() => { // Tell the component to update itself
-        this.searchResults = newFiles;
+        this.searchResults = newFiles.slice(0, this.maxSearchResults);
+        console.log(newFiles.length);
+        this.exceededSearchResults = newFiles.length > this.maxSearchResults;
       })
     }));
+
   }
 
   ngOnDestroy(): void {
@@ -59,7 +65,7 @@ export class SearchbarComponent implements OnInit, OnDestroy {
 
     let searchParams: SearchParamsDTO = {
       FilePath: value,
-      NumResults: 500
+      NumResults: this.maxSearchResults + 10
     }
 
     let streamParams: StreamingSearchParamsDTO = {

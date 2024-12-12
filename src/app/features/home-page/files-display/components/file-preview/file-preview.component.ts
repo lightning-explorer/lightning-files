@@ -1,11 +1,11 @@
 import { AfterViewInit, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { getFileExtension } from '@core/util/file/get-extension';
 import { detectFileType, isFileBinary } from '@core/util/file/file-type';
-import { readFileContents, readFileRange } from '@core/util/file/read';
 import { CommonModule } from '@angular/common';
 import { ExtendBarComponent } from "./extend-bar/extend-bar.component";
 import { isPathAFile } from '@core/util/file/general';
 import { Subscription } from 'rxjs';
+import { TauriCommandsService } from '@core/services/tauri/commands.service';
 
 @Component({
   selector: 'app-file-preview',
@@ -19,6 +19,8 @@ export class FilePreviewComponent implements AfterViewInit, OnChanges, OnDestroy
 
   /** The file currently being previewed */
   @Input() file: string | undefined;
+
+  constructor(private commandsService: TauriCommandsService) { }
 
   previewWidth = 100;
   textPreview = "";
@@ -69,7 +71,7 @@ export class FilePreviewComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private async previewTxtFile(filePath: string) {
-    const content = await readFileRange(filePath, 0, 256);
+    const content = await this.commandsService.readFileRange(filePath, 0, 256);
     console.log(content);
     if (content) {
       this.textPreview = content;

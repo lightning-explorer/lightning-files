@@ -1,14 +1,23 @@
 use std::{path::Path, sync::Arc};
 
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Manager, State};
+use tokio::sync::Mutex;
 
 use crate::tantivy_file_indexer::service_container::AppServiceContainer;
 
-/**
-`invoke_handler` should be used <b>BEFORE</b> this gets called, as this function will emit an event to the frontend
-named <b>READY</b> telling it that it is ready and should be allowed to call commands.
-*/
-pub async fn initialize_app(handle: AppHandle) {
+pub struct IsAppRunning{pub running:Arc<Mutex<bool>>}
+
+/// Check to see if the backend is fully initialized and all state is managed
+#[tauri::command]
+pub async fn is_running(is_running:State<'_,IsAppRunning>) -> Result<bool, String> {
+    Ok(*is_running.running.lock().await)
+}
+
+pub fn initialize_app(handle: AppHandle){
+    handle.manage(IsAppRunning{running:Arc::new(Mutex::new(false))});
+}
+
+pub async fn initialize_app_async(handle: AppHandle) {
     let index_files = false;
 
     let service_container = AppServiceContainer::new_async(&handle).await;
@@ -17,9 +26,9 @@ pub async fn initialize_app(handle: AppHandle) {
     let search_service = Arc::clone(&service_container.search_service);
     //let db_service = Arc::clone(&service_container.local_db_service);
 
-    handle
-        .emit("READY", true) 
-        .expect("Could not emit READY event to tell frontend that the backend is ready");
+    // Notify that the app is all set up:
+    *handle.state::<IsAppRunning>().running.lock().await = true;
+
     if index_files {
         // Old file crawlers + indexers:
         // let sender = service_container

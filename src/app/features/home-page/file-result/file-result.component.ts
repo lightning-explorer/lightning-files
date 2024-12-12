@@ -6,6 +6,7 @@ import { getIconFromPath } from '@core/util/get-icon-from-path';
 import { FileModel } from '@core/models/file-model';
 import { HighlightableLabelComponent } from "@shared/components/highlightable-label/highlightable-label.component";
 import { PinService } from '@core/services/files/pin.service';
+import { FadeInComponent } from "../../../shared/components/misc/fade-in/fade-in.component";
 
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
@@ -13,11 +14,12 @@ import { PinService } from '@core/services/files/pin.service';
 @Component({
   selector: 'app-file-result',
   standalone: true,
-  imports: [CommonModule, MatIconModule, IconifyIconModule, HighlightableLabelComponent],
+  imports: [CommonModule, MatIconModule, IconifyIconModule, HighlightableLabelComponent, FadeInComponent],
   templateUrl: './file-result.component.html',
   styleUrl: './file-result.component.scss'
 })
 export class FileResultComponent {
+  isVisible = false;
   @Input() file: FileModel | undefined;
   @Input() selected = false;
   @Input() clickEvent: (() => void) | undefined;

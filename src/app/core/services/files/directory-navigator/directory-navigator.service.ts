@@ -3,11 +3,13 @@ import { BehaviorSubject } from "rxjs";
 import { GetFilesParamsModel } from "./models/get-files-params";
 import { TauriCommandsService } from "../../tauri/commands.service";
 import { FileModel } from "../../../models/file-model";
+import { DirectoryMetadata, newDirMetadataDefault } from "./models/directory-metadata";
 
 @Injectable({ 'providedIn': 'root' })
 export class DirectoryNavigatorService {
-    private currentDirSubject = new BehaviorSubject<string>('C:\\');
-    public currentDir$ = this.currentDirSubject.asObservable();
+
+    private currentDirMetadataSubject = new BehaviorSubject<DirectoryMetadata>(newDirMetadataDefault());
+    public currentDirMetadata$ = this.currentDirMetadataSubject.asObservable();
 
     // True if the service is trying to load in the files asynchronously
     private isLoadingSubject = new BehaviorSubject<boolean>(false);
@@ -19,14 +21,19 @@ export class DirectoryNavigatorService {
     constructor(private commandsService: TauriCommandsService) { }
 
     async setCurrentDir(dir: string, params?: GetFilesParamsModel) {
-        this.currentDirSubject.next(await this.formatPathIntoDir(dir, this.currentDirSubject.getValue()));
+        const currentMeta = this.currentDirMetadataSubject.getValue();
+        this.currentDirMetadataSubject.next({
+            ...currentMeta,
+            isAccessible: await this.commandsService.isDirectoryAccessible(dir),
+            directory: await this.commandsService.formatPathIntoDir(dir),
+        });
         this.isLoadingSubject.next(true);
         await this.setDriveFiles(params);
         this.isLoadingSubject.next(false);
     }
 
     async setDriveFiles(params?: GetFilesParamsModel) {
-        const directory = this.currentDirSubject.getValue();
+        const directory = this.currentDirMetadataSubject.getValue().directory;
 
         this.currentFilesSubject.next([]);
         await this.commandsService.getFilesAsModels(directory, (file) => {
@@ -35,20 +42,16 @@ export class DirectoryNavigatorService {
         }, params);
     }
 
-    async formatPathIntoDir(path: string, prevPath: string): Promise<string> {
-        return await this.commandsService.formatPathIntoDir(path, prevPath);
-    }
-
     async getDirectoryPath(): Promise<string> {
-        return await this.commandsService.getDirectoryPath(this.currentDirSubject.getValue());
+        return await this.commandsService.getDirectoryPath(this.currentDirMetadataSubject.getValue().directory);
     }
 
     async getParentDirectory(): Promise<string> {
-        return await this.commandsService.getParentDirectory(this.currentDirSubject.getValue());
+        return await this.commandsService.getParentDirectory(this.currentDirMetadataSubject.getValue().directory);
     }
 
     async getRootDirectory(): Promise<string> {
-        return await this.commandsService.getRootPath(this.currentDirSubject.getValue());
+        return await this.commandsService.getRootPath(this.currentDirMetadataSubject.getValue().directory);
     }
 
     async openFileCmd(filePath: string): Promise<boolean> {

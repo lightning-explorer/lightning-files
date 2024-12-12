@@ -28,8 +28,8 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.updateVisibleDirectories();
-    this.subscription.add(this.directoryService.currentDir$.subscribe(x => {
-      this.directory = x;
+    this.subscription.add(this.directoryService.currentDirMetadata$.subscribe(x => {
+      this.directory = x.directory;
       this.updateVisibleDirectories();
     }));
   }

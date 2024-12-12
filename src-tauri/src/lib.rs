@@ -38,13 +38,18 @@ pub fn run() {
             add_dirs_to_crawler_queue,
             view_crawler_queue,
             view_crawler_priority_counts,
-            get_crawler_analyzer_data
+            get_crawler_analyzer_data,
+            app_init::is_running,
+            is_directory_accessible
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();
+            let app_handle2 = app.handle().clone();
 
-            tauri::async_runtime::spawn(async move {
-                app_init::initialize_app(app_handle).await;
+            app_init::initialize_app(app_handle);
+
+            tauri::async_runtime::spawn(async move{
+                app_init::initialize_app_async(app_handle2).await
             });
 
             Ok(())

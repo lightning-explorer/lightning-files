@@ -12,9 +12,6 @@ use tauri::State;
 use super::helper;
 
 #[tauri::command]
-async fn some_command(state: Option<State<'_, SomeState>>) -> Result<(), String>
-
-#[tauri::command]
 pub async fn get_files_as_models(
     directory: String,
     params: GetFilesParamsModel,

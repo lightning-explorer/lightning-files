@@ -1,4 +1,4 @@
-cargo-features = ["profile-rustflags"]
+
 
 [package]
 name = "desktop-search"
@@ -46,10 +46,9 @@ requiresAdmin = true
 rustflags = ["-C", "link-arg=-fuse-ld=lld", "-Z", "threads=14"]
 
 [profile.dev]
-opt-level = "s"        # Minimize optimization level for faster builds
+opt-level = 0        # Minimize optimization level for faster builds
 debug = true         # Keep debug info for development
 incremental = true   # Enable incremental compilation (enabled by default)
 lto = "off"          # Disable Link Time Optimization
 codegen-units = 16  # Use more parallelism for code generation
-rustflags = ["-Zthreads=8"] # Better compile performance.
 panic = "abort" # Higher performance by disabling panic handlers.

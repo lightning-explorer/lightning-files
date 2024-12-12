@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use super::{super::super::super::util::path_ops, file_reader};
+use super::{super::super::super::util::path_ops, file_reader, metadata};
 
 #[tauri::command]
 pub fn get_directory_path(file_path: &str) -> String {
@@ -72,4 +72,9 @@ pub async fn open_file(file_path: &str) -> Result<(), String> {
         .spawn()
         .map_err(|x| x.to_string())?;
     Ok(())
+}
+
+#[tauri::command]
+pub fn is_directory_accessible(dir_path:&str)->bool{
+    metadata::is_directory_accessible(dir_path)
 }

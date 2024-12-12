@@ -14,6 +14,7 @@ import { FileModel } from '@core/models/file-model';
 import { InlineSearchService } from '@core/services/search/text/inline-search.service';
 import { DirectoryNavigatorService } from '@core/services/files/directory-navigator/directory-navigator.service';
 import { debounceTime, Subject, Subscription, tap } from 'rxjs';
+import { DirectoryMetadata } from '@core/services/files/directory-navigator/models/directory-metadata';
 
 
 @Component({
@@ -34,7 +35,7 @@ import { debounceTime, Subject, Subscription, tap } from 'rxjs';
     ])
   ]
 })
-export class FileBrowserComponent implements OnInit, OnChanges, OnDestroy {
+export class FileBrowserComponent implements OnInit, OnDestroy {
   subscription = new Subscription();
   @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
   // Ensures that the virtual scroller renders correctly and is refreshes to compensate
@@ -47,7 +48,8 @@ export class FileBrowserComponent implements OnInit, OnChanges, OnDestroy {
   @Input() isLoading: boolean = false;
   @Output() fileClickedOn = new EventEmitter<FileModel>();
 
-  currentDirectory: string = "";
+  currentDirectoryMetadata: DirectoryMetadata | undefined
+  currentDirectory:string = "";
   animationState = 'visible';
 
   get selectedIndices(): Set<number> {
@@ -70,18 +72,14 @@ export class FileBrowserComponent implements OnInit, OnChanges, OnDestroy {
       this.inlineSearchToFirstOccurence(x)
     ));
 
-    this.subscription.add(this.directoryService.currentDir$.subscribe(x => {
+    this.subscription.add(this.directoryService.currentDirMetadata$.subscribe(x => {
       this.selectService.clearSelection();
-      this.currentDirectory = x
+      this.hideAndFadeIn();
+      this.currentDirectoryMetadata = x;
+      this.currentDirectory = x.directory
     }));
 
     this.hideAndFadeIn();
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['files']) {
-      this.hideAndFadeIn();
-    }
   }
 
   ngOnDestroy(): void {

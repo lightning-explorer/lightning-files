@@ -1,21 +1,23 @@
 import { Injectable } from "@angular/core";
 import { PersistentConfigService } from "../persistence/config.service";
 import { listen } from "@tauri-apps/api/event";
+import { TauriCommandsService } from "./commands.service";
 
 @Injectable({ 'providedIn': 'root' })
 export class TauriLifecycleService {
-    constructor(private configService: PersistentConfigService) { }
+
+    constructor(private configService: PersistentConfigService, private commandsService: TauriCommandsService) { }
 
     async onStartup() {
-        this.initializeApp();
-        // if (localStorage.getItem("APP_INITIALIZED") == "true") {
-        //     this.initializeApp();
-        // }
-        await listen<void>("READY", () => {
-            console.log("READY has bee emit. Frontend is intializing.")
-            this.initializeApp();
-            localStorage.setItem("APP_INITIALIZED", "true");
-        });
+        const intervalId = setInterval(async () => {
+            console.log("Pinging backend to see if it is active");
+            const result = await this.commandsService.isRunning();
+            if (result) {
+                clearInterval(intervalId); // Stop the interval when the function returns true
+                this.initializeApp();
+                console.log('Backend is initialized. Setting up frontnend');
+            }
+        }, 500);
     }
 
     async onShutdown() {

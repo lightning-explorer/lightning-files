@@ -28,9 +28,6 @@ impl AppServiceContainer {
         let vector_db_service = Self::initialize_vector_service();
         let search_service = Self::initialize_search_service(50_000_000, app_path, handle);
 
-        // TODO: Remove this:
-        vector_db_service.delete_all_collections().await;
-
         let local_db_service = Self::initialize_sqlx_service(&app_save_service).await;
 
         // TODO: Attach the analyzer to the crawling operation
