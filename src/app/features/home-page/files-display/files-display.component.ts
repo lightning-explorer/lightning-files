@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy } from "@angular/core";
+import { Component, OnDestroy } from "@angular/core";
 import { FileBrowserComponent } from "./components/file-browser/file-browser.component";
 import { DirectoryNavigatorService } from "@core/services/files/directory-navigator/directory-navigator.service";
 import { InlineSearchService } from "@core/services/search/text/inline-search.service";
@@ -46,11 +46,6 @@ export class FilesDisplayComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
-  }
-
-  @HostListener('window:keydown', ['$event'])
-  async handleKeydown(event: KeyboardEvent) {
-    this.inlineSearchService.handleKeydown(event, this.driveFiles);
   }
 
   onUndoClick() {

@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, EventEmitter, HostListener, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FileResultComponent } from '../../../file-result/file-result.component';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
@@ -49,7 +49,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   @Output() fileClickedOn = new EventEmitter<FileModel>();
 
   currentDirectoryMetadata: DirectoryMetadata | undefined
-  currentDirectory:string = "";
+  currentDirectory: string = "";
   animationState = 'visible';
 
   get selectedIndices(): Set<number> {
@@ -147,5 +147,8 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     }
   }
 
-
+  @HostListener('window:keydown', ['$event'])
+  async handleKeydown(event: KeyboardEvent) {
+    this.inlineSearchService.handleKeydown(event, this.files);
+  }
 }

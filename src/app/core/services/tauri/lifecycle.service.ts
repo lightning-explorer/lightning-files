@@ -2,23 +2,21 @@ import { Injectable } from "@angular/core";
 import { PersistentConfigService } from "../persistence/config.service";
 import { listen } from "@tauri-apps/api/event";
 import { TauriCommandsService } from "./commands.service";
+import { BehaviorSubject } from "rxjs";
+import { invoke } from "@tauri-apps/api/core";
 
 @Injectable({ 'providedIn': 'root' })
 export class TauriLifecycleService {
 
-    constructor(private configService: PersistentConfigService, private commandsService: TauriCommandsService) { }
+    private isAppInitializedSubject = new BehaviorSubject<boolean>(false);
+    isAppInitialized$ = this.isAppInitializedSubject.asObservable();
+
+    constructor(private configService: PersistentConfigService) { }
 
     async onStartup() {
-        const intervalId = setInterval(async () => {
-            console.log("Pinging backend to see if it is active");
-            const result = await this.commandsService.isRunning();
-            if (result) {
-                clearInterval(intervalId); // Stop the interval when the function returns true
-                this.initializeApp();
-                console.log('Backend is initialized. Setting up frontnend');
-            }
-        }, 500);
+        this.initializeApp();
     }
+
 
     async onShutdown() {
         console.log("OnShutdown called");

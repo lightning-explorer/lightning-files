@@ -5,16 +5,20 @@ use tokio::sync::Mutex;
 
 use crate::tantivy_file_indexer::service_container::AppServiceContainer;
 
-pub struct IsAppRunning{pub running:Arc<Mutex<bool>>}
+pub struct IsAppRunning {
+    pub running: Arc<Mutex<bool>>,
+}
 
 /// Check to see if the backend is fully initialized and all state is managed
 #[tauri::command]
-pub async fn is_running(is_running:State<'_,IsAppRunning>) -> Result<bool, String> {
+pub async fn is_running(is_running: State<'_, IsAppRunning>) -> Result<bool, String> {
     Ok(*is_running.running.lock().await)
 }
 
-pub fn initialize_app(handle: AppHandle){
-    handle.manage(IsAppRunning{running:Arc::new(Mutex::new(false))});
+pub fn initialize_app(handle: AppHandle) {
+    handle.manage(IsAppRunning {
+        running: Arc::new(Mutex::new(false)),
+    });
 }
 
 pub async fn initialize_app_async(handle: AppHandle) {
@@ -28,6 +32,7 @@ pub async fn initialize_app_async(handle: AppHandle) {
 
     // Notify that the app is all set up:
     *handle.state::<IsAppRunning>().running.lock().await = true;
+    println!("All services managed");
 
     if index_files {
         // Old file crawlers + indexers:

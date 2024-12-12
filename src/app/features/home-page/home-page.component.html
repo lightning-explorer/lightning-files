@@ -10,7 +10,11 @@
 
         <div class="divider"></div>
 
-        <app-files-display />
+        <app-files-display *ngIf="page=='main'; else extendedSearch" />
+
+        <ng-template #extendedSearch>
+            <app-extended-search />
+        </ng-template>
 
     </div>
 
