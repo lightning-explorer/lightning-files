@@ -3,6 +3,7 @@ mod core {
     pub mod query{
         pub mod querier;
         pub mod constructor;
+        pub mod query_organizer;
     }
 }
 mod schemas {

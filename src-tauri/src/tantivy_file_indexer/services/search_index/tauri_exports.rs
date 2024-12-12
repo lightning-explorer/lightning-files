@@ -38,6 +38,7 @@ pub async fn search_index_query(
     }
 }
 
+// TODO: you may be able to remove this if organized querying is superior
 /// Emits an event in the format {STREAM_IDENTIFIER}:search_result to the frontend
 #[tauri::command]
 pub async fn search_index_query_streaming(
@@ -52,6 +53,29 @@ pub async fn search_index_query_streaming(
     task_manager
         .task
         .run(search_service_clone.streaming_query(params, move |files| {
+            match app_handle.emit(&event_name, files) {
+                Ok(_) => {}
+                Err(err) => println!("{}", err),
+            }
+        }))
+        .await?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn search_index_query_streaming_organized(
+    params: StreamingSearchParamsDTO,
+    app_handle: AppHandle,
+    search_service: State<'_, Arc<SearchIndexService>>,
+    task_manager: State<'_, Arc<TaskManagerService>>,
+) -> Result<(), String> {
+    let event_name = format!("{}:search_result", params.stream_identifier);
+    let search_service_clone = Arc::clone(&search_service);
+
+    task_manager
+        .task
+        .run(search_service_clone.streaming_query_organized(params, move |files| {
             match app_handle.emit(&event_name, files) {
                 Ok(_) => {}
                 Err(err) => println!("{}", err),

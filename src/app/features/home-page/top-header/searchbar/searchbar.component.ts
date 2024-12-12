@@ -12,7 +12,6 @@ import { VectorSearchParamsModel } from '../../../../core/services/search/vector
 
 import { DirectoryNavigatorService } from '../../../../core/services/files/directory-navigator/directory-navigator.service';
 import { vectorResultToModel } from '../../../../core/models/converters/VectorResultToModel';
-import { InlineSearchService } from '../../../../core/services/search/text/inline-search.service';
 import { LocalStreamingSearchService } from '../../../../core/services/search/text/local-streaming-search.service';
 import { StreamingSearchParamsDTO } from '../../../../core/dtos/output/streaming-search-params-dtos';
 import { HomePageService, SubPage } from '../../services/home-page.service';
@@ -43,7 +42,6 @@ export class SearchbarComponent implements OnInit, OnDestroy {
 
     private searchEngineService: LocalStreamingSearchService,
     private directoryNavService: DirectoryNavigatorService,
-    private inlineSearchService: InlineSearchService,
     private zone: NgZone // Allows forced change detection
   ) { }
 
@@ -93,7 +91,7 @@ export class SearchbarComponent implements OnInit, OnDestroy {
 
   onResultClick(model: FileModel) {
     return () => {
-      this.inlineSearchService.clearQuery();
+      //this.inlineSearchService.clearQuery();
       this.directoryNavService.setCurrentDir(model.FilePath);
     };
   }

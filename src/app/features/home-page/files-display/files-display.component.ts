@@ -1,7 +1,6 @@
 import { Component, OnDestroy } from "@angular/core";
 import { FileBrowserComponent } from "./components/file-browser/file-browser.component";
 import { DirectoryNavigatorService } from "@core/services/files/directory-navigator/directory-navigator.service";
-import { InlineSearchService } from "@core/services/search/text/inline-search.service";
 import { FormControl } from "@angular/forms";
 import { FileModel } from "@core/models/file-model";
 import { FilePreviewComponent } from "./components/file-preview/file-preview.component";
@@ -29,7 +28,6 @@ export class FilesDisplayComponent implements OnDestroy {
 
   constructor(
     private directoryService: DirectoryNavigatorService,
-    private inlineSearchService: InlineSearchService
   ) { }
 
   ngOnInit(): void {

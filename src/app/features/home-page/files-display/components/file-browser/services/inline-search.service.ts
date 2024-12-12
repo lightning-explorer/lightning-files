@@ -1,17 +1,18 @@
 import { Injectable, input } from "@angular/core";
-import { InlineQueryDTO } from "../../../dtos/output/inline-query-dto";
-import { FileModel } from "../../../models/file-model";
-import { filterAlphanumeric } from "../../../../shared/services/keyboard-press-filter";
+import { InlineQueryDTO } from "@core/dtos/output/inline-query-dto";
+import { FileModel } from "@core/models/file-model";
+import { TauriCommandsService } from "@core/services/tauri/commands.service";
+import { filterAlphanumeric } from "@shared/services/keyboard-press-filter";
 import { BehaviorSubject, Observable } from "rxjs";
-import { TauriCommandsService } from "../../tauri/commands.service";
+
 
 /**
  Calls the Rust backend to handle the query operation
  */
-@Injectable({ 'providedIn': 'root' })
+@Injectable()
 export class InlineSearchService {
 
-    constructor(private commandsService:TauriCommandsService){}
+    constructor(private commandsService: TauriCommandsService) { }
 
     private searchQuerySubject = new BehaviorSubject<string>("");
     searchQuery$ = this.searchQuerySubject.asObservable();
@@ -41,7 +42,7 @@ export class InlineSearchService {
             }
 
             const queryDto: InlineQueryDTO = { Query: this.searchQuerySubject.getValue() };
-            const dtos = await this.query(queryDto);
+            const dtos = await this.query(queryDto, files);
 
             this.numberOfFoundItemsSubject.next(dtos.length);
 
@@ -69,7 +70,10 @@ export class InlineSearchService {
         return result ? result : false;
     }
 
-    private async query(query: InlineQueryDTO): Promise<FileModel[]> {
-        return await this.commandsService.searchFilesInline(query);
+    // TODO: Typescript now handles the inline search. The Tauri command for the inline search may be unecessary
+    private async query(query: InlineQueryDTO, files: FileModel[]): Promise<FileModel[]> {
+        const queryLower = query.Query.toLowerCase();
+        return files.filter(file => file.Name.toLowerCase().includes(queryLower));
+        //return await this.commandsService.searchFilesInline(query);
     }
 }

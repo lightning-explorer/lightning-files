@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FileResultComponent } from '../../../file-result/file-result.component';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
 import { MoveItemsPopupComponent } from '../move-items-popup/move-items-popup.component';
-import { InlineSearchBarComponent } from '../inline-search-bar/inline-search-bar.component';
+import { InlineSearchBarComponent } from './inline-search-bar/inline-search-bar.component';
 import { ContextMenuComponent } from '@shared/components/popups/context-menu/context-menu.component';
 import { FolderLoaderComponent } from '@shared/components/loaders/folder-loader/folder-loader.component';
 import { FileContextMenuService } from './services/interaction/context-menu.service';
@@ -11,17 +11,17 @@ import { DragDropService } from './services/interaction/dragdrop.service';
 import { SelectService } from './services/interaction/select.service';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { FileModel } from '@core/models/file-model';
-import { InlineSearchService } from '@core/services/search/text/inline-search.service';
 import { DirectoryNavigatorService } from '@core/services/files/directory-navigator/directory-navigator.service';
 import { debounceTime, Subject, Subscription, tap } from 'rxjs';
 import { DirectoryMetadata } from '@core/services/files/directory-navigator/models/directory-metadata';
+import { InlineSearchService } from './services/inline-search.service';
 
 
 @Component({
   selector: 'app-file-browser',
   standalone: true,
   imports: [CommonModule, FileResultComponent, ScrollingModule, MoveItemsPopupComponent, ContextMenuComponent, InlineSearchBarComponent, FolderLoaderComponent],
-  providers: [SelectService, DragDropService, FileContextMenuService],
+  providers: [SelectService, DragDropService, FileContextMenuService, InlineSearchService],
   templateUrl: './file-browser.component.html',
   styleUrl: './file-browser.component.css',
   animations: [

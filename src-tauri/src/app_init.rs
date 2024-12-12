@@ -12,7 +12,9 @@ pub struct IsAppRunning {
 /// Check to see if the backend is fully initialized and all state is managed
 #[tauri::command]
 pub async fn is_running(is_running: State<'_, IsAppRunning>) -> Result<bool, String> {
-    Ok(*is_running.running.lock().await)
+    let running = *is_running.running.lock().await;
+    println!("Pinged is_running. Is the app running?: {}", running);
+    Ok(running)
 }
 
 pub fn initialize_app(handle: AppHandle) {

@@ -1,4 +1,4 @@
-import { Injectable} from "@angular/core";
+import { Injectable } from "@angular/core";
 import { listen } from "@tauri-apps/api/event";
 import { defaultParams, GetFilesParamsModel } from "../files/directory-navigator/models/get-files-params";
 import { FileModel } from "../../models/file-model";
@@ -187,6 +187,23 @@ export class TauriCommandsService {
 
         try {
             await this.invokeSafe<Promise<void>>("search_index_query_streaming", { params });
+        }
+        catch (err) {
+            console.log("Error performing streamed query", err)
+        }
+        finally {
+            unlisten();
+        }
+    }
+
+    /** NOTE that the files that get emitted are ACCUMULATED!! meaning that you need to replace the old files with the emitted ones */
+    async searchIndexQueryStreamingOrganized(params: StreamingSearchParamsDTO, onEventEmit: (files: FileModel[]) => void) {
+        const eventName = `${params.StreamIdentifier}:search_result`
+        const unlisten = await listen<FileModel[]>(eventName, (event) =>
+            onEventEmit(event.payload));
+
+        try {
+            await this.invokeSafe<Promise<void>>("search_index_query_streaming_organized", { params });
         }
         catch (err) {
             console.log("Error performing streamed query", err)

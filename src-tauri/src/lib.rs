@@ -31,6 +31,7 @@ pub fn run() {
             search_files_inline,
             search_index_query,
             search_index_query_streaming,
+            search_index_query_streaming_organized,
             //get_num_stored_files,
             save_json_local,
             load_json_local,
@@ -48,7 +49,7 @@ pub fn run() {
 
             app_init::initialize_app(app_handle);
 
-            tauri::async_runtime::spawn(async move{
+            tauri::async_runtime::spawn(async move {
                 app_init::initialize_app_async(app_handle2).await
             });
 

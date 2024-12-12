@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { InlineSearchService } from '../../../../../core/services/search/text/inline-search.service';
 import { Subscription } from 'rxjs';
+import { InlineSearchService } from '../services/inline-search.service';
 
 @Component({
   selector: 'app-inline-search-bar',
