@@ -7,10 +7,10 @@ export class TauriLifecycleService {
     constructor(private configService: PersistentConfigService) { }
 
     async onStartup() {
-        //this.configService.load();
-        if (localStorage.getItem("APP_INITIALIZED") == "true") {
-            //this.initializeApp();
-        }
+        this.initializeApp();
+        // if (localStorage.getItem("APP_INITIALIZED") == "true") {
+        //     this.initializeApp();
+        // }
         await listen<void>("READY", () => {
             console.log("READY has bee emit. Frontend is intializing.")
             this.initializeApp();

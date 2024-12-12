@@ -207,7 +207,7 @@ export class TauriCommandsService {
         return await invoke<T>("load_json_local", {
             name
         }).catch(err => {
-            throw new Error(`${err}`)
+            console.log(err)
         })
     }
 
