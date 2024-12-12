@@ -4,7 +4,7 @@
     align-items: left;
     border-radius: 10px;
     padding: .8em;
-    background-color: var(--background-transparent);
+    background-color: var(--bg-transparent);
 }
 
 .hidden{
@@ -17,6 +17,6 @@
 }
 
 p{
-    color: var(--third-color);
+    color: var(--primary);
     margin: 0px;
 }

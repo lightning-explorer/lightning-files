@@ -5,24 +5,30 @@
     flex: 1;
 }
 
+.app-name {
+    font-family: "Jaro";
+    color: var(--primary);
+    font-size: 1.4em;
+    text-wrap: nowrap;
+}
+
 .content {
     display: flex;
+    position: relative;
     flex-direction: column;
-    min-width: 10em;
-    max-width: 15em;
-    background-color: var(--background-transparent);
+    border-top-right-radius: 10px;
+    width: 200px;
+    background-color: var(--bg-dark);
     padding: 1em;
-    border-radius: 20px;
-    margin-bottom: 1em;
-    justify-content: space-between;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .top {
     display: flex;
     height: 100%;
     overflow-y: auto;
-    padding-left: 1em;
-    padding-right: 1em;
+    overflow-x: hidden;
 }
 
 .divider {

@@ -1,20 +1,11 @@
+
+
 [package]
 name = "desktop-search"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
-
-[features]
-# Logging features
-speed_profile = []
-file_crawler_logs = []
-vector_db_logs = []
-index_worker_logs = []
-db_indexer_queue_logs = []
-
-# Default features
-default = ["speed_profile", "file_crawler_logs", "index_worker_logs"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -47,7 +38,6 @@ rand = "0.8.5"
 rand_chacha = "0.3"
 sqlx = { version = "0.8.2", features = ["sqlite" ] }
 vevtor = "0.1.0"
-tauri-plugin-fs = "2"
 
 [package.metadata.tauri.windows]
 requiresAdmin = true
@@ -60,4 +50,5 @@ opt-level = 0        # Minimize optimization level for faster builds
 debug = true         # Keep debug info for development
 incremental = true   # Enable incremental compilation (enabled by default)
 lto = "off"          # Disable Link Time Optimization
-codegen-units = 256  # Use more parallelism for code generation
+codegen-units = 16  # Use more parallelism for code generation
+panic = "abort" # Higher performance by disabling panic handlers.

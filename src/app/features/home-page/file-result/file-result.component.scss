@@ -3,7 +3,6 @@
     flex-direction: row;
     padding: 0.4em;
     border: 0px;
-    border-left: 4px solid var(--secondary-color);
     border-radius: 10px;
     overflow: hidden;
     margin: 0.2em;
@@ -14,7 +13,7 @@
 }
 
 .content.selected {
-    background-color: var(--fourth-color);
+    background-color: var(--primary);
 }
 
 .content-left {
@@ -37,18 +36,19 @@
     width: 100%;
     text-wrap: wrap;
     text-align: left;
+    color: var(--text-primary);
 }
 
 .metadata p {
     margin: 0px;
     font-size: 0.6em;
-    color: var(--third-color);
+    color: var(--text-muted);
 }
 
 button:hover {
     color: #ffffff;
     transform: scale(1.01);
-    box-shadow: 4px 5px 17px -4px var(--secondary-color);
+    box-shadow: 4px 5px 17px -4px var(--primary);
 }
 
 button::before {

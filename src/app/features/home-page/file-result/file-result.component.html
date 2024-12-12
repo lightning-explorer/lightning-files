@@ -1,31 +1,33 @@
-<div *ngIf="file">
-    <button class="content" [ngClass]="{'selected':selected}" (click)="onClick()">
+<app-fade-in>
+    <div *ngIf="file">
+        <button class="content" [ngClass]="{'selected':selected}" (click)="onClick()">
 
-        <div class="content-left">
+            <div class="content-left">
 
-            <div *ngIf="isPinned">
-                <iconify-icon icon="pin" size="1em" color="--icon-color" />
-            </div>
-
-            <div>
-                <div *ngIf="file.IsDirectory; else elseBlock">
-                    <iconify-icon icon="folder" />
+                <div *ngIf="isPinned">
+                    <iconify-icon icon="pin" size="1em" color="--icon" />
                 </div>
 
-                <ng-template #elseBlock class="icon">
-                    <iconify-icon [icon]="icon" color="--icon-color" />
-                </ng-template>
+                <div>
+                    <div *ngIf="file.IsDirectory; else elseBlock">
+                        <iconify-icon icon="folder" />
+                    </div>
+
+                    <ng-template #elseBlock class="icon">
+                        <iconify-icon [icon]="icon" color="--icon" />
+                    </ng-template>
+                </div>
+
+
+                <div class="name">
+                    <app-highlightable-label [text]="file.Name" [highlight]="file.HighlightedText" />
+                </div>
+
+                <div class="metadata">
+                    <p>{{file.FilePath}}</p>
+                </div>
+
             </div>
-
-
-            <div class="name">
-                <app-highlightable-label [text]="file.Name" [highlight]="file.HighlightedText" />
-            </div>
-
-            <div class="metadata">
-                <p>{{file.FilePath}}</p>
-            </div>
-
-        </div>
-    </button>
-</div>
+        </button>
+    </div>
+</app-fade-in>

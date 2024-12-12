@@ -21,12 +21,14 @@ export class PinService implements OnDestroy {
         return this.pinnedFilesSubject.getValue().some(x => x.FilePath == file.FilePath);
     }
 
-    pinFile(file: FileModel) {
+    async pinFile(file: FileModel) {
         this.configService.update("pinnedFiles", [...this.pinnedFilesSubject.getValue(), file]);
+        await this.configService.save();
     }
 
-    unpinFile(file: FileModel) {
+    async unpinFile(file: FileModel) {
         this.configService.update("pinnedFiles", this.pinnedFilesSubject.getValue().filter(x => x.FilePath != file.FilePath));
+        await this.configService.save();
     }
 
     ngOnDestroy(): void {

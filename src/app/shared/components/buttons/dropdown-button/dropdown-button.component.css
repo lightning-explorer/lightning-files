@@ -19,7 +19,9 @@
 }
 
 .content label {
-    color: var(--contrast-color);
+    color: var(--text-primary);
+    font-family: 'REM';
+    font-size: .9em;
 }
 
 .content-button {
@@ -37,7 +39,6 @@
     padding-right: .8em;
     padding-left: .8em;
     border-radius: 20px;
-
 }
 
 .content-button.active {
@@ -45,13 +46,14 @@
 }
 
 .content-button.active:hover {
-    background-color: var(--transparent-select-color);
+    background-color: var(--select-transparent);
 }
 
 .content-wrapper {
     display: flex;
     flex-direction: column;
     width: 100%;
+    margin-left: .3em;
 }
 
 .dropdown-button {
@@ -62,5 +64,5 @@
 }
 
 .dropdown-button:hover {
-    background-color: var(--transparent-select-color);
+    background-color: var(--select-transparent);
 }

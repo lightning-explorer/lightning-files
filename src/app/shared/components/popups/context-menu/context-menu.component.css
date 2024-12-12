@@ -1,6 +1,6 @@
 .custom-context-menu {
     position: fixed;
-    background-color: var(--background-color);
+    background-color: var(--bg-primary);
     padding: .4em;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -21,6 +21,7 @@
 }
 
 button {
+    color: var(--primary);
     text-align: left;
     width: 100%;
     border-radius: 10px;
@@ -31,6 +32,6 @@ button {
 }
 
 button:hover {
-    color: var(--background-color);
-    background-color: var(--secondary-color);
+    color: var(--text-primary);
+    background-color: var(--primary);
 }

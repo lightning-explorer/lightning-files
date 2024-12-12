@@ -1,7 +1,7 @@
 :host {
     display: flex;
     scrollbar-width: thin;
-    scrollbar-color: var(--secondary-color) transparent;
+    scrollbar-color: var(--primary) transparent;
     flex: 1;
 
 }
@@ -50,7 +50,7 @@
 .no-files label {
     overflow-wrap: anywhere;
     font-family: "Poppins";
-    color: var(--contrast-color);
+    color: var(--text-muted);
 }
 
 app-inline-search-bar {

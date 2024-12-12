@@ -8,7 +8,6 @@
 
 .window-chrome label {
     margin-left: 10px;
-    color: var(--font-color);
 }
 
 .buttons{
@@ -16,6 +15,7 @@
     margin: 0px;
     display: flex;
     height: 30px;
+    color: var(--text-primary);
 }
 
 .buttons button {
@@ -35,10 +35,10 @@
 }
 
 .maximize:hover, .minimize:hover{
-    background-color: var(--transparent-select-color);
+    background-color: var(--select-transparent);
 }
 
 .close:hover{
     color: white;
-    background-color: red;
+    background-color: var(--primary);
 }

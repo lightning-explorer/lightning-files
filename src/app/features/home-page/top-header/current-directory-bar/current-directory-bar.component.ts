@@ -2,9 +2,7 @@ import { CommonModule } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DirectoryNavigatorService } from '../../../../core/services/files/directory-navigator/directory-navigator.service';
-import { debounceTime, Subscription } from 'rxjs';
-import { truncateText } from '../../../../core/util/text-truncator';
-import { simplifyPath } from './util/overflow-checker';
+import { Subscription } from 'rxjs';
 import { BreadcrumbModel } from './models/breadcrumb-model';
 
 @Component({
@@ -14,7 +12,7 @@ import { BreadcrumbModel } from './models/breadcrumb-model';
   templateUrl: './current-directory-bar.component.html',
   styleUrl: './current-directory-bar.component.scss'
 })
-export class CurrentDirectoryBarComponent implements AfterViewInit, OnInit, OnDestroy {
+export class CurrentDirectoryBarComponent implements AfterViewInit, OnDestroy {
   subscription = new Subscription();
 
   @ViewChild('textInput') textInput!: ElementRef;
@@ -28,13 +26,10 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnInit, OnDe
 
   constructor(private directoryService: DirectoryNavigatorService, private cdr: ChangeDetectorRef) { }
 
-  ngOnInit(): void {
-    this.updateVisibleDirectories();
-  }
-
   ngAfterViewInit(): void {
-    this.subscription.add(this.directoryService.currentDir$.subscribe(x => {
-      this.directory = x;
+    this.updateVisibleDirectories();
+    this.subscription.add(this.directoryService.currentDirMetadata$.subscribe(x => {
+      this.directory = x.directory;
       this.updateVisibleDirectories();
     }));
   }
@@ -77,8 +72,10 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnInit, OnDe
     let dirBuilder: string = "";
     this.visibleDirectories.length = 0;
     parts.forEach(x => {
-      dirBuilder += `${x}\\`;
-      this.visibleDirectories.push({ fullPath: dirBuilder, section: x });
+      if (x != "") {
+        dirBuilder += `${x}\\`;
+        this.visibleDirectories.push({ fullPath: dirBuilder, section: x });
+      }
     });
 
     this.cdr.detectChanges();
