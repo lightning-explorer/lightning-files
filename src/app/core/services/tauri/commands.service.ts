@@ -11,6 +11,7 @@ import { AddToCrawlerQueueDTO } from "../../dtos/output/add-to-crawler-queue-dto
 import { IndexedDirModel } from "../../models/indexed-dir-model";
 
 import { SafeInvokeService } from "./safe-invoke.service";
+import { EmitMetadataModel } from "@core/models/emit-metadata-model";
 
 @Injectable({ 'providedIn': 'root' })
 export class TauriCommandsService {
@@ -179,10 +180,10 @@ export class TauriCommandsService {
         })
     }
 
-    async searchIndexQueryStreaming(params: StreamingSearchParamsDTO, onEventEmit: (files: FileModel[]) => void) {
+    async searchIndexQueryStreaming(params: StreamingSearchParamsDTO, onEventEmit: (files: EmitMetadataModel<FileModel[]>) => void) {
         const eventName = `${params.StreamIdentifier}:search_result`
 
-        const unlisten = await listen<FileModel[]>(eventName, (event) =>
+        const unlisten = await listen<EmitMetadataModel<FileModel[]>>(eventName, (event) =>
             onEventEmit(event.payload));
 
         try {
@@ -197,11 +198,10 @@ export class TauriCommandsService {
     }
 
     /** NOTE that the files that get emitted are ACCUMULATED!! meaning that you need to replace the old files with the emitted ones */
-    async searchIndexQueryStreamingOrganized(params: StreamingSearchParamsDTO, onEventEmit: (files: FileModel[]) => void) {
+    async searchIndexQueryStreamingOrganized(params: StreamingSearchParamsDTO, onEventEmit: (files: EmitMetadataModel<FileModel[]>) => void) {
         const eventName = `${params.StreamIdentifier}:search_result`
-        const unlisten = await listen<FileModel[]>(eventName, (event) =>
+        const unlisten = await listen<EmitMetadataModel<FileModel[]>>(eventName, (event) =>
             onEventEmit(event.payload));
-
         try {
             await this.invokeSafe<Promise<void>>("search_index_query_streaming_organized", { params });
         }

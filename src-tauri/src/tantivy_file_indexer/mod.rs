@@ -20,5 +20,6 @@ mod models {
     pub mod interal_system_file;
     pub mod tantivy_file_model;
     pub mod vector_search_params_model;
+    pub mod emit_metadata_model;
 }
 pub mod shared;

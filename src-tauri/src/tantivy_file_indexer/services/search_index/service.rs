@@ -4,7 +4,7 @@ use crate::tantivy_file_indexer::{
 };
 
 use super::{
-    core::{query::querier::Querier, tantivy_setup},
+    engine::{querier::Querier, tantivy_setup},
     files_collection::TantivyFilesCollection,
     services::task_manager::TaskManagerService,
 };
@@ -32,6 +32,7 @@ impl SearchIndexService {
         let index_writer = Arc::new(Mutex::new(index_writer));
         let index_reader = Arc::new(index_reader);
 
+        // TODO: look at this. It is not being used at the moment
         let files_collection = Arc::new(TantivyFilesCollection::new(
             Arc::clone(&index_writer),
             schema.clone(),
@@ -46,7 +47,7 @@ impl SearchIndexService {
             schema,
             index_writer,
             index_reader,
-            querier: Arc::new(Querier::new(schema_clone,searcher)),
+            querier: Arc::new(Querier::new(schema_clone, searcher)),
             files_collection,
         }
     }
@@ -63,7 +64,12 @@ impl SearchIndexService {
         let querier_clone = Arc::clone(&self.querier);
         tokio::spawn(async move {
             querier_clone
-                .advanced_query_streamed(params.params, emit, params.num_events, params.starting_size)
+                .advanced_query_streamed(
+                    params.params,
+                    emit,
+                    params.num_events,
+                    params.starting_size,
+                )
                 .await
         })
     }
@@ -80,7 +86,12 @@ impl SearchIndexService {
         let querier_clone = Arc::clone(&self.querier);
         tokio::spawn(async move {
             querier_clone
-                .organized_query_streamed(params.params, emit, params.num_events, params.starting_size)
+                .organized_query_streamed(
+                    params.params,
+                    emit,
+                    params.num_events,
+                    params.starting_size,
+                )
                 .await
         })
     }

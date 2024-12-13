@@ -20,6 +20,9 @@ import { FadeInComponent } from "../../../shared/components/misc/fade-in/fade-in
 })
 export class FileResultComponent {
   isVisible = false;
+
+  @Input() fadeInAnim:boolean = true;
+
   @Input() file: FileModel | undefined;
   @Input() selected = false;
   @Input() clickEvent: (() => void) | undefined;

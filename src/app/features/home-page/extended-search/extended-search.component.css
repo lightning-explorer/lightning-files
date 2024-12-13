@@ -11,3 +11,14 @@
     height: 80vh;
     width: 100%;
 }
+
+.top {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+}
+
+.content label {
+    color: var(--primary);
+}

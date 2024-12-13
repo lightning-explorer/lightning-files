@@ -13,15 +13,13 @@ export class LocalStreamingSearchService {
 
     async query(params: StreamingSearchParamsDTO) {
         this.filesSubject.next([]);
-        // await this.commandsService.searchIndexQueryStreaming(params,
-        //     (files) => {
-        //         const updatedFiles = [...this.filesSubject.getValue(), ...files];
-        //         this.filesSubject.next(updatedFiles);
-        //     }
-        // );
         await this.commandsService.searchIndexQueryStreamingOrganized(params,
             (files) => {
-                this.filesSubject.next(files);
+                // Check if the emitted result corresponds to the correct query.
+                // The query string is stored in the metadata field
+                if (files.Metadata == params.Params.FilePath) {
+                    this.filesSubject.next(files.Data);
+                }
             }
         );
     }

@@ -9,6 +9,9 @@ import { BehaviorSubject, Subscription } from "rxjs";
 export class ExtendedSearchService implements OnDestroy {
     subscription = new Subscription;
 
+    private searchStringSubject = new BehaviorSubject<string>("");
+    
+
     private filesSubject = new BehaviorSubject<FileModel[]>([]);
     files$ = this.filesSubject.asObservable();
 

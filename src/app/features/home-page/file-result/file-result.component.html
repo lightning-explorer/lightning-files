@@ -1,4 +1,4 @@
-<app-fade-in>
+<app-fade-in [isVisible]="!fadeInAnim">
     <div *ngIf="file">
         <button class="content" [ngClass]="{'selected':selected}" (click)="onClick()">
 
