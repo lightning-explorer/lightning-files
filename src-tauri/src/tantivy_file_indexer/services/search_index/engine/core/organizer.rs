@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::{Path, Component};
+use std::path::{Component, Path};
 
 use crate::tantivy_file_indexer::models::tantivy_file_model::TantivyFileModel;
 
@@ -15,7 +15,9 @@ pub fn group_files(paths: Vec<TantivyFileModel>) -> HashMap<(Drive, Ext), Vec<Ta
             .components()
             .next()
             .and_then(|comp| match comp {
-                Component::Prefix(prefix) => Some(prefix.as_os_str().to_string_lossy().into_owned()),
+                Component::Prefix(prefix) => {
+                    Some(prefix.as_os_str().to_string_lossy().into_owned())
+                }
                 _ => None,
             })
             .unwrap_or_else(|| "".to_string());
@@ -26,9 +28,7 @@ pub fn group_files(paths: Vec<TantivyFileModel>) -> HashMap<(Drive, Ext), Vec<Ta
             .unwrap_or("")
             .to_string();
 
-        map.entry((drive, ext))
-            .or_insert_with(Vec::new)
-            .push(file);
+        map.entry((drive, ext)).or_insert_with(Vec::new).push(file);
     }
 
     map
