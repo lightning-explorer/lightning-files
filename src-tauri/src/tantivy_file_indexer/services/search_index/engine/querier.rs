@@ -1,4 +1,4 @@
-use super::core::{constructor, executor, organizer};
+use super::core::{constructor::QueryConstructor, executor, organizer};
 use std::collections::HashSet;
 
 use tantivy::{schema::Schema, DocAddress, Searcher, TantivyDocument};
@@ -11,11 +11,13 @@ use crate::tantivy_file_indexer::{
 pub struct Querier {
     schema: Schema,
     searcher: Searcher,
+    constructor: QueryConstructor
 }
 
 impl Querier {
     pub fn new(schema: Schema, searcher: Searcher) -> Self {
-        Self { schema, searcher }
+        let constructor = QueryConstructor::new(schema.clone(),searcher.clone());
+        Self { schema, searcher, constructor }
     }
     /// Where `min_results` indicated how many documents should initially be fetched, and max_results is the value to work up to
     ///
@@ -29,7 +31,7 @@ impl Querier {
     ) where
         EmitFn: Fn(Vec<TantivyFileModel>),
     {
-        let query = constructor::construct_query(&self.schema, &self.searcher, &search_params)
+        let query = self.constructor.construct_query(&search_params)
             .expect("Query could not be constructed");
 
         let max_results = search_params.num_results as usize;
@@ -83,7 +85,7 @@ impl Querier {
     ) where
         EmitFn: Fn(&[TantivyFileModel]),
     {
-        let query = constructor::construct_query(&self.schema, &self.searcher, &search_params)
+        let query =  self.constructor.construct_query(&search_params)
             .expect("Query could not be constructed");
 
         let max_results = search_params.num_results as usize;
@@ -131,7 +133,7 @@ impl Querier {
         &self,
         search_params: &SearchParamsDTO,
     ) -> tantivy::Result<Vec<TantivyFileModel>> {
-        let query = constructor::construct_query(&self.schema, &self.searcher, search_params)
+        let query =  self.constructor.construct_query(search_params)
             .expect("Query could not be constructed");
 
         // Execute the query and collect the results
