@@ -1,6 +1,8 @@
-use super::super::schemas::file_schema;
+
 use std::{fs, path::PathBuf};
 use tantivy::{schema::Schema, Index, IndexReader, IndexWriter};
+
+use crate::tantivy_file_indexer::{services::search_index::models::file::TantivyFileModel, shared::search_index::tantivy_traits::Model};
 
 /**
 Creates the Tantivy index at the given directory
@@ -9,7 +11,7 @@ pub fn initialize_tantity(
     buffer_size: usize,
     index_path: PathBuf,
 ) -> (Schema, IndexReader, IndexWriter) {
-    let schema = file_schema::create_schema();
+    let schema = TantivyFileModel::schema();
     // Create the Tantivy index
     let index = if index_path.exists() {
         // If the index directory exists, open the existing index

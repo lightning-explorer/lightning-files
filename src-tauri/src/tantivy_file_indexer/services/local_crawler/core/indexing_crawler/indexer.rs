@@ -1,6 +1,6 @@
 use std::{
     collections::HashSet,
-    path::{Path, PathBuf},
+    path::PathBuf,
     sync::Arc,
     time::Duration,
 };
@@ -10,15 +10,15 @@ use tokio::sync::Mutex;
 
 use crate::tantivy_file_indexer::{
     converters::date_converter::chrono_time_to_tantivy_datetime,
-    models::interal_system_file::InternalSystemFileModel,
-    shared::indexing_crawler::traits::files_collection_api::FilesCollectionApi,
+    models::internal_system_file,
+    shared::{indexing_crawler::traits::files_collection_api::FilesCollectionApi, search_index::tantivy_traits::ToDocument},
 };
 
 use super::worker_manager::TantivyInput;
 
 /// The files also get committed to the Tantivy index and database at the end of this function
 pub async fn index_files<F>(
-    files: &[InternalSystemFileModel],
+    files: &[internal_system_file::model::Model],
     tantivy: TantivyInput,
     parent_path: PathBuf,
     files_collection: Arc<F>,
@@ -45,14 +45,15 @@ where
     Ok(())
 }
 
-async fn process_files_and_commit<F>(
-    dtos: &[InternalSystemFileModel],
+async fn process_files_and_commit<F, D>(
+    dtos: &[D],
     writer: Arc<Mutex<IndexWriter>>,
     schema: Schema,
     files_collection: Arc<F>,
 ) -> Result<(), String>
 where
     F: FilesCollectionApi,
+    D: ToDocument
 {
     {
         let writer_lock = writer.lock().await;
@@ -66,15 +67,7 @@ where
                 &dto.file_path,
             ));
             writer_lock
-                .add_document(doc! {
-                //schema.get_field("file_id").unwrap() => dto.file_id, // UNUSED SCHEMA FIELD
-                schema.get_field("name").unwrap() => dto.name.clone(),
-                schema.get_field("date_modified").unwrap() => chrono_time_to_tantivy_datetime(dto.date_modified), 
-                schema.get_field("date_created").unwrap() => chrono_time_to_tantivy_datetime(dto.date_created), 
-                schema.get_field("path").unwrap() => dto.file_path.clone(),
-                schema.get_field("metadata").unwrap() => dto.metadata.clone(),
-                schema.get_field("popularity").unwrap() => dto.popularity,
-                })
+                .add_document(dto.to_doc(&schema))
                 .map_err(|x| format!("Failed to add document: {}", x))?;
         }
         // Writer lock is dropped here
@@ -111,12 +104,6 @@ where
     }
 
     Ok(stale_paths.len())
-}
-
-fn get_parent_path(path: String) -> Option<String> {
-    Path::new(&path)
-        .parent()
-        .map(|val| val.to_string_lossy().to_string())
 }
 
 async fn commit_and_retry(writer: Arc<Mutex<IndexWriter>>) -> Result<(), TantivyError> {

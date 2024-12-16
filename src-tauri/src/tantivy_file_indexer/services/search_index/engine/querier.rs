@@ -1,23 +1,21 @@
 use super::core::{constructor::QueryConstructor, executor, organizer};
-use std::collections::HashSet;
+use std::{collections::HashSet, sync::Arc};
 
-use tantivy::{schema::Schema, DocAddress, Searcher, TantivyDocument};
+use tantivy::{schema::Schema, DocAddress, IndexReader, TantivyDocument};
 
 use crate::tantivy_file_indexer::{
-    converters::doc_to_dto::doc_to_tantivy_file_model, dtos::search_params_dto::SearchParamsDTO,
-    models::tantivy_file_model::TantivyFileModel,
+    dtos::search_params_dto::SearchParamsDTO, services::search_index::models::file::TantivyFileModel, shared::search_index::tantivy_traits::FromDocument
 };
 
 pub struct Querier {
     schema: Schema,
-    searcher: Searcher,
-    constructor: QueryConstructor
+    reader:Arc<IndexReader>,
+    constructor: Arc<QueryConstructor>
 }
 
 impl Querier {
-    pub fn new(schema: Schema, searcher: Searcher) -> Self {
-        let constructor = QueryConstructor::new(schema.clone(),searcher.clone());
-        Self { schema, searcher, constructor }
+    pub fn new(schema: Schema, reader:Arc<IndexReader>, constructor: Arc<QueryConstructor>) -> Self {
+        Self { schema, reader, constructor }
     }
     /// Where `min_results` indicated how many documents should initially be fetched, and max_results is the value to work up to
     ///
@@ -31,6 +29,7 @@ impl Querier {
     ) where
         EmitFn: Fn(Vec<TantivyFileModel>),
     {
+        let searcher = self.reader.searcher();
         let query = self.constructor.construct_query(&search_params)
             .expect("Query could not be constructed");
 
@@ -41,14 +40,14 @@ impl Querier {
         let mut prev_docs: HashSet<DocAddress> = HashSet::new();
 
         for _ in 0..step_size {
-            match executor::execute_query(&self.searcher, current_out_amt, &query) {
+            match executor::execute_query(&searcher, current_out_amt, &query) {
                 Ok(top_docs) => {
                     let mut output_docs: Vec<TantivyFileModel> = Vec::new();
                     for (_score, address) in top_docs {
                         if prev_docs.insert(address) {
                             // Value got inserted, proceed
-                            if let Ok(doc) = self.searcher.doc(address) {
-                                output_docs.push(doc_to_tantivy_file_model(
+                            if let Ok(doc) = searcher.doc(address) {
+                                output_docs.push(TantivyFileModel::from_doc(
                                     doc,
                                     &self.schema,
                                     _score,
@@ -85,6 +84,7 @@ impl Querier {
     ) where
         EmitFn: Fn(&[TantivyFileModel]),
     {
+        let searcher = self.reader.searcher();
         let query =  self.constructor.construct_query(&search_params)
             .expect("Query could not be constructed");
 
@@ -95,11 +95,11 @@ impl Querier {
         let mut accumulated_docs: Vec<TantivyFileModel> = Vec::new();
 
         for _ in 0..step_size {
-            match executor::execute_query(&self.searcher, current_out_amt, &query) {
+            match executor::execute_query(&searcher, current_out_amt, &query) {
                 Ok(top_docs) => {
                     for (_score, address) in top_docs {
-                        if let Ok(doc) = self.searcher.doc(address) {
-                            accumulated_docs.push(doc_to_tantivy_file_model(
+                        if let Ok(doc) = searcher.doc(address) {
+                            accumulated_docs.push(TantivyFileModel::from_doc(
                                 doc,
                                 &self.schema,
                                 _score,
@@ -133,17 +133,18 @@ impl Querier {
         &self,
         search_params: &SearchParamsDTO,
     ) -> tantivy::Result<Vec<TantivyFileModel>> {
+        let searcher = self.reader.searcher();
         let query =  self.constructor.construct_query(search_params)
             .expect("Query could not be constructed");
 
         // Execute the query and collect the results
-        let top_docs = executor::execute_query(&self.searcher, search_params.num_results as usize, &query)?;
+        let top_docs = executor::execute_query(&searcher, search_params.num_results as usize, &query)?;
 
         let results: Vec<TantivyFileModel> = top_docs
             .into_iter()
             .map(|(_score, doc_address)| {
-                let doc: TantivyDocument = self.searcher.doc(doc_address).unwrap();
-                doc_to_tantivy_file_model(doc, &self.schema, _score)
+                let doc: TantivyDocument = searcher.doc(doc_address).unwrap();
+                TantivyFileModel::from_doc(doc, &self.schema, _score)
             })
             .collect();
 

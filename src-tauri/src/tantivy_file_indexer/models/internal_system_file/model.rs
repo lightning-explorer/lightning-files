@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 // TODO: move this to the models folder
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "PascalCase")]
-pub struct InternalSystemFileModel {
+pub struct Model {
     pub name: String,
     pub file_path: String,
     pub metadata: String,

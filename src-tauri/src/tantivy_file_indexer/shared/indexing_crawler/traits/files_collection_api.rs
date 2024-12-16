@@ -7,7 +7,7 @@ use std::{
     path::Path,
 };
 
-use crate::tantivy_file_indexer::models::interal_system_file::InternalSystemFileModel;
+use crate::tantivy_file_indexer::models::internal_system_file;
 
 pub trait FilesCollectionApi: Clone + Send + Sync + 'static {
     type Error: Display + Debug;
@@ -22,7 +22,7 @@ pub trait FilesCollectionApi: Clone + Send + Sync + 'static {
 
     fn upsert_many(
         &self,
-        models: &[InternalSystemFileModel],
+        models: &[internal_system_file::model::Model],
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
     fn remove_paths(

@@ -72,7 +72,7 @@ impl FileCrawlerService {
             index_writer,
             schema,
             worker_batch_size,
-            files_collection.into(),
+            files_collection,
         )
         .await
     }

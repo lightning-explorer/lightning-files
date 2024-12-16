@@ -34,7 +34,7 @@ impl AppServiceContainer {
         let crawler_analyzer_service = Self::initialize_crawler_analyzer_service(15);
 
         let crawler_service = Self::initialize_crawler_service(
-            8,
+            2,
             Arc::clone(&local_db_service),
             Arc::clone(&search_service),
         )

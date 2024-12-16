@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 use std::path::{Component, Path};
 
-use crate::tantivy_file_indexer::models::tantivy_file_model::TantivyFileModel;
+use crate::tantivy_file_indexer::services::search_index::models::file::TantivyFileModel;
+
 
 type Drive = String;
 type Ext = String;

@@ -1,6 +1,7 @@
 mod engine;
-mod schemas {
-    pub mod file_schema;
+mod models{
+    pub mod file;
+    pub mod traits;
 }
 mod services {
     pub mod task_manager;

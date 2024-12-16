@@ -1,4 +1,4 @@
-use crate::tantivy_file_indexer::models::interal_system_file::InternalSystemFileModel;
+use crate::tantivy_file_indexer::models::internal_system_file;
 use crate::tantivy_file_indexer::shared::indexing_crawler::traits::files_collection_api::FilesCollectionApi;
 
 use super::super::api::FilesTable;
@@ -22,7 +22,7 @@ impl FilesCollectionApi for FilesTable {
 
     fn upsert_many(
         &self,
-        models: &[InternalSystemFileModel],
+        models: &[internal_system_file::model::Model],
     ) -> impl std::future::Future<Output = Result<(), Self::Error>> + Send {
         let models: Vec<file::Model> = models
             .into_iter()

@@ -7,7 +7,7 @@ use rand::{Rng, SeedableRng};
 use tokio::sync::Notify;
 
 use crate::tantivy_file_indexer::{
-    models::interal_system_file::InternalSystemFileModel,
+    models::internal_system_file,
     shared::{
         async_retry,
         indexing_crawler::{
@@ -62,7 +62,7 @@ where
     }
 
     pub async fn worker_task(&self) {
-        let mut dtos_bank: Vec<(CrawlerFile, Vec<InternalSystemFileModel>)> = Vec::new();
+        let mut dtos_bank: Vec<(CrawlerFile, Vec<internal_system_file::model::Model>)> = Vec::new();
         let mut num_files_processed = 0;
 
         self.random_wait().await;
@@ -116,7 +116,7 @@ where
         }
     }
 
-    async fn handle_index(&self, dir: &CrawlerFile, dtos: Vec<InternalSystemFileModel>) {
+    async fn handle_index(&self, dir: &CrawlerFile, dtos: Vec<internal_system_file::model::Model>) {
         let (ref writer, ref schema) = self.tantivy;
         match async_retry::retry_with_backoff(
             || {
@@ -150,7 +150,7 @@ where
     }
 
     /// Returns all of the files that were found in the given directory
-    async fn handle_crawl(&self, directory: &CrawlerFile) -> Vec<InternalSystemFileModel>
+    async fn handle_crawl(&self, directory: &CrawlerFile) -> Vec<internal_system_file::model::Model>
     where
         C: CrawlerQueueApi,
     {
@@ -186,8 +186,8 @@ where
 
     async fn commit_dtos_bank(
         &self,
-        mut dtos: Vec<(CrawlerFile, Vec<InternalSystemFileModel>)>,
-    ) -> Vec<(CrawlerFile, Vec<InternalSystemFileModel>)> {
+        mut dtos: Vec<(CrawlerFile, Vec<internal_system_file::model::Model>)>,
+    ) -> Vec<(CrawlerFile, Vec<internal_system_file::model::Model>)> {
         println!("Crawler is committing dtos bank");
         for (dir, files) in dtos.drain(..) {
             println!("Draining {}", dir.path.to_string_lossy());

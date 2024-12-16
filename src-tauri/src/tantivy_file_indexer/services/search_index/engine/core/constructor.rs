@@ -1,19 +1,19 @@
+use std::sync::Arc;
+
 use tantivy::{
-    query::{BooleanQuery, Occur, Query, QueryParser, RangeQuery, TermQuery},
-    schema::Schema,
-    DateTime, Searcher, TantivyError, Term,
+    query::{BooleanQuery, Occur, Query, QueryParser, RangeQuery, TermQuery}, schema::Schema, DateTime, IndexReader, Searcher, TantivyError, Term
 };
 
 use crate::tantivy_file_indexer::dtos::search_params_dto::{DateRange, SearchParamsDTO};
 
 pub struct QueryConstructor {
     schema: Schema,
-    searcher: Searcher,
+    reader:Arc<IndexReader>
 }
 
 impl QueryConstructor {
-    pub fn new(schema: Schema, searcher: Searcher) -> Self {
-        Self { schema, searcher }
+    pub fn new(schema: Schema, reader:Arc<IndexReader>) -> Self {
+        Self { schema, reader }
     }
 
     /// Construct a query to retrieve files, based off of the files' schema
@@ -57,7 +57,7 @@ impl QueryConstructor {
         occur: Occur,
     ) -> Result<(Occur, Box<dyn Query>), TantivyError> {
         let field = self.schema.get_field(field_name)?;
-        let mut query_parser = QueryParser::for_index(self.searcher.index(), vec![field]);
+        let mut query_parser = QueryParser::for_index(self.reader.searcher().index(), vec![field]);
         query_parser.set_conjunction_by_default();
         let query = query_parser.parse_query(query)?;
         Ok((occur, Box::new(query)))
@@ -86,5 +86,13 @@ impl QueryConstructor {
         let term = Term::from_field_text(field, query);
         let query = TermQuery::new(term, tantivy::schema::IndexRecordOption::WithFreqs);
         Ok((occur, Box::new(query)))
+    }
+
+    /// Construct a term query for a single field.
+    /// 
+    /// This can be useful if the Tantivy index is treated as the database and you want to find a certain field with an exact value
+    pub fn construct_term_query(&self, field_name: &str, query: &str)->tantivy::Result<(Occur, Box<dyn Query>)>{
+        let q = self.create_term_query(field_name, query, Occur::Must)?;
+        Ok(q)
     }
 }

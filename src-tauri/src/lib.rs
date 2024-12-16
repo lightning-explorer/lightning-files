@@ -1,7 +1,6 @@
 use directory_nav_service::tauri_exports::*;
-use std::{path::Path, sync::Arc};
 use tantivy_file_indexer::{
-    service_container::AppServiceContainer, services::app_save::tauri_exports::*,
+    services::app_save::tauri_exports::*,
     services::local_crawler::tauri_exports::*, /*services::local_db::tables::files::tauri_exports::*,*/
     services::local_db::tauri_exports::*, services::search_index::tauri_exports::*,
     services::vector_db::tauri_exports::*,
@@ -45,13 +44,8 @@ pub fn run() {
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();
-            let app_handle2 = app.handle().clone();
 
             app_init::initialize_app(app_handle);
-
-            tauri::async_runtime::spawn(async move {
-                app_init::initialize_app_async(app_handle2).await
-            });
 
             Ok(())
         })

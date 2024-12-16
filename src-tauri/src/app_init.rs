@@ -21,10 +21,15 @@ pub fn initialize_app(handle: AppHandle) {
     handle.manage(IsAppRunning {
         running: Arc::new(Mutex::new(false)),
     });
+
+    let handle_clone = handle.clone();
+    tauri::async_runtime::spawn(async move {
+        initialize_app_async(handle_clone).await
+    });
 }
 
 pub async fn initialize_app_async(handle: AppHandle) {
-    let index_files = false;
+    let index_files = true;
 
     let service_container = AppServiceContainer::new_async(&handle).await;
     let crawler_service = Arc::clone(&service_container.crawler_service);
@@ -48,7 +53,7 @@ pub async fn initialize_app_async(handle: AppHandle) {
         let index_writer = Arc::clone(&search_service.index_writer);
         let schema = search_service.schema.clone();
         let handles = crawler_service
-            .spawn_indexing_crawlers_sqlite(index_writer, schema, 128)
+            .spawn_indexing_crawlers_tantivy(index_writer, schema, 128)
             .await;
 
         crawler_service

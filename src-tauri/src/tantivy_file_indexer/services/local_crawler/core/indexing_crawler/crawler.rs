@@ -2,7 +2,7 @@ use std::{os::windows::fs::MetadataExt, path::PathBuf, sync::Arc, time::Duration
 
 use crate::tantivy_file_indexer::{
     converters::date_converter::system_time_to_chrono_datetime,
-    models::interal_system_file::InternalSystemFileModel,
+    models::internal_system_file,
     shared::{
         async_retry,
         indexing_crawler::{
@@ -22,7 +22,7 @@ pub enum CrawlerError {
 pub async fn crawl<C>(
     file: &CrawlerFile,
     queue: Arc<C>,
-) -> Result<Vec<InternalSystemFileModel>, CrawlerError>
+) -> Result<Vec<internal_system_file::model::Model>, CrawlerError>
 where
     C: CrawlerQueueApi,
 {
@@ -85,7 +85,7 @@ where
 fn create_dto(
     entry: PathBuf,
     entry_meta: &std::fs::Metadata,
-) -> Result<InternalSystemFileModel, String> {
+) -> Result<internal_system_file::model::Model, String> {
     let size = entry_meta.file_size();
 
     let date_modified =
@@ -101,7 +101,7 @@ fn create_dto(
         .to_string_lossy()
         .to_string();
 
-    let dto = InternalSystemFileModel {
+    let dto = internal_system_file::model::Model {
         name,
         file_path: entry.to_string_lossy().to_string(),
         metadata: "test metadata".to_string(),
