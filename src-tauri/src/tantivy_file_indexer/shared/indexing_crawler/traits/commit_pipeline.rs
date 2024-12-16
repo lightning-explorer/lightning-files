@@ -25,6 +25,8 @@ pub trait CrawlerCommitPipeline: Send + Sync + 'static {
         parent: &Self::InputModel,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
+    fn upsert_one(&self, model:Self::InputModel) -> impl Future<Output = Result<(), Self::Error>> + Send;
+
     fn remove_many(
         &self,
         models: &Vec<Self::InputModel>,

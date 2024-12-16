@@ -17,6 +17,7 @@ pub fn create_file_model_from_path(file_path: PathBuf) -> Option<SystemFileModel
                 metadata: "".to_string(),
                 size,
                 popularity: 0.0,
+                is_directory
             })
         }
         Err(err) => None,

@@ -1,11 +1,9 @@
-
 use tantivy::IndexWriter;
 use tokio::sync::Mutex;
 use tokio::task::JoinSet;
 
 use crate::shared::models::sys_file_model::SystemFileModel;
 use crate::tantivy_file_indexer::services::local_db::service::LocalDbService;
-use crate::tantivy_file_indexer::services::search_index::pipelines;
 use crate::tantivy_file_indexer::services::search_index::service::SearchIndexService;
 use crate::tantivy_file_indexer::shared::async_retry;
 use crate::tantivy_file_indexer::shared::indexing_crawler::traits::commit_pipeline::CrawlerCommitPipeline;
@@ -38,32 +36,15 @@ impl FileCrawlerService {
         }
     }
 
-    /// Spawn crawlers that treat Tantivy as simply the search index and SQLite as the main database
-    ///
-    /// ### NOTE:
-    /// Faster, but uses much more disk space
-    pub async fn spawn_indexing_crawlers_db(
-        &self,
-        index_writer: Arc<Mutex<IndexWriter>>,
-        worker_batch_size: usize,
-    ) -> JoinSet<()> {
-        let pipeline = pipelines::db_tantivy_pipeline::DbTantivyPipeline::new(self.local_db.files_table().clone(), index_writer);
-        //let pipeline = pipelines::tantivy_pipeline::TantivyPipeline::new( index_writer);
-        self.spawn_indexing_crawlers_internal(
-            worker_batch_size,
-            pipeline.into(),
-        )
-        .await
-    }
 
-    async fn spawn_indexing_crawlers_internal<P>(
+    pub async fn spawn_indexing_crawlers<P>(
         &self,
         worker_batch_size: usize,
-        pipeline: Arc<P>,
     ) -> JoinSet<()>
     where
         P: CrawlerCommitPipeline<InputModel = SystemFileModel>,
     {
+        let pipeline = self.search_index.get_pipeline();
         indexing_crawler::worker_manager::spawn_worker_pool(
             self.queue.clone(),
             pipeline,

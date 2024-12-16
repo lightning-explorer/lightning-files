@@ -32,8 +32,6 @@ pub async fn initialize_app_async(handle: AppHandle) {
     let service_container = AppServiceContainer::new_async(&handle).await;
     let crawler_service = Arc::clone(&service_container.crawler_service);
     //let crawler_analyzer_service = Arc::clone(&service_container.crawler_analyzer_service);
-    let search_service = Arc::clone(&service_container.search_service);
-    //let db_service = Arc::clone(&service_container.local_db_service);
 
     // Notify that the app is all set up:
     *handle.state::<IsAppRunning>().running.lock().await = true;
@@ -48,11 +46,7 @@ pub async fn initialize_app_async(handle: AppHandle) {
         // crawler_service.spawn_crawler_with_analyzer(sender, crawler_analyzer_service);
 
         // New file crawlers:
-        let index_writer = Arc::clone(&search_service.index_writer);
-
-        let handles = crawler_service
-            .spawn_indexing_crawlers_db(index_writer, 128)
-            .await;
+        let handles = crawler_service.spawn_indexing_crawlers_tantivy(128).await;
 
         crawler_service
             .push_dirs_default(vec![Path::new("C:\\").to_path_buf()])

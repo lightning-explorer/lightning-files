@@ -63,21 +63,21 @@ where
                 Ok(file_option) => match file_option {
                     Some(file) => {
                         // not needed if the log isn't there
-                        let file_clone = file.clone();
-                        let time = Instant::now();
+                        // let file_clone = file.clone();
+                        // let time = Instant::now();
 
                         let dtos = self.handle_crawl(&file).await;
                         num_files_processed += dtos.len();
                         dtos_bank.push((file, dtos));
 
-                        // optional log
-                        println!(
-                            "Crawler worker finished processing {}. Priority: {}. Num files processed: {}. Time: {:?}",
-                            file_clone.path.to_string_lossy(),
-                            file_clone.priority,
-                            num_files_processed,
-                            time.elapsed()
-                        );
+                        // // optional log
+                        // println!(
+                        //     "Crawler worker finished processing {}. Priority: {}. Num files processed: {}. Time: {:?}",
+                        //     file_clone.path.to_string_lossy(),
+                        //     file_clone.priority,
+                        //     num_files_processed,
+                        //     time.elapsed()
+                        // );
 
                         if num_files_processed >= self.batch_size {
                             // Commit all and drain the bank of files
@@ -181,7 +181,7 @@ where
     ) -> Vec<(CrawlerFile, Vec<SystemFileModel>)> {
         println!("Crawler is committing dtos bank");
         for (dir, files) in dtos.drain(..) {
-            println!("Draining {}", dir.path.to_string_lossy());
+            //println!("Draining {}", dir.path.to_string_lossy());
             self.handle_index(&dir, files).await;
         }
         dtos

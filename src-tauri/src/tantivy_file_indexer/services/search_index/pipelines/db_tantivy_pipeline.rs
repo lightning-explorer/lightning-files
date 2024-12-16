@@ -92,6 +92,14 @@ impl CrawlerCommitPipeline for DbTantivyPipeline {
         Ok(())
     }
 
+    async fn upsert_one(&self, model:Self::InputModel) -> Result<(), Self::Error> {
+        let model:TantivyFileModel = model.into();
+        Self::map_err(
+            indexer::add_entries_to_index(&vec![model], Arc::clone(&self.index_writer)).await,
+        )?;
+        Ok(())
+    }
+
     async fn remove_many(&self, models: &Vec<Self::InputModel>) -> Result<(), Self::Error> {
         let paths: Vec<String> = models.iter().map(|model| model.file_path.clone()).collect();
         Self::map_err(self.files_table.remove_paths(paths).await)?;

@@ -4,9 +4,7 @@ use super::super::core::indexer;
 use crate::shared::models::sys_file_model::SystemFileModel;
 use crate::tantivy_file_indexer::shared::search_index::tantivy_traits::FromDocument;
 use crate::tantivy_file_indexer::{
-    services::{
-        local_db::tables::files::entities::file, search_index::models::file::TantivyFileModel,
-    },
+    services::search_index::models::file::TantivyFileModel,
     shared::indexing_crawler::traits::commit_pipeline::CrawlerCommitPipeline,
 };
 use tantivy::{query::TermQuery, IndexReader, IndexWriter, TantivyDocument};
@@ -34,9 +32,9 @@ impl TantivyPipeline {
     /// Helper function to get stale models. The `models` parameter represents the new models and `children` are the old ones
     fn classify_stale_models(
         &self,
-        children: &[TantivyFileModel],
+        children: &[SystemFileModel],
         models: &[TantivyFileModel],
-    ) -> Vec<TantivyFileModel> {
+    ) -> Vec<SystemFileModel> {
         let mut stale = Vec::new();
 
         for child in children.iter() {
@@ -85,7 +83,7 @@ impl CrawlerCommitPipeline for TantivyPipeline {
         let paths = Self::map_err(self.search_by_parent_directory(&parent.clone().into()))?;
         Ok(paths
             .into_iter()
-            .map(|doc| TantivyFileModel::from_doc(doc, 0.0))
+            .map(|doc| TantivyFileModel::from_doc(doc, 0.0).into())
             .collect())
     }
 
@@ -95,17 +93,26 @@ impl CrawlerCommitPipeline for TantivyPipeline {
         parent: &Self::InputModel,
     ) -> Result<(), Self::Error> {
         let children = self.get_children(parent).await?;
-        let stale = self.classify_stale_models(&children, models);
+        let tantivy_models: Vec<TantivyFileModel> =
+            models.iter().map(|model| model.clone().into()).collect();
+
+        let stale = self.classify_stale_models(&children, &tantivy_models);
 
         // Remove stale paths
         self.remove_many(&stale).await?;
 
-        let tantivy_models: Vec<TantivyFileModel> =
-            models.iter().map(|model| model.clone().into()).collect();
         Self::map_err(
             indexer::add_entries_to_index(&tantivy_models, Arc::clone(&self.index_writer)).await,
         )?;
 
+        Ok(())
+    }
+
+    async fn upsert_one(&self, model:Self::InputModel) -> Result<(), Self::Error> {
+        let model:TantivyFileModel = model.into();
+        Self::map_err(
+            indexer::add_entries_to_index(&vec![model], Arc::clone(&self.index_writer)).await,
+        )?;
         Ok(())
     }
 

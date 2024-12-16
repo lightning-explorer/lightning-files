@@ -11,7 +11,7 @@ use crate::{
     get_parent_directory,
     shared::models::sys_file_model::SystemFileModel,
     tantivy_file_indexer::{
-        converters::date_converter::chrono_time_to_tantivy_datetime,
+        converters::date_converter::{chrono_time_to_tantivy_datetime, tantivy_time_to_chrono_datetime},
         shared::search_index::{
             tantivy_traits::{self, Model},
             util::{field_as_date, field_as_f64, field_as_string},
@@ -119,20 +119,35 @@ impl tantivy_traits::FromDocument for TantivyFileModel {
     }
 }
 
-impl Into<TantivyFileModel> for SystemFileModel {
-    fn into(self) -> TantivyFileModel {
-        let is_directory = PathBuf::from(self.file_path.clone()).is_dir();
-        let parent_directory = get_parent_directory(&self.file_path);
+impl From<SystemFileModel> for TantivyFileModel {
+    fn from(value:SystemFileModel) -> TantivyFileModel {
+        let is_directory = PathBuf::from(value.file_path.clone()).is_dir();
+        let parent_directory = get_parent_directory(&value.file_path);
         TantivyFileModel {
-            name: self.name,
-            file_path: self.file_path,
+            name: value.name,
+            file_path: value.file_path,
             parent_directory,
-            metadata: self.metadata,
-            date_modified: chrono_time_to_tantivy_datetime(self.date_modified),
-            date_created: chrono_time_to_tantivy_datetime(self.date_created),
+            metadata: value.metadata,
+            date_modified: chrono_time_to_tantivy_datetime(value.date_modified),
+            date_created: chrono_time_to_tantivy_datetime(value.date_created),
             score: 0.0,
-            popularity: self.popularity,
+            popularity: value.popularity,
             is_directory,
+        }
+    }
+}
+
+impl From<TantivyFileModel> for SystemFileModel {
+    fn from(value:TantivyFileModel) ->  SystemFileModel {
+        SystemFileModel {
+            name: value.name,
+            file_path: value.file_path,
+            metadata: value.metadata,
+            date_modified: tantivy_time_to_chrono_datetime(value.date_modified),
+            date_created: tantivy_time_to_chrono_datetime(value.date_created),
+            popularity: value.popularity,
+            size: 0, //TODO: ensure this is not needed
+            is_directory: value.is_directory
         }
     }
 }

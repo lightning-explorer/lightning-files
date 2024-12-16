@@ -1,25 +1,31 @@
-use crate::tantivy_file_indexer::dtos::{
+use crate::{shared::models::sys_file_model::SystemFileModel, tantivy_file_indexer::{dtos::{
     search_params_dto::SearchParamsDTO, streaming_search_dto::StreamingSearchParamsDTO,
-};
+}, services::local_db::service::LocalDbService, shared::indexing_crawler::traits::commit_pipeline::CrawlerCommitPipeline}};
 
 use super::{
-    core::engine::{core::constructor::QueryConstructor, querier::Querier, tantivy_setup},
-    models::file::TantivyFileModel,
-    services::task_manager::TaskManagerService,
+    core::engine::{core::constructor::QueryConstructor, querier::Querier, tantivy_setup}, models::file::TantivyFileModel, pipelines::{db_tantivy_pipeline::DbTantivyPipeline, tantivy_pipeline::TantivyPipeline}, services::task_manager::TaskManagerService
 };
 use std::{path::PathBuf, sync::Arc};
-use tantivy::IndexWriter;
+use tantivy::{IndexReader, IndexWriter};
 
 use tauri::{AppHandle, Manager};
 use tokio::{sync::Mutex, task::JoinHandle};
 
+pub enum PipelineType{
+    Db,
+    Tantivy
+}
+type Pipeline = Box<dyn CrawlerCommitPipeline<IndexedModel = TantivyFileModel, InputModel = SystemFileModel, Error = String>>;
 pub struct SearchIndexService {
     pub index_writer: Arc<Mutex<IndexWriter>>,
+    pub index_reader: IndexReader,
+    /// Dictates how crawlers store documents
+    pub pipeline: Arc<Pipeline>,
     querier: Arc<Querier>,
 }
 
 impl SearchIndexService {
-    pub fn new(buffer_size: usize, app_path: PathBuf, handle: &AppHandle) -> Self {
+    pub fn new(buffer_size: usize, app_path: PathBuf, handle: &AppHandle, db_service:Arc<LocalDbService>, pipeline_type:PipelineType) -> Self {
         let index_path = app_path.join("TantivyOut");
 
         let (schema, index_reader, index_writer) =
@@ -31,12 +37,21 @@ impl SearchIndexService {
 
         handle.manage(Arc::new(TaskManagerService::new()));
 
+        // Create the commit pipeline
+        let pipeline: Pipeline = match pipeline_type{
+            PipelineType::Db =>{
+                Box::new(DbTantivyPipeline::new(db_service.files_table().clone(),Arc::clone(&index_writer)))
+            }
+            PipelineType::Tantivy =>{
+                Box::new(TantivyPipeline::new(Arc::clone(&index_writer), index_reader.clone()))
+            }
+        };
+
         Self {
             index_writer,
-            querier: Arc::new(Querier::new(
-                index_reader.clone(),
-                Arc::clone(&constructor),
-            )),
+            index_reader: index_reader.clone(),
+            pipeline: Arc::new(pipeline),
+            querier: Arc::new(Querier::new(index_reader, Arc::clone(&constructor))),
         }
     }
 
@@ -89,5 +104,9 @@ impl SearchIndexService {
         params: &SearchParamsDTO,
     ) -> Result<Vec<TantivyFileModel>, tantivy::TantivyError> {
         self.querier.advanced_query(params)
+    }
+
+    pub fn get_pipeline(&self)->Arc<Pipeline>{
+        Arc::clone(&self.pipeline)
     }
 }
