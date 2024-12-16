@@ -4,63 +4,56 @@ use std::{
 };
 
 use rand::{Rng, SeedableRng};
-use tantivy::IndexWriter;
-use tokio::sync::{Mutex, Notify};
+use tokio::sync::Notify;
 
-use crate::tantivy_file_indexer::{
-    models::internal_system_file,
-    services::search_index::indexer,
-    shared::{
+use crate::{
+    shared::models::sys_file_model::SystemFileModel,
+    tantivy_file_indexer::shared::{
         async_retry,
         indexing_crawler::{
             models::crawler_file::CrawlerFile,
-            traits::{
-                crawler_queue_api::CrawlerQueueApi, files_collection_api::FilesCollectionApi,
-            },
+            traits::{commit_pipeline::CrawlerCommitPipeline, crawler_queue_api::CrawlerQueueApi},
         },
     },
 };
 
 use super::crawler::{self, CrawlerError};
 
-pub struct IndexingCrawlerWorker<C, F>
+pub struct IndexingCrawlerWorker<C, P>
 where
     C: CrawlerQueueApi,
-    F: FilesCollectionApi,
+    P: CrawlerCommitPipeline<InputModel = SystemFileModel>,
 {
     crawler_queue: Arc<C>,
-    files_collection: Arc<F>,
-    writer: Arc<Mutex<IndexWriter>>,
+    pipeline: Arc<P>,
     notify: Arc<Notify>,
     batch_size: usize,
 }
 
-impl<C, F> IndexingCrawlerWorker<C, F>
+impl<C, P> IndexingCrawlerWorker<C, P>
 where
     C: CrawlerQueueApi,
-    F: FilesCollectionApi,
+    P: CrawlerCommitPipeline<InputModel = SystemFileModel>,
 {
     /// Note that `worker_task` must be called in order for the background operations to start
     ///
     /// `batch_size` is the number of files that will be processed before the indexer commits them in bulk
     pub fn new(
         crawler_queue: Arc<C>,
-        files_collection: Arc<F>,
-        writer: Arc<Mutex<IndexWriter>>,
+        pipeline: Arc<P>,
         notify: Arc<Notify>,
         batch_size: usize,
     ) -> Self {
         Self {
             crawler_queue,
-            files_collection,
-            writer,
+            pipeline,
             notify,
             batch_size,
         }
     }
 
     pub async fn worker_task(&self) {
-        let mut dtos_bank: Vec<(CrawlerFile, Vec<internal_system_file::model::Model>)> = Vec::new();
+        let mut dtos_bank: Vec<(CrawlerFile, Vec<SystemFileModel>)> = Vec::new();
         let mut num_files_processed = 0;
 
         self.random_wait().await;
@@ -114,30 +107,31 @@ where
         }
     }
 
-    async fn handle_index(&self, dir: &CrawlerFile, dtos: Vec<internal_system_file::model::Model>) {
+    async fn handle_index(&self, dir: &CrawlerFile, files: Vec<SystemFileModel>) {
+        let parent = SystemFileModel::new_shallow(dir.path.to_string_lossy().to_string());
         match async_retry::retry_with_backoff(
-            || {
-                indexer::index_files(
-                    &dtos,
-                    Arc::clone(&self.writer),
-                    dir.path.clone(),
-                    Arc::clone(&self.files_collection),
-                )
-            },
+            || self.pipeline.upsert_many(&files, &parent),
             5,
             Duration::from_millis(1000),
         )
         .await
         {
             Ok(_) => {
-                // If all goes well, then the directory can be removed from the crawler queue
-                if let Err(err) = self.remove_from_crawler_queue(dir).await {
-                    // If for some reason the directory can't be removed, it is no big deal, it just means
-                    // that it will get indexed again
-                    println!(
-                        "Error trying to remove directory from crawler queue: {}",
-                        err
-                    );
+                match self.pipeline.commit_all().await {
+                    Ok(()) => {
+                        // If all goes well, then the directory can be removed from the crawler queue
+                        if let Err(err) = self.remove_from_crawler_queue(dir).await {
+                            // If for some reason the directory can't be removed, it is no big deal, it just means
+                            // that it will get indexed again
+                            println!(
+                                "Error trying to remove directory from crawler queue: {}",
+                                err
+                            );
+                        }
+                    }
+                    Err(err) => {
+                        println!("Error committing files: {}", err);
+                    }
                 }
             }
             Err(err) => {
@@ -147,7 +141,7 @@ where
     }
 
     /// Returns all of the files that were found in the given directory
-    async fn handle_crawl(&self, directory: &CrawlerFile) -> Vec<internal_system_file::model::Model>
+    async fn handle_crawl(&self, directory: &CrawlerFile) -> Vec<SystemFileModel>
     where
         C: CrawlerQueueApi,
     {
@@ -183,8 +177,8 @@ where
 
     async fn commit_dtos_bank(
         &self,
-        mut dtos: Vec<(CrawlerFile, Vec<internal_system_file::model::Model>)>,
-    ) -> Vec<(CrawlerFile, Vec<internal_system_file::model::Model>)> {
+        mut dtos: Vec<(CrawlerFile, Vec<SystemFileModel>)>,
+    ) -> Vec<(CrawlerFile, Vec<SystemFileModel>)> {
         println!("Crawler is committing dtos bank");
         for (dir, files) in dtos.drain(..) {
             println!("Draining {}", dir.path.to_string_lossy());

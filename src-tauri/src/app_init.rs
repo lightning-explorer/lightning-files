@@ -23,9 +23,7 @@ pub fn initialize_app(handle: AppHandle) {
     });
 
     let handle_clone = handle.clone();
-    tauri::async_runtime::spawn(async move {
-        initialize_app_async(handle_clone).await
-    });
+    tauri::async_runtime::spawn(async move { initialize_app_async(handle_clone).await });
 }
 
 pub async fn initialize_app_async(handle: AppHandle) {
@@ -51,9 +49,9 @@ pub async fn initialize_app_async(handle: AppHandle) {
 
         // New file crawlers:
         let index_writer = Arc::clone(&search_service.index_writer);
-        let schema = search_service.schema.clone();
+
         let handles = crawler_service
-            .spawn_indexing_crawlers_tantivy(index_writer, schema, 128)
+            .spawn_indexing_crawlers_db(index_writer, 128)
             .await;
 
         crawler_service

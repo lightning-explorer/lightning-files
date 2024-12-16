@@ -1,13 +1,14 @@
-use tantivy::schema::Schema;
+
 use tantivy::IndexWriter;
 use tokio::sync::Mutex;
 use tokio::task::JoinSet;
 
+use crate::shared::models::sys_file_model::SystemFileModel;
 use crate::tantivy_file_indexer::services::local_db::service::LocalDbService;
-use crate::tantivy_file_indexer::services::search_index::files_collection::TantivyFilesCollection;
+use crate::tantivy_file_indexer::services::search_index::pipelines;
 use crate::tantivy_file_indexer::services::search_index::service::SearchIndexService;
 use crate::tantivy_file_indexer::shared::async_retry;
-use crate::tantivy_file_indexer::shared::indexing_crawler::traits::files_collection_api::FilesCollectionApi;
+use crate::tantivy_file_indexer::shared::indexing_crawler::traits::commit_pipeline::CrawlerCommitPipeline;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
@@ -41,56 +42,31 @@ impl FileCrawlerService {
     ///
     /// ### NOTE:
     /// Faster, but uses much more disk space
-    pub async fn spawn_indexing_crawlers_sqlite(
+    pub async fn spawn_indexing_crawlers_db(
         &self,
         index_writer: Arc<Mutex<IndexWriter>>,
-        schema: Schema,
         worker_batch_size: usize,
     ) -> JoinSet<()> {
-        let files_collection = self.local_db.files_table().clone();
+        let pipeline = pipelines::db_tantivy_pipeline::DbTantivyPipeline::new(self.local_db.files_table().clone(), index_writer);
+        //let pipeline = pipelines::tantivy_pipeline::TantivyPipeline::new( index_writer);
         self.spawn_indexing_crawlers_internal(
-            index_writer,
-            schema,
             worker_batch_size,
-            files_collection.into(),
+            pipeline.into(),
         )
         .await
     }
 
-    /// Spawn crawlers that treat the Tantivy index as a database for the files and an index simultaneously
-    ///
-    /// ### NOTE:
-    /// May be slower than using SQLite
-    pub async fn spawn_indexing_crawlers_tantivy(
+    async fn spawn_indexing_crawlers_internal<P>(
         &self,
-        index_writer: Arc<Mutex<IndexWriter>>,
-        schema: Schema,
         worker_batch_size: usize,
-    ) -> JoinSet<()> {
-        let files_collection = Arc::clone(&self.search_index.files_collection);
-        self.spawn_indexing_crawlers_internal::<TantivyFilesCollection>(
-            index_writer,
-            schema,
-            worker_batch_size,
-            files_collection,
-        )
-        .await
-    }
-
-    async fn spawn_indexing_crawlers_internal<F>(
-        &self,
-        index_writer: Arc<Mutex<IndexWriter>>,
-        schema: Schema,
-        worker_batch_size: usize,
-        files_collection: Arc<F>,
+        pipeline: Arc<P>,
     ) -> JoinSet<()>
     where
-        F: FilesCollectionApi,
+        P: CrawlerCommitPipeline<InputModel = SystemFileModel>,
     {
         indexing_crawler::worker_manager::spawn_worker_pool(
             self.queue.clone(),
-            files_collection,
-            index_writer,
+            pipeline,
             self.queue.get_notifier(),
             worker_batch_size,
             self.max_concurrent_tasks,

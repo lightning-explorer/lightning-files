@@ -1,18 +1,20 @@
-use crate::tantivy_file_indexer::dtos::{search_params_dto::SearchParamsDTO, streaming_search_dto::StreamingSearchParamsDTO};
+use crate::tantivy_file_indexer::dtos::{
+    search_params_dto::SearchParamsDTO, streaming_search_dto::StreamingSearchParamsDTO,
+};
 
 use super::{
-    engine::{core::constructor::QueryConstructor, querier::Querier, tantivy_setup}, files_collection::TantivyFilesCollection, models::file::TantivyFileModel, services::task_manager::TaskManagerService
+    core::engine::{core::constructor::QueryConstructor, querier::Querier, tantivy_setup},
+    models::file::TantivyFileModel,
+    services::task_manager::TaskManagerService,
 };
 use std::{path::PathBuf, sync::Arc};
-use tantivy::{schema::Schema, IndexWriter};
+use tantivy::IndexWriter;
 
 use tauri::{AppHandle, Manager};
 use tokio::{sync::Mutex, task::JoinHandle};
 
 pub struct SearchIndexService {
-    pub schema: Schema,
     pub index_writer: Arc<Mutex<IndexWriter>>,
-    pub files_collection: Arc<TantivyFilesCollection>,
     querier: Arc<Querier>,
 }
 
@@ -24,26 +26,17 @@ impl SearchIndexService {
             tantivy_setup::initialize_tantity(buffer_size, index_path);
 
         let index_writer = Arc::new(Mutex::new(index_writer));
-        let index_reader = Arc::new(index_reader);
 
-        let constructor = Arc::new(QueryConstructor::new(schema.clone(),Arc::clone(&index_reader)));
-
-        // TODO: look at this. It is not being used at the moment
-        let files_collection = Arc::new(TantivyFilesCollection::new(
-            Arc::clone(&index_writer),
-            schema.clone(),
-            Arc::clone(&index_reader),
-            Arc::clone(&constructor)
-        ));
+        let constructor = Arc::new(QueryConstructor::new(schema.clone(), index_reader.clone()));
 
         handle.manage(Arc::new(TaskManagerService::new()));
-        let schema_clone = schema.clone();
 
         Self {
-            schema,
             index_writer,
-            querier: Arc::new(Querier::new(schema_clone, Arc::clone(&index_reader),Arc::clone(&constructor))),
-            files_collection,
+            querier: Arc::new(Querier::new(
+                index_reader.clone(),
+                Arc::clone(&constructor),
+            )),
         }
     }
 

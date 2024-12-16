@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-use crate::tantivy_file_indexer::models::internal_system_file;
+use crate::shared::models::sys_file_model::SystemFileModel;
 
 #[derive(Clone)]
 /// Formerly known as `FileInputModel`
 pub struct InternalSystemDirectoryModel {
-    pub dtos: Vec<internal_system_file::model::Model>,
+    pub dtos: Vec<SystemFileModel>,
     pub path: PathBuf,
 }

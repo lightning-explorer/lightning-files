@@ -1,15 +1,14 @@
 use std::{os::windows::fs::MetadataExt, path::PathBuf, sync::Arc, time::Duration};
 
-use crate::tantivy_file_indexer::{
+use crate::{shared::models::sys_file_model::SystemFileModel, tantivy_file_indexer::{
     converters::date_converter::system_time_to_chrono_datetime,
-    models::internal_system_file,
     shared::{
         async_retry,
         indexing_crawler::{
             models::crawler_file::CrawlerFile, traits::crawler_queue_api::CrawlerQueueApi,
         },
     },
-};
+}};
 pub enum CrawlerError {
     ReadDirError(String),
     PushToQueueError(String),
@@ -22,7 +21,7 @@ pub enum CrawlerError {
 pub async fn crawl<C>(
     file: &CrawlerFile,
     queue: Arc<C>,
-) -> Result<Vec<internal_system_file::model::Model>, CrawlerError>
+) -> Result<Vec<SystemFileModel>, CrawlerError>
 where
     C: CrawlerQueueApi,
 {
@@ -41,7 +40,7 @@ where
         let entry_path = entry.path();
 
         match entry.metadata().await {
-            Ok(metadata) => match create_dto(entry_path.clone(), &metadata) {
+            Ok(metadata) => match create_sys_file_model(entry_path.clone(), &metadata) {
                 Ok(dto) => {
                     dtos.push(dto);
                     // If it is a directory, push it to the queue so that it can get processed
@@ -82,10 +81,10 @@ where
     Ok(dtos)
 }
 
-fn create_dto(
+fn create_sys_file_model(
     entry: PathBuf,
     entry_meta: &std::fs::Metadata,
-) -> Result<internal_system_file::model::Model, String> {
+) -> Result<SystemFileModel, String> {
     let size = entry_meta.file_size();
 
     let date_modified =
@@ -101,7 +100,7 @@ fn create_dto(
         .to_string_lossy()
         .to_string();
 
-    let dto = internal_system_file::model::Model {
+    let dto = SystemFileModel {
         name,
         file_path: entry.to_string_lossy().to_string(),
         metadata: "test metadata".to_string(),

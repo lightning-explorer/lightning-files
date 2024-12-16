@@ -12,14 +12,13 @@ pub fn create_file_model_from_path(file_path: PathBuf) -> Option<SystemFileModel
             Some(SystemFileModel {
                 name: file_name,
                 file_path: file_path.to_string_lossy().to_string(),
-                date_modified: "".to_string(), // Add date logic if needed
+                date_modified: chrono::Utc::now(), // Add date logic if needed
+                date_created: chrono::Utc::now(),
+                metadata: "".to_string(),
                 size,
-                score: 0.0,
-                is_directory,
+                popularity: 0.0,
             })
         }
-        Err(err) => {
-            None
-        }
+        Err(err) => None,
     }
 }

@@ -11,7 +11,6 @@ pub mod tables {
             pub mod file;
         }
         pub mod trait_impl {
-            pub mod files_collection_api;
             pub mod files_model;
         }
         pub mod tauri_exports;

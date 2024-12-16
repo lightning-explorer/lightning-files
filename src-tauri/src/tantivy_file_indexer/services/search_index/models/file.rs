@@ -2,18 +2,18 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tantivy::{
     doc,
-    schema::{Schema, FAST, INDEXED, STORED, TEXT},
+    schema::{Schema, FAST, INDEXED, STORED, STRING, TEXT},
 };
 
 use tantivy::TantivyDocument;
 
 use crate::{
     get_parent_directory,
+    shared::models::sys_file_model::SystemFileModel,
     tantivy_file_indexer::{
         converters::date_converter::chrono_time_to_tantivy_datetime,
-        models::internal_system_file,
         shared::search_index::{
-            tantivy_traits::{self, ToTantivyModel},
+            tantivy_traits::{self, Model},
             util::{field_as_date, field_as_f64, field_as_string},
         },
     },
@@ -33,6 +33,18 @@ pub struct TantivyFileModel {
     pub popularity: f64,
 }
 
+impl TantivyFileModel {
+    pub fn get_field(&self, field: &str) -> Result<tantivy::Term, String> {
+        let term = tantivy::Term::from_field_text(
+            Self::schema()
+                .get_field(field)
+                .map_err(|x| format!("Field doesn't exist: {}", x))?,
+            &self.file_path,
+        );
+        Ok(term)
+    }
+}
+
 impl tantivy_traits::Model for TantivyFileModel {
     type Error = String;
 
@@ -48,7 +60,7 @@ impl tantivy_traits::Model for TantivyFileModel {
         // PRIMARY KEY
         schema_builder.add_text_field("path", TEXT | STORED);
 
-        schema_builder.add_text_field("parent_directory", TEXT | FAST);
+        schema_builder.add_text_field("parent_directory", STRING | FAST | STORED);
 
         schema_builder.add_f64_field("popularity", FAST | STORED);
         schema_builder.build()
@@ -79,8 +91,9 @@ impl tantivy_traits::Model for TantivyFileModel {
 }
 
 impl tantivy_traits::FromDocument for TantivyFileModel {
-    fn from_doc(doc: TantivyDocument, schema: &Schema, score: f64) -> TantivyFileModel {
-        // Unwrap all of the values because if the fields do not exist, then there is an underlying problem and the app can't continue
+    fn from_doc(doc: TantivyDocument, score: f64) -> TantivyFileModel {
+        let schema = &TantivyFileModel::schema();
+
         let name = field_as_string(schema, &doc, "name").unwrap();
         let file_path = field_as_string(schema, &doc, "path").unwrap();
         let parent_directory = field_as_string(schema, &doc, "parent_directory").unwrap();
@@ -106,8 +119,8 @@ impl tantivy_traits::FromDocument for TantivyFileModel {
     }
 }
 
-impl ToTantivyModel<TantivyFileModel> for internal_system_file::model::Model {
-    fn to_model(self) -> TantivyFileModel {
+impl Into<TantivyFileModel> for SystemFileModel {
+    fn into(self) -> TantivyFileModel {
         let is_directory = PathBuf::from(self.file_path.clone()).is_dir();
         let parent_directory = get_parent_directory(&self.file_path);
         TantivyFileModel {

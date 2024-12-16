@@ -27,17 +27,6 @@ pub trait Model{
 pub trait FromDocument: Model{
     fn from_doc(
         doc: TantivyDocument,
-        schema: &Schema,
         score: f64,
     ) -> Self;
-}
-
-struct PrimaryKey{
-    /// The Tantivy schema field
-    key:String,
-    value:String,
-}
-
-pub trait ToTantivyModel<M> where M:Model {
-    fn to_model(self) -> M;
 }

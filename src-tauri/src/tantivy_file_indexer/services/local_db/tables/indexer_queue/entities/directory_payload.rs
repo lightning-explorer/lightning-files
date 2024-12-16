@@ -1,7 +1,7 @@
 use sea_orm::entity::prelude::*;
 use serde::Serialize;
 
-use crate::tantivy_file_indexer::models::internal_system_file;
+use crate::shared::models::sys_file_model::SystemFileModel;
 
 // Corresponds to the FileInputModel struct
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize)]
@@ -16,7 +16,7 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn get_files(&self) -> Vec<internal_system_file::model::Model> {
+    pub fn get_files(&self) -> Vec<SystemFileModel> {
         serde_json::from_value(self.files.clone()).unwrap_or_default()
     }
 }

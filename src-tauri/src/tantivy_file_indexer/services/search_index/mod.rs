@@ -1,13 +1,17 @@
-mod engine;
-mod models{
+pub mod models {
     pub mod file;
     pub mod traits;
+}
+pub mod pipelines {
+    pub mod db_tantivy_pipeline;
+    pub mod tantivy_pipeline;
 }
 mod services {
     pub mod task_manager;
 }
-pub mod files_collection;
+mod core {
+    pub mod engine;
+    pub mod indexer;
+}
 pub mod service;
-pub mod indexer;
-pub mod tantivy_set;
 pub mod tauri_exports;
