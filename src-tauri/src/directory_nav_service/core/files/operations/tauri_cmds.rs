@@ -16,6 +16,7 @@ pub fn get_root_path(file_path: &str) -> String {
         .unwrap_or(file_path.to_string())
 }
 
+/// If the path is already at its root, it will just return the same string. Should also work for files that don't exist
 #[tauri::command]
 pub fn get_parent_directory(file_path: &str) -> String {
     let path = Path::new(file_path);

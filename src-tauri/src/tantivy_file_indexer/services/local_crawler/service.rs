@@ -90,7 +90,7 @@ impl FileCrawlerService {
         indexing_crawler::worker_manager::spawn_worker_pool(
             self.queue.clone(),
             files_collection,
-            (index_writer, schema),
+            index_writer,
             self.queue.get_notifier(),
             worker_batch_size,
             self.max_concurrent_tasks,

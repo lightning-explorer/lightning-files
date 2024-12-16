@@ -4,10 +4,12 @@ use std::{
 };
 
 use rand::{Rng, SeedableRng};
-use tokio::sync::Notify;
+use tantivy::IndexWriter;
+use tokio::sync::{Mutex, Notify};
 
 use crate::tantivy_file_indexer::{
     models::internal_system_file,
+    services::search_index::indexer,
     shared::{
         async_retry,
         indexing_crawler::{
@@ -19,11 +21,7 @@ use crate::tantivy_file_indexer::{
     },
 };
 
-use super::{
-    crawler::{self, CrawlerError},
-    indexer,
-    worker_manager::TantivyInput,
-};
+use super::crawler::{self, CrawlerError};
 
 pub struct IndexingCrawlerWorker<C, F>
 where
@@ -32,7 +30,7 @@ where
 {
     crawler_queue: Arc<C>,
     files_collection: Arc<F>,
-    tantivy: TantivyInput,
+    writer: Arc<Mutex<IndexWriter>>,
     notify: Arc<Notify>,
     batch_size: usize,
 }
@@ -48,14 +46,14 @@ where
     pub fn new(
         crawler_queue: Arc<C>,
         files_collection: Arc<F>,
-        tantivy: TantivyInput,
+        writer: Arc<Mutex<IndexWriter>>,
         notify: Arc<Notify>,
         batch_size: usize,
     ) -> Self {
         Self {
             crawler_queue,
             files_collection,
-            tantivy,
+            writer,
             notify,
             batch_size,
         }
@@ -117,12 +115,11 @@ where
     }
 
     async fn handle_index(&self, dir: &CrawlerFile, dtos: Vec<internal_system_file::model::Model>) {
-        let (ref writer, ref schema) = self.tantivy;
         match async_retry::retry_with_backoff(
             || {
                 indexer::index_files(
                     &dtos,
-                    (Arc::clone(writer), schema.clone()),
+                    Arc::clone(&self.writer),
                     dir.path.clone(),
                     Arc::clone(&self.files_collection),
                 )

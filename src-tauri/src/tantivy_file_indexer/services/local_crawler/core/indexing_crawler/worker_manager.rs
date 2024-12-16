@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use tantivy::{schema::Schema, IndexWriter};
+use tantivy::IndexWriter;
 use tokio::{
     sync::{Mutex, Notify},
     task::JoinSet,
@@ -12,15 +12,13 @@ use crate::tantivy_file_indexer::shared::indexing_crawler::traits::{
 
 use super::worker;
 
-pub type TantivyInput = (Arc<Mutex<IndexWriter>>, Schema);
-
 /// Returns the handles to the workers that were spawned
 ///
 /// Because an intial database call is made, this function must be awaited.
 pub async fn spawn_worker_pool<C, F>(
     crawler_queue: Arc<C>,
     files_collection: Arc<F>,
-    tantivy: TantivyInput,
+    writer: Arc<Mutex<IndexWriter>>,
     notify: Arc<Notify>,
     worker_batch_size: usize,
     max_concurrent_tasks: usize,
@@ -43,12 +41,11 @@ where
     );
 
     let mut tasks: JoinSet<()> = JoinSet::new();
-    let (ref writer, ref schema) = tantivy;
     for _ in 0..max_concurrent_tasks {
         let worker = worker::IndexingCrawlerWorker::new(
             Arc::clone(&crawler_queue),
             Arc::clone(&files_collection),
-            (Arc::clone(writer), schema.clone()),
+            Arc::clone(&writer),
             Arc::clone(&notify),
             worker_batch_size,
         );

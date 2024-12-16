@@ -1,10 +1,10 @@
 
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
 use tantivy::{schema::Schema, TantivyDocument, Term};
 
 pub trait Model{
-    type Error: Display;
+    type Error: Display + Debug;
 
     fn schema()->Schema;
 
@@ -20,6 +20,8 @@ pub trait Model{
     ///    )
     /// ```
     fn get_primary_key(&self) -> Result<Term,Self::Error>;
+
+    fn as_document(&self) -> TantivyDocument;
 }
 
 pub trait FromDocument: Model{
@@ -37,5 +39,5 @@ struct PrimaryKey{
 }
 
 pub trait ToTantivyModel<M> where M:Model {
-    fn to_model(&self, schema:&Schema) -> M;
+    fn to_model(self) -> M;
 }

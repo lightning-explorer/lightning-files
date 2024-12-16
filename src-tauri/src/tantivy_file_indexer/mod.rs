@@ -18,7 +18,6 @@ pub mod services {
 mod models {
     pub mod internal_system_file{
         pub mod model;
-        mod traits;
     }
     pub mod vector_search_params_model;
     pub mod emit_metadata_model;
