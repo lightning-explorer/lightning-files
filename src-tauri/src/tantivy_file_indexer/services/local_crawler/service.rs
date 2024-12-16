@@ -36,14 +36,7 @@ impl FileCrawlerService {
         }
     }
 
-
-    pub async fn spawn_indexing_crawlers<P>(
-        &self,
-        worker_batch_size: usize,
-    ) -> JoinSet<()>
-    where
-        P: CrawlerCommitPipeline<InputModel = SystemFileModel>,
-    {
+    pub async fn spawn_indexing_crawlers(&self, worker_batch_size: usize) -> JoinSet<()> {
         let pipeline = self.search_index.get_pipeline();
         indexing_crawler::worker_manager::spawn_worker_pool(
             self.queue.clone(),

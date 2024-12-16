@@ -288,4 +288,21 @@ export class TauriCommandsService {
     async isDirectoryAccessible(dirPath: string): Promise<boolean> {
         return await this.invokeSafe<boolean>("is_directory_accessible", { dirPath });
     }
+
+    async upsertFileToIndex(file: FileModel) {
+        await this.invokeSafe<void>("upsert_file_to_index", { file }).catch(err => console.log(err));
+    }
+
+    /**
+     * Why does this method return the same thing you pass in. Well, FileModels on the frontend usually aren't fully initialized. Example: `Popularity` doesn't get filled out.
+     * 
+     * You will pass in one of these incomplete file models and the backend will return you the corresponding file model (asumming it exists in the index)
+     * will all of the fields being up to date
+     * 
+     * Returns `undefined` if the file does not exist in the index
+     * @param file 
+     */
+    async getFileFromIndex(file: FileModel): Promise<FileModel | undefined> {
+        return await this.invokeSafe<FileModel | undefined>("get_file_from_index", { file });
+    }
 }

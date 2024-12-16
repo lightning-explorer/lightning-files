@@ -34,12 +34,12 @@ pub struct TantivyFileModel {
 }
 
 impl TantivyFileModel {
-    pub fn get_field(&self, field: &str) -> Result<tantivy::Term, String> {
+    pub fn make_term(field: &str, value: &str) -> Result<tantivy::Term, String> {
         let term = tantivy::Term::from_field_text(
             Self::schema()
                 .get_field(field)
                 .map_err(|x| format!("Field doesn't exist: {}", x))?,
-            &self.file_path,
+            value,
         );
         Ok(term)
     }

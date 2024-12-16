@@ -25,7 +25,16 @@ pub trait CrawlerCommitPipeline: Send + Sync + 'static {
         parent: &Self::InputModel,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
-    fn upsert_one(&self, model:Self::InputModel) -> impl Future<Output = Result<(), Self::Error>> + Send;
+    fn upsert_one(
+        &self,
+        model: Self::InputModel,
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send;
+
+    /// Given an input, view the corresponding entry in the index, given that it exists
+    fn get_one(
+        &self,
+        model: Self::InputModel,
+    ) -> impl Future<Output = Option<Self::IndexedModel>> + Send;
 
     fn remove_many(
         &self,

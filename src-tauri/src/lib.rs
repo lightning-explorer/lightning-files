@@ -40,7 +40,10 @@ pub fn run() {
             view_crawler_priority_counts,
             get_crawler_analyzer_data,
             app_init::is_running,
-            is_directory_accessible
+            is_directory_accessible,
+
+            get_file_from_index,
+            upsert_file_to_index
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();

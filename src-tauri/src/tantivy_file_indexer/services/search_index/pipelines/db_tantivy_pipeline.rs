@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use super::super::core::indexer;
+use super::{super::core::indexer, util};
 use tantivy::IndexWriter;
 use tokio::sync::Mutex;
 
@@ -98,6 +98,11 @@ impl CrawlerCommitPipeline for DbTantivyPipeline {
             indexer::add_entries_to_index(&vec![model], Arc::clone(&self.index_writer)).await,
         )?;
         Ok(())
+    }
+
+    async fn get_one(&self, model: Self::InputModel) -> Option<Self::IndexedModel> {
+        // TODO: implement
+        None
     }
 
     async fn remove_many(&self, models: &Vec<Self::InputModel>) -> Result<(), Self::Error> {

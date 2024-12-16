@@ -98,3 +98,14 @@ pub async fn search_index_query_streaming_organized(
 
     Ok(())
 }
+
+/// Can be handy for changing the fields of a file, such as the popularity, to some other value
+#[tauri::command]
+pub async fn upsert_file_to_index(file:SystemFileModel, search_service: State<'_, Arc<SearchIndexService>>)->Result<(),String>{
+    search_service.upsert_file_to_index(file).await
+}
+
+#[tauri::command]
+pub async fn get_file_from_index(file:SystemFileModel, search_service: State<'_, Arc<SearchIndexService>>)->Result<Option<SystemFileModel>,String>{
+    Ok(search_service.get_file_from_index(file).await)
+}

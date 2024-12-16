@@ -46,7 +46,7 @@ pub async fn initialize_app_async(handle: AppHandle) {
         // crawler_service.spawn_crawler_with_analyzer(sender, crawler_analyzer_service);
 
         // New file crawlers:
-        let handles = crawler_service.spawn_indexing_crawlers_tantivy(128).await;
+        let handles = crawler_service.spawn_indexing_crawlers(128).await;
 
         crawler_service
             .push_dirs_default(vec![Path::new("C:\\").to_path_buf()])
