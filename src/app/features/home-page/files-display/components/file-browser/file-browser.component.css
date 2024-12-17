@@ -3,7 +3,6 @@
     scrollbar-width: thin;
     scrollbar-color: var(--primary) transparent;
     flex: 1;
-
 }
 
 .content {

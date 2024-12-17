@@ -1,4 +1,4 @@
-use std::{os::windows::fs::MetadataExt, path::PathBuf};
+use std::{os::windows::fs::MetadataExt, path::{Path, PathBuf}};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -22,8 +22,11 @@ pub struct SystemFileModel {
 
 impl SystemFileModel {
     pub fn new_shallow(file_path: String) -> Self {
+        // Attempt to also set the name of the file, given that the file path passed in is valid
+        let path = Path::new(&file_path);
+        let name = path.file_name().map(|name|name.to_string_lossy().to_string()).unwrap_or_default();
         Self {
-            name: "".to_string(),
+            name,
             file_path,
             metadata: "".to_string(),
             date_modified: Utc::now(),

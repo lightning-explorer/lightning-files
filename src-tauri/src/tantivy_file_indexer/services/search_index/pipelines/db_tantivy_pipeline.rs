@@ -116,8 +116,4 @@ impl CrawlerCommitPipeline for DbTantivyPipeline {
                 .await,
         )
     }
-
-    async fn commit_all(&self) -> Result<(), Self::Error> {
-        Self::map_err(indexer::commit(Arc::clone(&self.index_writer), 3).await)
-    }
 }

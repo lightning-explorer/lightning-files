@@ -1,4 +1,4 @@
-<app-fade-in [isVisible]="!fadeInAnim">
+<!-- <app-fade-in [isVisible]="!fadeInAnim"> -->
     <div *ngIf="file">
         <button class="content" [ngClass]="{'selected':selected}" (click)="onClick()">
 
@@ -24,10 +24,10 @@
                 </div>
 
                 <div class="metadata">
-                    <p>{{file.Popularity}}</p>
+                    <p>{{file.FilePath}}</p>
                 </div>
 
             </div>
         </button>
     </div>
-</app-fade-in>
+<!-- </app-fade-in> -->

@@ -72,7 +72,7 @@ where
     }
     // Push the entries in bulk
     async_retry::retry_with_backoff(
-        || queue.push(&dir_paths_found),
+        |_| queue.push(&dir_paths_found),
         5,
         Duration::from_millis(1000),
     )

@@ -1,4 +1,5 @@
-use crate::FilesDisplayState;
+
+use crate::directory_nav_service;
 
 use super::services::{
     app_save::service::{AppSavePath, AppSaveService},
@@ -25,6 +26,8 @@ impl AppServiceContainer {
         let app_save_service = Self::initialize_app_save_service(AppSavePath::AppData, app_name);
         let app_path = app_save_service.save_dir.clone();
 
+        directory_nav_service::state::manager::manage_state(handle);
+
         //let vector_db_service = Self::initialize_vector_service();
         let search_service = Self::initialize_search_service(50_000_000, app_path, handle);
 
@@ -40,7 +43,6 @@ impl AppServiceContainer {
         )
         .await;
 
-        handle.manage(Arc::new(FilesDisplayState::new()));
         handle.manage(Arc::clone(&search_service));
         handle.manage(Arc::clone(&local_db_service));
         handle.manage(Arc::clone(&crawler_service));

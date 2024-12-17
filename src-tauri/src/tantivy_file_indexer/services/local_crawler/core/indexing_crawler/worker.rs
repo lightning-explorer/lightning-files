@@ -110,28 +110,21 @@ where
     async fn handle_index(&self, dir: &CrawlerFile, files: Vec<SystemFileModel>) {
         let parent = SystemFileModel::new_shallow(dir.path.to_string_lossy().to_string());
         match async_retry::retry_with_backoff(
-            || self.pipeline.upsert_many(&files, &parent),
+            |_| self.pipeline.upsert_many(&files, &parent),
             5,
             Duration::from_millis(1000),
         )
         .await
         {
             Ok(_) => {
-                match self.pipeline.commit_all().await {
-                    Ok(()) => {
-                        // If all goes well, then the directory can be removed from the crawler queue
-                        if let Err(err) = self.remove_from_crawler_queue(dir).await {
-                            // If for some reason the directory can't be removed, it is no big deal, it just means
-                            // that it will get indexed again
-                            println!(
-                                "Error trying to remove directory from crawler queue: {}",
-                                err
-                            );
-                        }
-                    }
-                    Err(err) => {
-                        println!("Error committing files: {}", err);
-                    }
+                // If all goes well, then the directory can be removed from the crawler queue
+                if let Err(err) = self.remove_from_crawler_queue(dir).await {
+                    // If for some reason the directory can't be removed, it is no big deal, it just means
+                    // that it will get indexed again
+                    println!(
+                        "Error trying to remove directory from crawler queue: {}",
+                        err
+                    );
                 }
             }
             Err(err) => {
@@ -179,7 +172,7 @@ where
         &self,
         mut dtos: Vec<(CrawlerFile, Vec<SystemFileModel>)>,
     ) -> Vec<(CrawlerFile, Vec<SystemFileModel>)> {
-        println!("Crawler is committing dtos bank");
+        //println!("Crawler is committing dtos bank");
         for (dir, files) in dtos.drain(..) {
             //println!("Draining {}", dir.path.to_string_lossy());
             self.handle_index(&dir, files).await;
@@ -189,7 +182,7 @@ where
 
     async fn remove_from_crawler_queue(&self, directory: &CrawlerFile) -> Result<(), String> {
         async_retry::retry_with_backoff(
-            || self.crawler_queue.delete_one(directory.clone()),
+            |_| self.crawler_queue.delete_one(directory.clone()),
             5,
             Duration::from_millis(1000),
         )
@@ -199,7 +192,7 @@ where
     /// Attempt to fetch the next item from the crawler queue, applying backoff if failing
     async fn staggered_fetch_next(&self) -> Result<Option<CrawlerFile>, String> {
         async_retry::retry_with_backoff(
-            || self.crawler_queue.fetch_next(),
+            |_| self.crawler_queue.fetch_next(),
             8,
             Duration::from_millis(200),
         )

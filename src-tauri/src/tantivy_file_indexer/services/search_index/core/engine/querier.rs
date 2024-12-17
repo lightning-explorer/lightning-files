@@ -1,12 +1,12 @@
 use super::query_builder::{constructor::QueryConstructor, executor, organizer};
 use std::{collections::HashSet, sync::Arc};
 
-use tantivy::{DocAddress, IndexReader, TantivyDocument};
+use tantivy::{IndexReader, TantivyDocument};
 
 use crate::tantivy_file_indexer::{
     dtos::search_params_dto::SearchParamsDTO,
     services::search_index::models::file::TantivyFileModel,
-    shared::search_index::tantivy_traits::FromDocument,
+    shared::search_index::tantivy_traits::{FromDocument, Model},
 };
 
 pub struct Querier {
@@ -43,20 +43,21 @@ impl Querier {
 
         let step_by = (max_results - min_results) / step_size;
         let mut current_out_amt = min_results;
-        let mut prev_docs: HashSet<DocAddress> = HashSet::new();
+        let mut prev_ids: HashSet<String> = HashSet::new();
 
         for _ in 0..step_size {
             match executor::execute_query(&searcher, current_out_amt, &query) {
                 Ok(top_docs) => {
                     let mut output_docs: Vec<TantivyFileModel> = Vec::new();
                     for (_score, address) in top_docs {
-                        if prev_docs.insert(address) {
-                            // Value got inserted, proceed
-                            if let Ok(doc) = searcher.doc(address) {
-                                output_docs.push(TantivyFileModel::from_doc(doc, _score));
-                            } else {
-                                println!("Failed to retrieve document for address {:?}", address);
+                        if let Ok(doc) = searcher.doc(address) {
+                            let tantivy_doc = TantivyFileModel::from_doc(doc, _score);
+
+                            if prev_ids.insert(tantivy_doc.get_primary_key_str()) {
+                                output_docs.push(tantivy_doc);
                             }
+                        } else {
+                            println!("Failed to retrieve document for address {:?}", address);
                         }
                     }
                     // Send the batch of documents
@@ -94,8 +95,18 @@ impl Querier {
 
         let max_results = search_params.num_results as usize;
 
-        let step_by = (max_results - min_results) / step_size;
+        // Avoid division by zero
+        let step_by = if step_size > 0 {
+            (max_results.saturating_sub(min_results)) / step_size
+        } else {
+            max_results - min_results
+        };
+
         let mut current_out_amt = min_results;
+
+        // Track unique document keys
+        let mut seen_keys = HashSet::new();
+
         let mut accumulated_docs: Vec<TantivyFileModel> = Vec::new();
 
         for _ in 0..step_size {
@@ -103,30 +114,42 @@ impl Querier {
                 Ok(top_docs) => {
                     for (_score, address) in top_docs {
                         if let Ok(doc) = searcher.doc(address) {
-                            accumulated_docs.push(TantivyFileModel::from_doc(doc, _score));
+                            let model = TantivyFileModel::from_doc(doc, _score);
+
+                            // Deduplicate documents
+                            if seen_keys.insert(model.get_primary_key_str()) {
+                                accumulated_docs.push(model);
+                            }
                         } else {
-                            println!("Failed to retrieve document for address {:?}", address);
+                            eprintln!("Failed to retrieve document for address {:?}", address);
                         }
                     }
-                    // Send the batch of documents
-                    Self::organize_accumulated_docs(&mut accumulated_docs);
+
+                    // Organize and emit the batch
+                    Self::organize_docs_score(&mut accumulated_docs);
                     emit(&accumulated_docs);
+
+                    // Move the window forward
                     current_out_amt += step_by;
                 }
                 Err(err) => {
-                    println!("Error executing query: {}", err);
+                    eprintln!("Error executing query: {}", err);
+                    break; // Exit loop on error
                 }
             }
         }
     }
 
-    fn organize_accumulated_docs(docs: &mut Vec<TantivyFileModel>) {
-        let mut grouped = Vec::new();
-        let groups = organizer::group_files(docs.to_vec());
-        for (_grouping, mut files) in groups.into_iter() {
-            grouped.append(&mut files);
-        }
-        *docs = grouped;
+    fn organize_docs_group(docs: &mut Vec<TantivyFileModel>) {
+        let groups = organizer::sort_by_groups(docs.drain(..)); // Use `drain` to take ownership of elements
+        *docs = groups
+            .into_iter()
+            .flat_map(|(_, files)| files) // Flatten the grouped files into a single Vec
+            .collect();
+    }
+
+    fn organize_docs_score(docs: &mut Vec<TantivyFileModel>) {
+        organizer::sort_by_score(docs);
     }
 
     pub fn advanced_query(

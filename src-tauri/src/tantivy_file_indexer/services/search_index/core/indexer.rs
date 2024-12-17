@@ -12,11 +12,9 @@ pub async fn add_entries_to_index<M>(
 where
     M: tantivy_traits::Model,
 {
-    let writer_lock = writer.lock().await;
-
+    let mut writer_lock = writer.lock().await;
     for tantivy_model in models.iter() {
         // Use the path field as the primary key
-
         remove_entry_from_index(tantivy_model, &writer_lock)
             .await
             .map_err(|err| err.to_string())?;
@@ -25,6 +23,9 @@ where
             .add_document(tantivy_model.as_document())
             .map_err(|x| format!("Failed to add document: {}", x))?;
     }
+    commit(&mut writer_lock, 3)
+        .await
+        .map_err(|err| err.to_string())?;
     // Writer lock is dropped here
     Ok(())
 }
@@ -47,12 +48,12 @@ where
 }
 
 /// Commit all staged files and deletions to the index, retrying if there was an error
-pub async fn commit(
-    writer: Arc<Mutex<IndexWriter>>,
+async fn commit(
+    writer_lock: &mut tokio::sync::MutexGuard<'_, IndexWriter>,
     retry_attempts: i32,
 ) -> Result<(), TantivyError> {
     for attempt in 1..=retry_attempts {
-        match writer.lock().await.commit() {
+        match writer_lock.commit() {
             Ok(_) => return Ok(()),
             Err(e) if attempt < retry_attempts => {
                 eprintln!("Commit failed (attempt {}), retrying: {:?}", attempt, e);
@@ -74,11 +75,7 @@ async fn remove_entry_from_index<M>(
 where
     M: tantivy_traits::Model,
 {
-    writer_lock.delete_term(
-        model
-            .get_primary_key()
-            .expect("Could not find primary key for model"),
-    );
+    writer_lock.delete_term(model.get_primary_key());
 
     Ok(())
 }

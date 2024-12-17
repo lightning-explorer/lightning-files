@@ -1,18 +1,34 @@
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::path::{Component, Path};
 
 use crate::tantivy_file_indexer::services::search_index::models::file::TantivyFileModel;
 
+/// Only take into account scores and just sort the files based off that
+pub fn sort_by_score(paths: &mut Vec<TantivyFileModel>) -> &mut Vec<TantivyFileModel>
+{
+    paths.sort_by(|a,b| b.score.partial_cmp(&a.score).unwrap_or(Ordering::Equal));
+    paths
+}
 
-type Drive = String;
-type Ext = String;
 
-pub fn group_files(paths: Vec<TantivyFileModel>) -> HashMap<(Drive, Ext), Vec<TantivyFileModel>> {
-    let mut map: HashMap<(Drive, Ext), Vec<TantivyFileModel>> = HashMap::new();
+#[derive(PartialEq, Eq, Hash)]
+pub struct Grouping {
+    drive: String,
+    extension: String,
+}
+/// Ignore scores and sorts files by their drive and extension
+pub fn sort_by_groups<I>(paths: I) -> HashMap<Grouping, Vec<TantivyFileModel>>
+where
+    I: IntoIterator<Item = TantivyFileModel>,
+{
+    let mut map: HashMap<Grouping, Vec<TantivyFileModel>> = HashMap::new();
 
     for file in paths {
-        let path = &file.file_path;
-        let drive = Path::new(&path)
+        let path = Path::new(&file.file_path);
+
+        // Extract the drive (prefix)
+        let drive = path
             .components()
             .next()
             .and_then(|comp| match comp {
@@ -21,15 +37,19 @@ pub fn group_files(paths: Vec<TantivyFileModel>) -> HashMap<(Drive, Ext), Vec<Ta
                 }
                 _ => None,
             })
-            .unwrap_or_else(|| "".to_string());
+            .unwrap_or_default();
 
-        let ext = Path::new(&path)
+        // Extract the extension
+        let extension = path
             .extension()
             .and_then(|ext| ext.to_str())
-            .unwrap_or("")
+            .unwrap_or_default()
             .to_string();
 
-        map.entry((drive, ext)).or_insert_with(Vec::new).push(file);
+        // Insert into the group
+        map.entry(Grouping { drive, extension })
+            .or_insert_with(Vec::new)
+            .push(file);
     }
 
     map

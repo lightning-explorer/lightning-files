@@ -25,9 +25,9 @@ export class TauriCommandsService {
     async getFilesAsModels(directory: string, onEventEmit: (file: FileModel) => void, params?: GetFilesParamsModel) {
         if (!params)
             params = defaultParams();
-        const unlisten = await listen<FileModel>("sys_file_model", (event) =>
-            onEventEmit(event.payload)
-        )
+        const unlisten = await listen<FileModel>("sys_file_model", (event) =>{
+            onEventEmit(event.payload);
+        });
         try {
             await this.invokeSafe("get_files_as_models", { directory, params });
         }

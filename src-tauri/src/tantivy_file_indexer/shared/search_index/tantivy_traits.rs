@@ -19,7 +19,10 @@ pub trait Model{
     ///         &self.file_path,
     ///    )
     /// ```
-    fn get_primary_key(&self) -> Result<Term,Self::Error>;
+    fn get_primary_key(&self) -> Term;
+
+    /// Get the value of the primary key as a string
+    fn get_primary_key_str(&self) -> String;
 
     fn as_document(&self) -> TantivyDocument;
 }

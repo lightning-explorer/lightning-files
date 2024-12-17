@@ -76,19 +76,7 @@ impl CrawlerCommitPipeline for TantivyPipeline {
         }
 
         // Rank the files as a part of preprocessing
-        let mut tantivy_models: Vec<TantivyFileModel> = Vec::new();
-
-        tantivy_models.extend(
-            existing
-                .into_iter()
-                .map(|(new_file, old_file)| ranker::rank_existing_file(new_file, old_file).into()),
-        );
-
-        tantivy_models.extend(
-            brand_new
-                .into_iter()
-                .map(|file| ranker::rank_new_file(file).into()),
-        );
+        let tantivy_models: Vec<TantivyFileModel> = rank_files(existing, brand_new);
 
         // Classify and remove stale files
         let stale = util::classify_stale_models(&children, &tantivy_models);
@@ -131,8 +119,21 @@ impl CrawlerCommitPipeline for TantivyPipeline {
         }
         Ok(())
     }
+}
 
-    async fn commit_all(&self) -> Result<(), Self::Error> {
-        util::map_err(indexer::commit(Arc::clone(&self.index_writer), 3).await)
-    }
+/// Returns the files you passed in, aggregated and ranked
+fn rank_files(existing: Vec<(&SystemFileModel, &SystemFileModel)>, brand_new: Vec<&SystemFileModel>) -> Vec<TantivyFileModel>{
+    let mut tantivy_models: Vec<TantivyFileModel> = Vec::new();
+    tantivy_models.extend(
+        existing
+            .into_iter()
+            .map(|(new_file, old_file)| ranker::rank_existing_file(new_file, old_file).into()),
+    );
+
+    tantivy_models.extend(
+        brand_new
+            .into_iter()
+            .map(|file| ranker::rank_new_file(file).into()),
+    );
+    tantivy_models
 }

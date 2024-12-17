@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import { TauriCommandsService } from "./commands.service";
 import { BehaviorSubject } from "rxjs";
 import { invoke } from "@tauri-apps/api/core";
+import { DirectoryNavigatorService } from "../files/directory-navigator/directory-navigator.service";
 
 @Injectable({ 'providedIn': 'root' })
 export class TauriLifecycleService {
@@ -11,7 +12,8 @@ export class TauriLifecycleService {
     private isAppInitializedSubject = new BehaviorSubject<boolean>(false);
     isAppInitialized$ = this.isAppInitializedSubject.asObservable();
 
-    constructor(private configService: PersistentConfigService) { }
+    constructor(private configService: PersistentConfigService,
+        private directoryNavService: DirectoryNavigatorService) { }
 
     async onStartup() {
         this.initializeApp();
@@ -28,6 +30,7 @@ export class TauriLifecycleService {
      */
     async initializeApp() {
         this.configService.load();
+        this.directoryNavService.setCurrentDir("C:\\");
     }
 
     /**

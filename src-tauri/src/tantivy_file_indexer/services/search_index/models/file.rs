@@ -66,14 +66,20 @@ impl tantivy_traits::Model for TantivyFileModel {
         schema_builder.build()
     }
 
-    fn get_primary_key(&self) -> Result<tantivy::Term, Self::Error> {
+    fn get_primary_key(&self) -> tantivy::Term{
         let term = tantivy::Term::from_field_text(
             Self::schema()
-                .get_field("path")
-                .map_err(|x| format!("Field doesn't exist: {}", x))?,
+                .get_field("path").expect("could not find primary key 'path' field"),
             &self.file_path,
         );
-        Ok(term)
+        term
+    }
+
+    fn get_primary_key_str(&self) -> String {
+        let term = self.get_primary_key();
+        let value = term.value();
+        let s = String::from_utf8_lossy(value.as_serialized());
+        s.to_string()
     }
 
     fn as_document(&self) -> TantivyDocument {

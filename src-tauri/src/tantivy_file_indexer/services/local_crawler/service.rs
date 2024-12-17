@@ -50,7 +50,7 @@ impl FileCrawlerService {
 
     pub async fn push_dirs(&self, paths: Vec<(PathBuf, Priority)>) {
         if let Err(err) = async_retry::retry_with_backoff(
-            || self.queue.push_many(&paths),
+            |_| self.queue.push_many(&paths),
             4,
             Duration::from_millis(1000),
         )

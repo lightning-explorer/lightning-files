@@ -40,6 +40,4 @@ pub trait CrawlerCommitPipeline: Send + Sync + 'static {
         &self,
         models: &Vec<Self::InputModel>,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
-
-    fn commit_all(&self) -> impl Future<Output = Result<(), Self::Error>> + Send;
 }
