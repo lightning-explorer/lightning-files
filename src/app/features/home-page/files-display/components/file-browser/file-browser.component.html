@@ -37,6 +37,8 @@
 <!-- The below items are disconnected from the main component -->
 <app-move-items-popup #moveItemsPopup />
 
+<app-generic-err-popup #genericErrPopup/>
+
 <div class="drag-preview" #dragPreview>
     <div *ngFor="let item of selectedItems | slice:0:5">
         {{item.Name}}

@@ -26,7 +26,7 @@ export class TauriCommandsService {
     async getFilesAsModels(directory: string, onEventEmit: (file: FileModel) => void, params?: GetFilesParamsModel) {
         if (!params)
             params = defaultParams();
-        const unlisten = await listen<FileModel>("sys_file_model", (event) =>{
+        const unlisten = await listen<FileModel>("sys_file_model", (event) => {
             onEventEmit(event.payload);
         });
         try {
@@ -308,7 +308,35 @@ export class TauriCommandsService {
     }
 
     /** Get information about the system the user is running the program on */
-    async getSysInfo(): Promise<SystemInfoModel>{
+    async getSysInfo(): Promise<SystemInfoModel> {
         return await this.invokeSafe<SystemInfoModel>("get_sys_info");
+    }
+
+    /** Given that `sourcePath` is a file or directory, move it into `targetDir`
+     * 
+     * Returns `true` if the operation was successful
+     */
+    async movePathIntoDirectory(targetDir: string, sourcePath: string): Promise<boolean> {
+        try {
+            await this.invokeSafe<void>("move_path_into_directory", { targetDir, sourcePath });
+            return true;
+        } catch (err) {
+            console.log(err);
+            return false;
+        }
+    }
+
+    /** Moves a file/directory to the recycle bin (not a permanent deletion)
+     * 
+     * Returns `true` if the operation was successful 
+     */
+    async deleteFile(filePath:string): Promise<boolean> {
+        try{
+            await this.invokeSafe<void>("delete_file", { filePath });
+            return true;
+        } catch(err){
+            console.log(err);
+            return false;
+        }
     }
 }

@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use super::{super::super::super::util::path_ops, file_reader, metadata};
+use super::{super::super::super::util::path_ops, common, file_reader, metadata};
 
 #[tauri::command]
 pub fn get_directory_path(file_path: &str) -> String {
@@ -78,4 +78,15 @@ pub async fn open_file(file_path: &str) -> Result<(), String> {
 #[tauri::command]
 pub fn is_directory_accessible(dir_path:&str)->bool{
     metadata::is_directory_accessible(dir_path)
+}
+
+// Common commands:
+#[tauri::command]
+pub fn move_path_into_directory(target_dir: &str, source_path: &str)->Result<(), String>{
+    common::move_path_into_directory(Path::new(target_dir), Path::new(source_path)).map_err(|err|err.to_string())
+}
+
+#[tauri::command]
+pub fn delete_file(file_path:&str)->Result<(), String>{
+    common::delete_path(file_path).map_err(|err|err.to_string())
 }

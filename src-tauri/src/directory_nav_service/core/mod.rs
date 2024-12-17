@@ -5,6 +5,7 @@ pub mod files {
     pub mod operations {
         pub mod file_reader;
         pub mod metadata;
+        pub mod common;
         pub mod tauri_cmds;
     }
     pub mod retrieve {

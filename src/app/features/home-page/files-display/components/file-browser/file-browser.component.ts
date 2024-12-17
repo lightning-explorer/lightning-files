@@ -2,7 +2,7 @@ import { AfterViewChecked, Component, ElementRef, EventEmitter, HostListener, In
 import { CommonModule } from '@angular/common';
 import { FileResultComponent } from '../../../file-result/file-result.component';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
-import { MoveItemsPopupComponent } from './move-items-popup/move-items-popup.component';
+import { MoveItemsPopupComponent } from './popups/move-items-popup/move-items-popup.component';
 import { InlineSearchBarComponent } from './inline-search-bar/inline-search-bar.component';
 import { ContextMenuComponent } from '@shared/components/popups/context-menu/context-menu.component';
 import { FolderLoaderComponent } from '@shared/components/loaders/folder-loader/folder-loader.component';
@@ -15,12 +15,13 @@ import { DirectoryNavigatorService } from '@core/services/files/directory-naviga
 import { debounceTime, Subject, Subscription, tap } from 'rxjs';
 import { DirectoryMetadata } from '@core/services/files/directory-navigator/models/directory-metadata';
 import { InlineSearchService } from './services/inline-search.service';
+import { FailedToMoveItemsPopupComponent } from "./popups/generic-err-popup/generic-err-popup.component";
 
 
 @Component({
   selector: 'app-file-browser',
   standalone: true,
-  imports: [CommonModule, FileResultComponent, ScrollingModule, MoveItemsPopupComponent, ContextMenuComponent, InlineSearchBarComponent, FolderLoaderComponent],
+  imports: [CommonModule, FileResultComponent, ScrollingModule, MoveItemsPopupComponent, ContextMenuComponent, InlineSearchBarComponent, FolderLoaderComponent, FailedToMoveItemsPopupComponent],
   providers: [SelectService, DragDropService, InlineSearchService, FileContextMenuService],
   templateUrl: './file-browser.component.html',
   styleUrl: './file-browser.component.css',

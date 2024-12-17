@@ -40,10 +40,12 @@ pub fn run() {
             get_crawler_analyzer_data,
             app_init::is_running,
             is_directory_accessible,
-
             get_file_from_index,
             upsert_file_to_index,
-            get_sys_info
+            get_sys_info,
+            // Common commands:
+            move_path_into_directory,
+            delete_file,
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();

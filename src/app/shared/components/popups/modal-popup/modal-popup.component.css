@@ -47,7 +47,7 @@
     padding-top: 16px;
     border-radius: 9px;
     background: var(--primary);
-    color: var(--bg-primary);
+    color: var(--text-primary);
     font-weight: 400;
     border: none;
     font-family: inherit;

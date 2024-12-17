@@ -1,12 +1,12 @@
-<div class="radio-buttons-container">
+<div class="radio-buttons-container" (click)="toggleRadio()">
 
     <div class="radio-button">
-        <input name="radio-group" id="radio2" class="radio-button__input" type="radio" [checked]="isChecked"
-            (click)="toggleRadio()">
+        <input name="radio-group" id="radio2" class="radio-button__input" type="radio" [checked]="props.isChecked">
         <label for="radio2" class="radio-button__label">
             <span class="radio-button__custom"></span>
-
-            <ng-content></ng-content>
+            <div class="content">
+                <ng-content></ng-content>
+            </div>
         </label>
     </div>
 
