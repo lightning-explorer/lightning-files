@@ -1,16 +1,17 @@
-mod core {
-    pub mod tantivy_setup;
-    pub mod query{
-        pub mod querier;
-        pub mod constructor;
-    }
+pub mod models {
+    pub mod file;
 }
-mod schemas {
-    pub mod file_schema;
+mod pipelines {
+    pub mod db_tantivy_pipeline;
+    pub mod tantivy_pipeline;
+    mod util;
 }
 mod services {
     pub mod task_manager;
 }
-pub mod files_collection;
+mod core {
+    pub mod engine;
+    pub mod indexer;
+}
 pub mod service;
 pub mod tauri_exports;

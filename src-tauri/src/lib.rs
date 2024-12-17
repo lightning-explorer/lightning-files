@@ -1,12 +1,10 @@
 use directory_nav_service::tauri_exports::*;
-use std::{path::Path, sync::Arc};
 use tantivy_file_indexer::{
-    service_container::AppServiceContainer, services::app_save::tauri_exports::*,
+    services::app_save::tauri_exports::*,
     services::local_crawler::tauri_exports::*, /*services::local_db::tables::files::tauri_exports::*,*/
     services::local_db::tauri_exports::*, services::search_index::tauri_exports::*,
     services::vector_db::tauri_exports::*,
 };
-use tauri::AppHandle;
 mod app_init;
 mod directory_nav_service;
 mod shared;
@@ -31,6 +29,7 @@ pub fn run() {
             search_files_inline,
             search_index_query,
             search_index_query_streaming,
+            search_index_query_streaming_organized,
             //get_num_stored_files,
             save_json_local,
             load_json_local,
@@ -40,17 +39,15 @@ pub fn run() {
             view_crawler_priority_counts,
             get_crawler_analyzer_data,
             app_init::is_running,
-            is_directory_accessible
+            is_directory_accessible,
+
+            get_file_from_index,
+            upsert_file_to_index
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();
-            let app_handle2 = app.handle().clone();
 
             app_init::initialize_app(app_handle);
-
-            tauri::async_runtime::spawn(async move{
-                app_init::initialize_app_async(app_handle2).await
-            });
 
             Ok(())
         })

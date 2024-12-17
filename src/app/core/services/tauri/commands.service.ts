@@ -1,9 +1,8 @@
 import { Injectable } from "@angular/core";
-import { PersistentConfigService } from "../persistence/config.service";
 import { listen } from "@tauri-apps/api/event";
 import { defaultParams, GetFilesParamsModel } from "../files/directory-navigator/models/get-files-params";
 import { FileModel } from "../../models/file-model";
-import { invoke } from "@tauri-apps/api/core";
+import { InvokeArgs, InvokeOptions } from "@tauri-apps/api/core";
 import { DriveModel } from "../../models/drive-model";
 import { InlineQueryDTO } from "../../dtos/output/inline-query-dto";
 import { SearchParamsDTO } from "../../dtos/output/search-params-dto";
@@ -11,17 +10,26 @@ import { StreamingSearchParamsDTO } from "../../dtos/output/streaming-search-par
 import { AddToCrawlerQueueDTO } from "../../dtos/output/add-to-crawler-queue-dto";
 import { IndexedDirModel } from "../../models/indexed-dir-model";
 
+import { SafeInvokeService } from "./safe-invoke.service";
+import { EmitMetadataModel } from "@core/models/emit-metadata-model";
+
 @Injectable({ 'providedIn': 'root' })
 export class TauriCommandsService {
+
+    constructor(private safeinvokeService: SafeInvokeService) { }
+
+    async invokeSafe<T>(cmd: string, args?: InvokeArgs, options?: InvokeOptions): Promise<T> {
+        return await this.safeinvokeService.invokeSafe<T>(cmd, args, options);
+    }
 
     async getFilesAsModels(directory: string, onEventEmit: (file: FileModel) => void, params?: GetFilesParamsModel) {
         if (!params)
             params = defaultParams();
-        const unlisten = await listen<FileModel>("sys_file_model", (event) =>
-            onEventEmit(event.payload)
-        )
+        const unlisten = await listen<FileModel>("sys_file_model", (event) =>{
+            onEventEmit(event.payload);
+        });
         try {
-            await invoke("get_files_as_models", { directory, params });
+            await this.invokeSafe("get_files_as_models", { directory, params });
         }
         catch (err) {
             throw new Error(`${err}`);
@@ -32,13 +40,13 @@ export class TauriCommandsService {
     }
 
     async formatPathIntoDir(path: string): Promise<string> {
-        return await invoke<string | undefined>("format_path_into_dir", { path: path }).then((newPath) => {
+        return await this.invokeSafe<string | undefined>("format_path_into_dir", { path: path }).then((newPath) => {
             return newPath == undefined ? path : newPath;
         });
     }
 
     async getDirectoryPath(filePath: string): Promise<string> {
-        return invoke<string>("get_directory_path", {
+        return this.invokeSafe<string>("get_directory_path", {
             filePath
         }).then(path =>
             path
@@ -46,7 +54,7 @@ export class TauriCommandsService {
     }
 
     async getRootPath(filePath: string): Promise<string> {
-        return invoke<string>("get_root_path", {
+        return this.invokeSafe<string>("get_root_path", {
             filePath
         }).then(path =>
             path
@@ -54,7 +62,7 @@ export class TauriCommandsService {
     }
 
     async getParentDirectory(filePath: string): Promise<string> {
-        return invoke<string>("get_parent_directory", {
+        return this.invokeSafe<string>("get_parent_directory", {
             filePath
         }).then(path =>
             path
@@ -67,7 +75,7 @@ export class TauriCommandsService {
      * @returns `true` if the operation was successful
      */
     async openFile(filePath: string): Promise<boolean> {
-        return invoke<void>("open_file", {
+        return this.invokeSafe<void>("open_file", {
             filePath
         }).then(() =>
             true
@@ -83,7 +91,7 @@ export class TauriCommandsService {
      */
     async readFile(filePath: string): Promise<string | undefined> {
         let error = "";
-        const fileContent = await invoke<string>("read_file", {
+        const fileContent = await this.invokeSafe<string>("read_file", {
             filePath
         }).catch(err =>
             error = err
@@ -104,7 +112,7 @@ export class TauriCommandsService {
      */
     async readFileRange(filePath: string, start: number, length: number): Promise<string | undefined> {
         let error = "";
-        const fileContent = await invoke<string>("read_file_range", {
+        const fileContent = await this.invokeSafe<string>("read_file_range", {
             filePath, start, length
         }).catch(err =>
             error = err
@@ -125,7 +133,7 @@ export class TauriCommandsService {
      */
     async readFileRangeBytes(filePath: string, start: number, length: number): Promise<Uint8Array | undefined> {
         let error = "";
-        const fileContent = await invoke<Uint8Array>("read_file_range_bytes", {
+        const fileContent = await this.invokeSafe<Uint8Array>("read_file_range_bytes", {
             filePath, start, length
         }).catch(err =>
             error = err
@@ -138,7 +146,7 @@ export class TauriCommandsService {
     }
 
     async isPathAFile(filePath: string): Promise<boolean> {
-        return invoke<boolean>("is_path_a_file", {
+        return this.invokeSafe<boolean>("is_path_a_file", {
             filePath
         }).then(result =>
             result
@@ -146,7 +154,7 @@ export class TauriCommandsService {
     }
 
     async getDrives(): Promise<DriveModel[]> {
-        return await invoke<DriveModel[]>("get_drives").then(drives => {
+        return await this.invokeSafe<DriveModel[]>("get_drives").then(drives => {
             return drives;
         }
         ).catch(err => {
@@ -155,7 +163,7 @@ export class TauriCommandsService {
     }
 
     async searchFilesInline(query: InlineQueryDTO): Promise<FileModel[]> {
-        return invoke<FileModel[]>("search_files_inline", {
+        return this.invokeSafe<FileModel[]>("search_files_inline", {
             query
         }).then(result =>
             result
@@ -163,7 +171,7 @@ export class TauriCommandsService {
     }
 
     async searchIndexQuery(params: SearchParamsDTO): Promise<FileModel[]> {
-        return invoke<FileModel[]>("search_index_query", {
+        return this.invokeSafe<FileModel[]>("search_index_query", {
             params
         }).then(result =>
             result
@@ -172,14 +180,30 @@ export class TauriCommandsService {
         })
     }
 
-    async searchIndexQueryStreaming(params: StreamingSearchParamsDTO, onEventEmit: (files: FileModel[]) => void) {
+    async searchIndexQueryStreaming(params: StreamingSearchParamsDTO, onEventEmit: (files: EmitMetadataModel<FileModel[]>) => void) {
         const eventName = `${params.StreamIdentifier}:search_result`
 
-        const unlisten = await listen<FileModel[]>(eventName, (event) =>
+        const unlisten = await listen<EmitMetadataModel<FileModel[]>>(eventName, (event) =>
             onEventEmit(event.payload));
 
         try {
-            await invoke<Promise<void>>("search_index_query_streaming", { params });
+            await this.invokeSafe<Promise<void>>("search_index_query_streaming", { params });
+        }
+        catch (err) {
+            console.log("Error performing streamed query", err)
+        }
+        finally {
+            unlisten();
+        }
+    }
+
+    /** NOTE that the files that get emitted are ACCUMULATED!! meaning that you need to replace the old files with the emitted ones */
+    async searchIndexQueryStreamingOrganized(params: StreamingSearchParamsDTO, onEventEmit: (files: EmitMetadataModel<FileModel[]>) => void) {
+        const eventName = `${params.StreamIdentifier}:search_result`
+        const unlisten = await listen<EmitMetadataModel<FileModel[]>>(eventName, (event) =>
+            onEventEmit(event.payload));
+        try {
+            await this.invokeSafe<Promise<void>>("search_index_query_streaming_organized", { params });
         }
         catch (err) {
             console.log("Error performing streamed query", err)
@@ -191,7 +215,7 @@ export class TauriCommandsService {
 
     /** Saves the data locally to disk */
     async saveJsonLocal(data: object, name: string): Promise<boolean> {
-        await invoke<void>("save_json_local", {
+        await this.invokeSafe<void>("save_json_local", {
             data,
             name
         }).catch(x => {
@@ -204,7 +228,7 @@ export class TauriCommandsService {
 
     /** Loads the locally saved JSON from disk */
     async loadJsonLocal<T extends object>(name: string): Promise<T> {
-        return await invoke<T>("load_json_local", {
+        return await this.invokeSafe<T>("load_json_local", {
             name
         }).catch(err => {
             throw err;
@@ -212,7 +236,7 @@ export class TauriCommandsService {
     }
 
     async addDirsToCrawlerQueue(directories: AddToCrawlerQueueDTO[]) {
-        await invoke<void>("add_dirs_to_crawler_queue", { directories }).then(() => { }).catch(err =>
+        await this.invokeSafe<void>("add_dirs_to_crawler_queue", { directories }).then(() => { }).catch(err =>
             console.log(err)
         )
         console.log(`Frontend validation: added ${directories.length} to the crawler queue`);
@@ -224,14 +248,14 @@ export class TauriCommandsService {
      * @returns items in the queue
      */
     async viewCrawlerQueue(limit: number): Promise<IndexedDirModel[]> {
-        return await invoke<IndexedDirModel[]>("view_crawler_queue", { limit }).catch(err => {
+        return await this.invokeSafe<IndexedDirModel[]>("view_crawler_queue", { limit }).catch(err => {
             console.log(err);
             return [];
         });
     }
 
     async viewCrawlerPriorityCounts(): Promise<Array<{ priority: number; count: number }>> {
-        const record = await invoke<Record<number, number>>("view_crawler_priority_counts").catch(err => {
+        const record = await this.invokeSafe<Record<number, number>>("view_crawler_priority_counts").catch(err => {
             console.log(err);
             return undefined;
         });
@@ -244,7 +268,7 @@ export class TauriCommandsService {
     }
 
     async getCrawlerAnalyzerData(): Promise<Array<{ label: string, data: string }>> {
-        const record = await invoke<Record<string, string>>("get_crawler_analyzer_data").catch(err => {
+        const record = await this.invokeSafe<Record<string, string>>("get_crawler_analyzer_data").catch(err => {
             console.log(err);
             return undefined;
         });
@@ -257,18 +281,28 @@ export class TauriCommandsService {
     }
 
     /**
-     * Returns `true` if the backend is active and all state has been fully managed.
-     */
-    async isRunning(): Promise<boolean> {
-        return await invoke<boolean>("is_running").then(running => running).catch(_ => false);
-    }
-
-    /**
      * 
      * @param dir_path 
      * @returns `false` if a file path was provided or the directory was unable to be opened
      */
     async isDirectoryAccessible(dirPath: string): Promise<boolean> {
-        return await invoke<boolean>("is_directory_accessible", { dirPath });
+        return await this.invokeSafe<boolean>("is_directory_accessible", { dirPath });
+    }
+
+    async upsertFileToIndex(file: FileModel) {
+        await this.invokeSafe<void>("upsert_file_to_index", { file }).catch(err => console.log(err));
+    }
+
+    /**
+     * Why does this method return the same thing you pass in. Well, FileModels on the frontend usually aren't fully initialized. Example: `Popularity` doesn't get filled out.
+     * 
+     * You will pass in one of these incomplete file models and the backend will return you the corresponding file model (asumming it exists in the index)
+     * will all of the fields being up to date
+     * 
+     * Returns `undefined` if the file does not exist in the index
+     * @param file 
+     */
+    async getFileFromIndex(file: FileModel): Promise<FileModel | undefined> {
+        return await this.invokeSafe<FileModel | undefined>("get_file_from_index", { file });
     }
 }

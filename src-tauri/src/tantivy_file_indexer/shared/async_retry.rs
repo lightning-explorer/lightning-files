@@ -3,13 +3,15 @@ use std::{fmt::Display, future::Future, time::Duration};
 use rand::{Rng, SeedableRng};
 
 /// Applies a jitter + exponential backoff
+/// 
+/// The `usize` in the closure represents the attempt number
 pub async fn retry_with_backoff<T, E, F, Fut>(
     function: F,
     max_retries: usize,
     initial_delay: Duration,
 ) -> Result<T, String>
 where
-    F: Fn() -> Fut,
+    F: Fn(usize) -> Fut,
     Fut: Future<Output = Result<T, E>>,
     E: Display,
 {
@@ -18,7 +20,7 @@ where
     let mut rng = rand_chacha::ChaChaRng::from_entropy();
 
     for attempt in 1..=max_retries {
-        match function().await {
+        match function(attempt).await {
             Ok(result) => return Ok(result),
             Err(_) if attempt < max_retries => {
                 // Add jitter: Randomize delay within 50%-150% of the current delay

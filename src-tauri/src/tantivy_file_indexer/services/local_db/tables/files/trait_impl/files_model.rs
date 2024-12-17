@@ -1,11 +1,11 @@
 use std::path::Path;
 
-use crate::tantivy_file_indexer::models::interal_system_file::InternalSystemFileModel;
+use crate::shared::models::sys_file_model::SystemFileModel;
 
 use super::super::entities::file;
 
-impl From<InternalSystemFileModel> for file::Model {
-    fn from(val: InternalSystemFileModel) -> Self {
+impl From<SystemFileModel> for file::Model {
+    fn from(val: SystemFileModel) -> Self {
         let parent_path = get_parent_directory(&val.file_path);
         Self {
             path: val.file_path,

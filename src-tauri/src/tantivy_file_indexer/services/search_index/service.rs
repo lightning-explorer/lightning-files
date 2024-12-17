@@ -1,24 +1,28 @@
-use crate::tantivy_file_indexer::{
-    dtos::{search_params_dto::SearchParamsDTO, streaming_search_dto::StreamingSearchParamsDTO},
-    models::tantivy_file_model::TantivyFileModel,
+use crate::{
+    shared::models::sys_file_model::SystemFileModel,
+    tantivy_file_indexer::{
+        dtos::{
+            search_params_dto::SearchParamsDTO, streaming_search_dto::StreamingSearchParamsDTO,
+        },
+        shared::indexing_crawler::traits::commit_pipeline::CrawlerCommitPipeline,
+    },
 };
 
 use super::{
-    core::{query::querier, tantivy_setup},
-    files_collection::TantivyFilesCollection,
+    core::engine::{querier::Querier, query_builder::constructor::QueryConstructor, tantivy_setup},
+    models::file::TantivyFileModel,
+    pipelines::tantivy_pipeline::TantivyPipeline,
     services::task_manager::TaskManagerService,
 };
 use std::{path::PathBuf, sync::Arc};
-use tantivy::{schema::Schema, IndexReader, IndexWriter};
 
 use tauri::{AppHandle, Manager};
 use tokio::{sync::Mutex, task::JoinHandle};
 
 pub struct SearchIndexService {
-    pub schema: Schema,
-    pub index_writer: Arc<Mutex<IndexWriter>>,
-    index_reader: Arc<IndexReader>,
-    pub files_collection: Arc<TantivyFilesCollection>,
+    /// Dictates how crawlers store documents
+    pub pipeline: Arc<TantivyPipeline>,
+    querier: Arc<Querier>,
 }
 
 impl SearchIndexService {
@@ -29,21 +33,17 @@ impl SearchIndexService {
             tantivy_setup::initialize_tantity(buffer_size, index_path);
 
         let index_writer = Arc::new(Mutex::new(index_writer));
-        let index_reader = Arc::new(index_reader);
 
-        let files_collection = Arc::new(TantivyFilesCollection::new(
-            Arc::clone(&index_writer),
-            schema.clone(),
-            Arc::clone(&index_reader),
-        ));
+        let constructor = Arc::new(QueryConstructor::new(schema.clone(), index_reader.clone()));
 
         handle.manage(Arc::new(TaskManagerService::new()));
 
+        // Create the commit pipeline
+        let pipeline = TantivyPipeline::new(Arc::clone(&index_writer), index_reader.clone());
+
         Self {
-            schema,
-            index_writer,
-            index_reader,
-            files_collection,
+            pipeline: Arc::new(pipeline),
+            querier: Arc::new(Querier::new(index_reader, Arc::clone(&constructor))),
         }
     }
 
@@ -56,22 +56,38 @@ impl SearchIndexService {
     where
         EmitFn: Fn(Vec<TantivyFileModel>) + Send + 'static,
     {
-        let schema = self.schema.clone();
-        let searcher = self.index_reader.searcher();
-        let search_params = params.params;
-        let step_size = params.num_events;
-        let min_results = params.starting_size;
-
+        let querier_clone = Arc::clone(&self.querier);
         tokio::spawn(async move {
-            querier::advanced_query_streamed(
-                schema,
-                searcher,
-                search_params,
-                emit,
-                step_size,
-                min_results,
-            )
-            .await
+            querier_clone
+                .advanced_query_streamed(
+                    params.params,
+                    emit,
+                    params.num_events,
+                    params.starting_size,
+                )
+                .await
+        })
+    }
+
+    /// Spawns a tokio task for the query
+    pub fn streaming_query_organized<EmitFn>(
+        &self,
+        params: StreamingSearchParamsDTO,
+        emit: EmitFn,
+    ) -> JoinHandle<()>
+    where
+        EmitFn: Fn(&[TantivyFileModel]) + Send + 'static,
+    {
+        let querier_clone = Arc::clone(&self.querier);
+        tokio::spawn(async move {
+            querier_clone
+                .organized_query_streamed(
+                    params.params,
+                    emit,
+                    params.num_events,
+                    params.starting_size,
+                )
+                .await
         })
     }
 
@@ -79,6 +95,18 @@ impl SearchIndexService {
         &self,
         params: &SearchParamsDTO,
     ) -> Result<Vec<TantivyFileModel>, tantivy::TantivyError> {
-        querier::advanced_query(&self.schema, &self.index_reader.searcher(), params)
+        self.querier.advanced_query(params)
+    }
+
+    pub async fn get_file_from_index(&self, file: SystemFileModel) -> Option<SystemFileModel> {
+        self.pipeline.get_one(file).await.map(|model| model.into())
+    }
+
+    pub async fn upsert_file_to_index(&self, file: SystemFileModel) -> Result<(), String> {
+        self.pipeline.upsert_one(file).await
+    }
+
+    pub fn get_pipeline(&self) -> Arc<TantivyPipeline> {
+        Arc::clone(&self.pipeline)
     }
 }

@@ -3,12 +3,10 @@ use std::{collections::HashSet, sync::Arc, time::Instant};
 use vevtor::{Indexable, Indexer, VevtorService};
 
 use crate::{
-    get_directory_path,
-    tantivy_file_indexer::{
-        models::interal_system_file::InternalSystemFileModel,
+    get_directory_path, shared::models::sys_file_model::SystemFileModel, tantivy_file_indexer::{
         services::vector_db::models::embeddable_file_model::EmbeddableFileModel,
         shared::indexing_crawler::models::system_directory_model::InternalSystemDirectoryModel,
-    },
+    }
 };
 
 pub struct VectorDbIndexer {
@@ -69,7 +67,7 @@ impl VectorDbIndexer {
 
     fn file_dtos_to_models(
         &self,
-        dtos: &Vec<&InternalSystemFileModel>,
+        dtos: &Vec<&SystemFileModel>,
     ) -> Vec<EmbeddableFileModel> {
         dtos.iter()
             .map(|dto| EmbeddableFileModel {

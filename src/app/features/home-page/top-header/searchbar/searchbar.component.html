@@ -1,7 +1,7 @@
 <div class="search-container">
     <div class="InputContainer">
         <input placeholder="Search" id="input" class="input" name="text" type="text" [formControl]="inputControl"
-            autocomplete="off" (blur)="onBlur()" />
+            autocomplete="off" (blur)="onBlur()" [(ngModel)]="searchInput" />
 
         <label class="labelforsearch" for="input">
             <svg class="searchIcon" viewBox="0 0 512 512">
@@ -14,9 +14,9 @@
     <div class="search-results" [ngClass]="searchResults.length>0 ? 'active' : 'inactive'">
         <div class="search-results-scoller">
             <div *ngFor="let result of searchResults">
-                <app-file-result [file]="result" [clickEvent]="onResultClick(result)" />
+                <app-file-result [file]="result" [clickEvent]="onResultClick(result)" [fadeInAnim]="false" />
             </div>
         </div>
-        <button *ngIf="exceededSearchResults">View all results</button>
+        <button *ngIf="exceededSearchResults" (click)="onViewAllResultsClick()">View all results</button>
     </div>
 </div>

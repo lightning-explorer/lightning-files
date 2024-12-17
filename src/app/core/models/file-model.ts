@@ -8,6 +8,7 @@ export interface FileModel {
     Metadata: string,
     FilePath: string,
     Score: number,
+    Popularity: number,
     IsDirectory: boolean,
     HighlightedText: string,
 }
@@ -19,6 +20,7 @@ export function newDefaultFileModel(): FileModel {
         Metadata: "test",
         FilePath: "test",
         Score: 0,
+        Popularity: 0,
         IsDirectory: false,
         HighlightedText: ""
     }

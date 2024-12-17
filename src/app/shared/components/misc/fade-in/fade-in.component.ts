@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostBinding, OnInit } from '@angular/core';
+import { Component, ElementRef, HostBinding, Input, OnChanges, OnInit } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 
@@ -25,19 +25,18 @@ import { CommonModule } from '@angular/common';
     ])
   ]
 })
-export class FadeInComponent implements OnInit {
-  @HostBinding('@fadeIn') animationState = 'hidden'; // Initial animation state
-  isVisible = false;
+export class FadeInComponent implements OnInit, OnChanges {
+  @Input() isVisible = false; // Can be controlled by parent component
+  @HostBinding('@fadeIn') animationState!: string;
 
-  constructor(private el: ElementRef) { }
+  constructor(private el: ElementRef) {}
 
   ngOnInit() {
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         if (entry.isIntersecting) {
-          this.isVisible = true;
-          this.animationState = 'visible';
+          this.setAnimationState(true);
           observer.disconnect(); // Stop observing after animation starts
         }
       },
@@ -45,5 +44,15 @@ export class FadeInComponent implements OnInit {
     );
 
     observer.observe(this.el.nativeElement);
+  }
+
+  ngOnChanges() {
+    // React to changes in isVisible input
+    this.setAnimationState(this.isVisible);
+  }
+
+  private setAnimationState(isVisible: boolean) {
+    this.isVisible = isVisible;
+    this.animationState = isVisible ? 'visible' : 'hidden';
   }
 }

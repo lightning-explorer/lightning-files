@@ -1,4 +1,5 @@
-use crate::FilesDisplayState;
+
+use crate::directory_nav_service;
 
 use super::services::{
     app_save::service::{AppSavePath, AppSaveService},
@@ -25,7 +26,9 @@ impl AppServiceContainer {
         let app_save_service = Self::initialize_app_save_service(AppSavePath::AppData, app_name);
         let app_path = app_save_service.save_dir.clone();
 
-        let vector_db_service = Self::initialize_vector_service();
+        directory_nav_service::state::manager::manage_state(handle);
+
+        //let vector_db_service = Self::initialize_vector_service();
         let search_service = Self::initialize_search_service(50_000_000, app_path, handle);
 
         let local_db_service = Self::initialize_sqlx_service(&app_save_service).await;
@@ -34,18 +37,17 @@ impl AppServiceContainer {
         let crawler_analyzer_service = Self::initialize_crawler_analyzer_service(15);
 
         let crawler_service = Self::initialize_crawler_service(
-            8,
+            2,
             Arc::clone(&local_db_service),
             Arc::clone(&search_service),
         )
         .await;
 
-        handle.manage(Arc::new(FilesDisplayState::new()));
         handle.manage(Arc::clone(&search_service));
         handle.manage(Arc::clone(&local_db_service));
         handle.manage(Arc::clone(&crawler_service));
         handle.manage(Arc::clone(&crawler_analyzer_service));
-        handle.manage(Arc::clone(&vector_db_service));
+        //handle.manage(Arc::clone(&vector_db_service));
 
         handle.manage(Arc::clone(&app_save_service));
 

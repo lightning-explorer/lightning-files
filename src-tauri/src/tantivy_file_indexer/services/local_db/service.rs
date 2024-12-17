@@ -7,10 +7,11 @@ use super::tables::{
     indexer_queue::api::IndexerQueueTable,
     recently_indexed_dirs::api::RecentlyIndexedDirectoriesTable,
 };
-use sea_orm::DatabaseConnection;
+use sea_orm::{ConnectionTrait, DatabaseConnection, Statement};
 use sqlx::sqlite::SqlitePool;
 
 pub struct LocalDbService {
+    connection:Arc<DatabaseConnection>,
     recently_indexed_dirs_table: RecentlyIndexedDirectoriesTable,
     files_table: FilesTable,
     crawler_queue_table: CrawlerQueueTable,
@@ -36,6 +37,7 @@ impl LocalDbService {
         let indexer_queue_table = IndexerQueueTable::new_async(db.clone()).await;
 
         Self {
+            connection: db,
             recently_indexed_dirs_table,
             files_table,
             crawler_queue_table,
@@ -57,5 +59,16 @@ impl LocalDbService {
 
     pub fn indexer_queue_table(&self) -> &IndexerQueueTable {
         &self.indexer_queue_table
+    }
+
+    /// Since SQLite doesn't automatically free unused memory, you can use this to shrink the size of the database
+    pub async fn vacuum_database(&self) -> Result<(), sea_orm::DbErr> {
+        // Execute the VACUUM command
+        self.connection.execute(Statement::from_string(
+            self.connection.get_database_backend(),
+            "VACUUM;".to_owned(),
+        ))
+        .await?;
+        Ok(())
     }
 }

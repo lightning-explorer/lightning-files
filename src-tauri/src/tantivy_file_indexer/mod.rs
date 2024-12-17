@@ -7,7 +7,6 @@ mod dtos {
 }
 mod converters {
     pub mod date_converter;
-    pub mod doc_to_dto;
 }
 pub mod services {
     pub mod app_save;
@@ -17,8 +16,7 @@ pub mod services {
     pub mod vector_db;
 }
 mod models {
-    pub mod interal_system_file;
-    pub mod tantivy_file_model;
     pub mod vector_search_params_model;
+    pub mod emit_metadata_model;
 }
 pub mod shared;

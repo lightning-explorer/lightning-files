@@ -8,6 +8,7 @@ export function vectorResultToModel(result: VectorSearchResult): FileModel {
         Metadata: "",
         DateModified: "",
         Score: 0,
+        Popularity:0,
         IsDirectory: false,
         HighlightedText: "",
     }

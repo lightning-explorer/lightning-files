@@ -6,63 +6,54 @@ use std::{
 use rand::{Rng, SeedableRng};
 use tokio::sync::Notify;
 
-use crate::tantivy_file_indexer::{
-    models::interal_system_file::InternalSystemFileModel,
-    shared::{
+use crate::{
+    shared::models::sys_file_model::SystemFileModel,
+    tantivy_file_indexer::shared::{
         async_retry,
         indexing_crawler::{
             models::crawler_file::CrawlerFile,
-            traits::{
-                crawler_queue_api::CrawlerQueueApi, files_collection_api::FilesCollectionApi,
-            },
+            traits::{commit_pipeline::CrawlerCommitPipeline, crawler_queue_api::CrawlerQueueApi},
         },
     },
 };
 
-use super::{
-    crawler::{self, CrawlerError},
-    indexer,
-    worker_manager::TantivyInput,
-};
+use super::crawler::{self, CrawlerError};
 
-pub struct IndexingCrawlerWorker<C, F>
+pub struct IndexingCrawlerWorker<C, P>
 where
     C: CrawlerQueueApi,
-    F: FilesCollectionApi,
+    P: CrawlerCommitPipeline<InputModel = SystemFileModel>,
 {
     crawler_queue: Arc<C>,
-    files_collection: Arc<F>,
-    tantivy: TantivyInput,
+    pipeline: Arc<P>,
     notify: Arc<Notify>,
     batch_size: usize,
 }
 
-impl<C, F> IndexingCrawlerWorker<C, F>
+impl<C, P> IndexingCrawlerWorker<C, P>
 where
     C: CrawlerQueueApi,
-    F: FilesCollectionApi,
+    P: CrawlerCommitPipeline<InputModel = SystemFileModel>,
 {
     /// Note that `worker_task` must be called in order for the background operations to start
     ///
     /// `batch_size` is the number of files that will be processed before the indexer commits them in bulk
     pub fn new(
         crawler_queue: Arc<C>,
-        files_collection: Arc<F>,
-        tantivy: TantivyInput,
+        pipeline: Arc<P>,
         notify: Arc<Notify>,
         batch_size: usize,
     ) -> Self {
         Self {
             crawler_queue,
-            files_collection,
-            tantivy,
+            pipeline,
             notify,
             batch_size,
         }
     }
 
     pub async fn worker_task(&self) {
-        let mut dtos_bank: Vec<(CrawlerFile, Vec<InternalSystemFileModel>)> = Vec::new();
+        let mut dtos_bank: Vec<(CrawlerFile, Vec<SystemFileModel>)> = Vec::new();
         let mut num_files_processed = 0;
 
         self.random_wait().await;
@@ -72,21 +63,21 @@ where
                 Ok(file_option) => match file_option {
                     Some(file) => {
                         // not needed if the log isn't there
-                        let file_clone = file.clone();
-                        let time = Instant::now();
+                        // let file_clone = file.clone();
+                        // let time = Instant::now();
 
                         let dtos = self.handle_crawl(&file).await;
                         num_files_processed += dtos.len();
                         dtos_bank.push((file, dtos));
 
-                        // optional log
-                        println!(
-                            "Crawler worker finished processing {}. Priority: {}. Num files processed: {}. Time: {:?}",
-                            file_clone.path.to_string_lossy(),
-                            file_clone.priority,
-                            num_files_processed,
-                            time.elapsed()
-                        );
+                        // // optional log
+                        // println!(
+                        //     "Crawler worker finished processing {}. Priority: {}. Num files processed: {}. Time: {:?}",
+                        //     file_clone.path.to_string_lossy(),
+                        //     file_clone.priority,
+                        //     num_files_processed,
+                        //     time.elapsed()
+                        // );
 
                         if num_files_processed >= self.batch_size {
                             // Commit all and drain the bank of files
@@ -116,17 +107,10 @@ where
         }
     }
 
-    async fn handle_index(&self, dir: &CrawlerFile, dtos: Vec<InternalSystemFileModel>) {
-        let (ref writer, ref schema) = self.tantivy;
+    async fn handle_index(&self, dir: &CrawlerFile, files: Vec<SystemFileModel>) {
+        let parent = SystemFileModel::new_shallow(dir.path.to_string_lossy().to_string());
         match async_retry::retry_with_backoff(
-            || {
-                indexer::index_files(
-                    &dtos,
-                    (Arc::clone(writer), schema.clone()),
-                    dir.path.clone(),
-                    Arc::clone(&self.files_collection),
-                )
-            },
+            |_| self.pipeline.upsert_many(&files, &parent),
             5,
             Duration::from_millis(1000),
         )
@@ -150,7 +134,7 @@ where
     }
 
     /// Returns all of the files that were found in the given directory
-    async fn handle_crawl(&self, directory: &CrawlerFile) -> Vec<InternalSystemFileModel>
+    async fn handle_crawl(&self, directory: &CrawlerFile) -> Vec<SystemFileModel>
     where
         C: CrawlerQueueApi,
     {
@@ -186,11 +170,11 @@ where
 
     async fn commit_dtos_bank(
         &self,
-        mut dtos: Vec<(CrawlerFile, Vec<InternalSystemFileModel>)>,
-    ) -> Vec<(CrawlerFile, Vec<InternalSystemFileModel>)> {
-        println!("Crawler is committing dtos bank");
+        mut dtos: Vec<(CrawlerFile, Vec<SystemFileModel>)>,
+    ) -> Vec<(CrawlerFile, Vec<SystemFileModel>)> {
+        //println!("Crawler is committing dtos bank");
         for (dir, files) in dtos.drain(..) {
-            println!("Draining {}", dir.path.to_string_lossy());
+            //println!("Draining {}", dir.path.to_string_lossy());
             self.handle_index(&dir, files).await;
         }
         dtos
@@ -198,7 +182,7 @@ where
 
     async fn remove_from_crawler_queue(&self, directory: &CrawlerFile) -> Result<(), String> {
         async_retry::retry_with_backoff(
-            || self.crawler_queue.delete_one(directory.clone()),
+            |_| self.crawler_queue.delete_one(directory.clone()),
             5,
             Duration::from_millis(1000),
         )
@@ -208,7 +192,7 @@ where
     /// Attempt to fetch the next item from the crawler queue, applying backoff if failing
     async fn staggered_fetch_next(&self) -> Result<Option<CrawlerFile>, String> {
         async_retry::retry_with_backoff(
-            || self.crawler_queue.fetch_next(),
+            |_| self.crawler_queue.fetch_next(),
             8,
             Duration::from_millis(200),
         )

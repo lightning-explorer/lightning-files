@@ -1,5 +1,8 @@
 use std::time::{SystemTime, UNIX_EPOCH};
-use tantivy::DateTime;
+
+use chrono::{NaiveDateTime, Utc};
+use tantivy::{time::{OffsetDateTime, UtcOffset}, DateTime};
+
 
 pub fn unix_time_to_tantivy_datetime(timestamp: u64) -> DateTime {
     let system_time = UNIX_EPOCH + std::time::Duration::from_secs(timestamp);
@@ -14,19 +17,15 @@ pub fn chrono_time_to_tantivy_datetime(chrono_dt: chrono::DateTime<chrono::Utc>)
     DateTime::from_timestamp_secs(timestamp_secs)
 }
 
-pub fn system_time_to_chrono_datetime(system_time: SystemTime) -> chrono::DateTime<chrono::Utc> {
-    // Convert the SystemTime to a duration since the UNIX epoch
-    let duration_since_epoch = system_time
-        .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards");
+pub fn tantivy_time_to_chrono_datetime(tantivy_datetime:DateTime)->chrono::DateTime<Utc>{
+    let offset = tantivy_datetime.into_offset(UtcOffset::UTC);
 
-    // Extract seconds and nanoseconds
-    let secs = duration_since_epoch.as_secs() as i64;
-    let nanos = duration_since_epoch.subsec_nanos();
+    let unix_timestamp = offset.unix_timestamp(); // Get seconds since UNIX epoch
+    let nanos = offset.nanosecond(); // Get nanoseconds past the second
 
-    // Create a NaiveDateTime from seconds and nanoseconds
-    let naive_datetime = chrono::NaiveDateTime::from_timestamp(secs, nanos);
+    // Create a NaiveDateTime from the timestamp
+    let naive_datetime = NaiveDateTime::from_timestamp(unix_timestamp, nanos);
 
     // Convert NaiveDateTime to DateTime<Utc>
-    chrono::DateTime::<chrono::Utc>::from_utc(naive_datetime, chrono::Utc)
+    chrono::DateTime::<Utc>::from_utc(naive_datetime, Utc)
 }

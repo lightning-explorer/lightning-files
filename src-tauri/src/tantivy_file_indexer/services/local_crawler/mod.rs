@@ -9,7 +9,6 @@ mod core {
     }
     pub mod indexing_crawler {
         mod crawler;
-        mod indexer;
         mod worker;
         pub mod worker_manager;
     }
