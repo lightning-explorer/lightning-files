@@ -5,7 +5,6 @@ use tantivy_file_indexer::{
     services::local_db::tauri_exports::*, services::search_index::tauri_exports::*,
     services::vector_db::tauri_exports::*,
 };
-use tauri::AppHandle;
 mod app_init;
 mod directory_nav_service;
 mod shared;

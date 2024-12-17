@@ -10,7 +10,7 @@ use crate::{
 };
 
 use super::{
-    core::engine::{core::constructor::QueryConstructor, querier::Querier, tantivy_setup},
+    core::engine::{query_builder::constructor::QueryConstructor, querier::Querier, tantivy_setup},
     models::file::TantivyFileModel,
     pipelines::{db_tantivy_pipeline::DbTantivyPipeline, tantivy_pipeline::TantivyPipeline},
     services::task_manager::TaskManagerService,

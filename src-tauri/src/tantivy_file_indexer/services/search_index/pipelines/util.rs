@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use tantivy::{query::TermQuery, Searcher, TantivyDocument, Term};
 
 use crate::{
@@ -15,14 +17,15 @@ pub fn classify_stale_models(
     children: &[SystemFileModel],
     models: &[TantivyFileModel],
 ) -> Vec<SystemFileModel> {
-    let mut stale = Vec::new();
+    // Build a HashSet of file paths from `models`
+    let model_paths: HashSet<_> = models.iter().map(|file| &file.file_path).collect();
 
-    for child in children.iter() {
-        if !models.iter().any(|file| file.file_path == child.file_path) {
-            stale.push(child.clone());
-        }
-    }
-    stale
+    // Filter out stale `children` whose file paths are not in `model_paths`
+    children
+        .iter()
+        .filter(|child| !model_paths.contains(&child.file_path))
+        .cloned()
+        .collect()
 }
 
 fn search_by_term(searcher: Searcher, term: Term) -> tantivy::Result<Vec<TantivyDocument>> {
@@ -30,22 +33,21 @@ fn search_by_term(searcher: Searcher, term: Term) -> tantivy::Result<Vec<Tantivy
     // Search using the query
     let top_docs = searcher.search(&query, &tantivy::collector::TopDocs::with_limit(1_000_000))?;
 
-    // Collect the document addresses. Use flatten for now since 'searcher.doc' can return an error
+    // Collect the document addresses. Use flat map since 'searcher.doc' can return an error
     let doc_addresses: Vec<TantivyDocument> = top_docs
         .into_iter()
-        .map(|(_, doc_addr)| searcher.doc(doc_addr))
-        .flatten()
+        .flat_map(|(_, doc_addr)| searcher.doc(doc_addr))
         .collect();
 
     Ok(doc_addresses)
 }
 
-pub fn search_by_parent_directory(
+/// `model` is expected to be a directory. A search will be made to find all models whose `parent_path` matches the given directory file path
+pub fn search_by_directory(
     searcher: Searcher,
     model: &TantivyFileModel,
 ) -> tantivy::Result<Vec<TantivyDocument>> {
-    // TODO: do something abou this. Accessing the field directly here is kinda arbitrary
-    let term = TantivyFileModel::make_term("parent_directory", &model.parent_directory).unwrap();
+    let term = TantivyFileModel::make_term("parent_directory", &model.file_path).unwrap();
     search_by_term(searcher, term)
 }
 

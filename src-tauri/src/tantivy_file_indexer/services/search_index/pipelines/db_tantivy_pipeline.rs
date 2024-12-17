@@ -95,7 +95,7 @@ impl CrawlerCommitPipeline for DbTantivyPipeline {
     async fn upsert_one(&self, model:Self::InputModel) -> Result<(), Self::Error> {
         let model:TantivyFileModel = model.into();
         Self::map_err(
-            indexer::add_entries_to_index(&vec![model], Arc::clone(&self.index_writer)).await,
+            indexer::add_entries_to_index(&[model], Arc::clone(&self.index_writer)).await,
         )?;
         Ok(())
     }
