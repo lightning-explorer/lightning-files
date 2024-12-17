@@ -12,9 +12,9 @@
 
 .modal {
     display: flex;
-
+    color: var(--text-primary);
     flex-direction: column;
-    background-color: var(--background-color);
+    background-color: var(--bg-primary);
     padding: 20px;
     border-radius: 8px;
     width: 400px;
@@ -30,7 +30,7 @@
 }
 
 .modal-header label {
-    color: var(--secondary-color);
+    color: var(--primary);
     font-weight: 600;
     font-size: 1.2em;
 }
@@ -46,8 +46,8 @@
     padding-bottom: 16px;
     padding-top: 16px;
     border-radius: 9px;
-    background: var(--secondary-color);
-    color: var(--background-color);
+    background: var(--primary);
+    color: var(--bg-primary);
     font-weight: 400;
     border: none;
     font-family: inherit;
@@ -58,13 +58,13 @@
 }
 
 .modal-footer button:hover {
-    background: var(--fourth-color);
-    box-shadow: 7px 5px 56px -14px var(--secondary-color);
+    background: var(--primary-light);
+    box-shadow: 7px 5px 56px -14px var(--primary-light);
 }
 
 .modal-footer button:active {
     transform: scale(1);
-    box-shadow: 7px 5px 56px -10px var(--fourth-color);
+    box-shadow: 7px 5px 56px -10px var(--primary-light);
 }
 
 .close-btn {
@@ -77,5 +77,5 @@
 }
 
 .close-btn:hover {
-    background-color: var(--fourth-color);
+    background-color: var(--primary);
 }

@@ -12,6 +12,7 @@ import { IndexedDirModel } from "../../models/indexed-dir-model";
 
 import { SafeInvokeService } from "./safe-invoke.service";
 import { EmitMetadataModel } from "@core/models/emit-metadata-model";
+import { SystemInfoModel } from "@core/models/system-info-model";
 
 @Injectable({ 'providedIn': 'root' })
 export class TauriCommandsService {
@@ -304,5 +305,10 @@ export class TauriCommandsService {
      */
     async getFileFromIndex(file: FileModel): Promise<FileModel | undefined> {
         return await this.invokeSafe<FileModel | undefined>("get_file_from_index", { file });
+    }
+
+    /** Get information about the system the user is running the program on */
+    async getSysInfo(): Promise<SystemInfoModel>{
+        return await this.invokeSafe<SystemInfoModel>("get_sys_info");
     }
 }

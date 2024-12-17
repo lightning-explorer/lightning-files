@@ -1,7 +1,11 @@
 <div class="heading">
 
-    <button>
+    <button (click)="onUndoClick()">
         <mat-icon>keyboard_arrow_left</mat-icon>
+    </button>
+
+    <button (click)="onRedoClick()">
+        <mat-icon>keyboard_arrow_right</mat-icon>
     </button>
 
     <button (click)="onNavigateBackDirectoryClick()">

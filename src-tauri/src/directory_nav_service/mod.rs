@@ -8,7 +8,7 @@ mod models {
 }
 mod core;
 mod app_state {
-    pub mod sys_info;
+    pub mod sys_info_service;
     pub mod files_display;
     pub mod manager;
 }

@@ -2,7 +2,7 @@ import { AfterViewChecked, Component, ElementRef, EventEmitter, HostListener, In
 import { CommonModule } from '@angular/common';
 import { FileResultComponent } from '../../../file-result/file-result.component';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
-import { MoveItemsPopupComponent } from '../move-items-popup/move-items-popup.component';
+import { MoveItemsPopupComponent } from './move-items-popup/move-items-popup.component';
 import { InlineSearchBarComponent } from './inline-search-bar/inline-search-bar.component';
 import { ContextMenuComponent } from '@shared/components/popups/context-menu/context-menu.component';
 import { FolderLoaderComponent } from '@shared/components/loaders/folder-loader/folder-loader.component';
@@ -21,7 +21,7 @@ import { InlineSearchService } from './services/inline-search.service';
   selector: 'app-file-browser',
   standalone: true,
   imports: [CommonModule, FileResultComponent, ScrollingModule, MoveItemsPopupComponent, ContextMenuComponent, InlineSearchBarComponent, FolderLoaderComponent],
-  providers: [SelectService, DragDropService, FileContextMenuService, InlineSearchService],
+  providers: [SelectService, DragDropService, InlineSearchService, FileContextMenuService],
   templateUrl: './file-browser.component.html',
   styleUrl: './file-browser.component.css',
   animations: [
@@ -76,7 +76,10 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
       this.selectService.clearSelection();
       this.hideAndFadeIn();
       this.currentDirectoryMetadata = x;
-      this.currentDirectory = x.directory
+    }));
+
+    this.subscription.add(this.directoryService.currentDir$.subscribe(dir => {
+      this.currentDirectory = dir
     }));
 
     this.hideAndFadeIn();

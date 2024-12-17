@@ -5,7 +5,7 @@ import { IconifyIconModule } from '@shared/components/IconifyIcons/icon.module';
 import { getIconFromPath } from '@core/util/get-icon-from-path';
 import { FileModel } from '@core/models/file-model';
 import { HighlightableLabelComponent } from "@shared/components/highlightable-label/highlightable-label.component";
-import { PinService } from '@core/services/files/pin.service';
+import { PinService } from '@core/services/files/tools/pin.service';
 import { FadeInComponent } from "../../../shared/components/misc/fade-in/fade-in.component";
 
 // If you are looking for the drag functionality, it gets handled by the parent component
@@ -21,7 +21,7 @@ import { FadeInComponent } from "../../../shared/components/misc/fade-in/fade-in
 export class FileResultComponent {
   isVisible = false;
 
-  @Input() fadeInAnim:boolean = true;
+  @Input() fadeInAnim: boolean = true;
 
   @Input() file: FileModel | undefined;
   @Input() selected = false;

@@ -1,4 +1,9 @@
 export interface SystemInfoModel{
-    HomeDirectoryPath:string,
-    
+    /** The path where Windows is installed. %SystemDrive%  */
+    SystemDirectoryPath:string,
+    HomeDirectoryPath:string|undefined,
+    DesktopDirectoryPath:string|undefined,
+    DownloadsDirectoryPath:string|undefined,
+    DocumentsDirectoryPath:string|undefined,
+    PicturesDirectoryPath:string|undefined,
 }

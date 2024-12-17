@@ -9,7 +9,6 @@ export class DragDropService {
     constructor() { }
 
     onDragStart(event: DragEvent, items: Set<FileModel>, dragPreview: ElementRef) {
-        console.log
         this.draggedItems = items;
 
         const previewElement = dragPreview.nativeElement;

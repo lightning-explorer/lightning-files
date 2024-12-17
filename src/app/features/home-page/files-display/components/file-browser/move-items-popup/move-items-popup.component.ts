@@ -15,7 +15,7 @@ import { BehaviorSubject } from 'rxjs';
   styleUrl: './move-items-popup.component.css'
 })
 export class MoveItemsPopupComponent {
-  isVisible = false;
+  isVisible = true;
   itemsAdding = 0;
   pathFrom = "test";
   destPath = "test";

@@ -4,9 +4,13 @@ import { GetFilesParamsModel } from "./models/get-files-params";
 import { TauriCommandsService } from "../../tauri/commands.service";
 import { FileModel } from "../../../models/file-model";
 import { DirectoryMetadata, newDirMetadataDefault } from "./models/directory-metadata";
+import { DirectoryHistoryService } from "./directory-history.service";
 
 @Injectable({ 'providedIn': 'root' })
 export class DirectoryNavigatorService {
+
+    private currentDirSubject = new BehaviorSubject<string>("");
+    public currentDir$ = this.currentDirSubject.asObservable();
 
     private currentDirMetadataSubject = new BehaviorSubject<DirectoryMetadata>(newDirMetadataDefault());
     public currentDirMetadata$ = this.currentDirMetadataSubject.asObservable();
@@ -21,19 +25,22 @@ export class DirectoryNavigatorService {
     constructor(private commandsService: TauriCommandsService) { }
 
     async setCurrentDir(dir: string, params?: GetFilesParamsModel) {
-        const currentMeta = this.currentDirMetadataSubject.getValue();
-        this.currentDirMetadataSubject.next({
-            ...currentMeta,
-            isAccessible: await this.commandsService.isDirectoryAccessible(dir),
-            directory: await this.commandsService.formatPathIntoDir(dir),
-        });
-        this.isLoadingSubject.next(true);
-        await this.setDriveFiles(params);
-        this.isLoadingSubject.next(false);
+        // avoid redundant emissions
+        if (this.currentDirSubject.getValue() !== dir) {
+            const currentMeta = this.currentDirMetadataSubject.getValue();
+            this.currentDirMetadataSubject.next({
+                ...currentMeta,
+                isAccessible: await this.commandsService.isDirectoryAccessible(dir),
+            });
+            this.currentDirSubject.next(await this.commandsService.formatPathIntoDir(dir));
+            this.isLoadingSubject.next(true);
+            await this.setDriveFiles(params);
+            this.isLoadingSubject.next(false);
+        }
     }
 
     async setDriveFiles(params?: GetFilesParamsModel) {
-        const directory = this.currentDirMetadataSubject.getValue().directory;
+        const directory = this.currentDirSubject.getValue();
 
         this.currentFilesSubject.next([]);
         await this.commandsService.getFilesAsModels(directory, (file) => {
@@ -43,18 +50,22 @@ export class DirectoryNavigatorService {
     }
 
     async getDirectoryPath(): Promise<string> {
-        return await this.commandsService.getDirectoryPath(this.currentDirMetadataSubject.getValue().directory);
+        return await this.commandsService.getDirectoryPath(this.currentDirSubject.getValue());
     }
 
     async getParentDirectory(): Promise<string> {
-        return await this.commandsService.getParentDirectory(this.currentDirMetadataSubject.getValue().directory);
+        return await this.commandsService.getParentDirectory(this.currentDirSubject.getValue());
     }
 
     async getRootDirectory(): Promise<string> {
-        return await this.commandsService.getRootPath(this.currentDirMetadataSubject.getValue().directory);
+        return await this.commandsService.getRootPath(this.currentDirSubject.getValue());
     }
 
     async openFileCmd(filePath: string): Promise<boolean> {
         return await this.commandsService.openFile(filePath);
+    }
+
+    getCurrentMetadata(): DirectoryMetadata {
+        return this.currentDirMetadataSubject.getValue();
     }
 }

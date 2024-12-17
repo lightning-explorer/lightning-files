@@ -1,5 +1,5 @@
 import { Component, OnDestroy, ViewChild } from '@angular/core';
-import { PinService } from '@core/services/files/pin.service';
+import { PinService } from '@core/services/files/tools/pin.service';
 import { FileModel } from '@core/models/file-model';
 import { CommonModule } from '@angular/common';
 import { getIconFromPath } from '@core/util/get-icon-from-path';

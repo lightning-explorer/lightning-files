@@ -9,10 +9,11 @@ import { Observable } from 'rxjs';
   styleUrl: './radio-button.component.css'
 })
 export class RadioButtonComponent {
-  @Input() isChecked:boolean = false;
+  @Input() isChecked: boolean = false;
   @Output() onToggle = new EventEmitter<boolean>();
 
   toggleRadio() {
+    console.log("tohgle");
     this.isChecked = !this.isChecked; // Toggle the checked state
     this.onToggle.emit(this.isChecked)
   }

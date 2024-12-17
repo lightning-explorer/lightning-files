@@ -10,7 +10,7 @@ import { Subscription } from "rxjs";
 @Component({
   selector: 'app-files-display',
   standalone: true,
-  imports: [FileBrowserComponent, FilePreviewComponent],
+  imports: [FileBrowserComponent],
   providers: [],
   templateUrl: './files-display.component.html',
   styleUrl: './files-display.component.scss',

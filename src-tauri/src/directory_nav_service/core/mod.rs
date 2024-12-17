@@ -21,3 +21,6 @@ pub mod drives {
         pub mod get_sys_drives;
     }
 }
+pub mod sys{
+    pub mod tauri_cmds;
+}

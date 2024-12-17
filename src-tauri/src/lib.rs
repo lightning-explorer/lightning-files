@@ -42,7 +42,8 @@ pub fn run() {
             is_directory_accessible,
 
             get_file_from_index,
-            upsert_file_to_index
+            upsert_file_to_index,
+            get_sys_info
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();

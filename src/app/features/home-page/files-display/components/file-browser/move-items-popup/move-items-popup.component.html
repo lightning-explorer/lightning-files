@@ -1,4 +1,6 @@
-<app-modal-popup [(isVisible)]="isVisible" title="Warning" [buttons]="buttons" [radioButtons]="radioButtons">
+<app-modal-popup [(isVisible)]="isVisible" title="Warning" 
+[buttons]="buttons" 
+[radioButtons]="radioButtons">
 
     <div *ngIf="itemsAdding==1; else elseBlock">
         <p>Are you sure you want to move <b>{{itemsAdding}}</b> item from <b>{{pathFrom}}</b> to <b>{{destPath}}</b>?

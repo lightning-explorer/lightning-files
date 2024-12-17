@@ -1,8 +1,8 @@
 :host {
-    scrollbar-width: thin;
-    scrollbar-color: var(--secondary-color) transparent;
     display: flex;
     flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
 }
 
 .app-name {

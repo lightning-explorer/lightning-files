@@ -1,8 +1,9 @@
 
 import { Injectable, OnDestroy, OnInit } from "@angular/core";
+import { FileModel } from "@core/models/file-model";
+import { PersistentConfigService } from "@core/services/persistence/config.service";
 import { BehaviorSubject, Subscription } from "rxjs";
-import { FileModel } from "../../models/file-model";
-import { PersistentConfigService } from "../persistence/config.service";
+
 
 @Injectable({ 'providedIn': 'root' })
 export class PinService implements OnDestroy {

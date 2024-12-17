@@ -52,11 +52,10 @@ impl tantivy_traits::Model for TantivyFileModel {
     fn schema() -> Schema {
         let mut schema_builder = Schema::builder();
 
-        //schema_builder.add_text_field("file_id", TEXT | STORED); // UID
-        schema_builder.add_text_field("name", TEXT | STORED);
+        schema_builder.add_text_field("name", STRING | STORED);
         schema_builder.add_date_field("date_modified", INDEXED | STORED);
         schema_builder.add_date_field("date_created", INDEXED | STORED);
-        schema_builder.add_text_field("metadata", TEXT | STORED);
+        schema_builder.add_text_field("metadata", STRING | STORED);
         // PRIMARY KEY
         schema_builder.add_text_field("path", TEXT | STORED);
 
