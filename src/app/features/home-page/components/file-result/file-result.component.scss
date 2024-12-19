@@ -8,12 +8,16 @@
     margin: 0.2em;
     width: 100%;
     align-items: center;
-
+    pointer-events: none;
     transition: all ease 100ms;
 }
 
 .content.selected {
     background-color: var(--primary);
+}
+
+.content.hide{
+    background-color: transparent;
 }
 
 .content-left {
@@ -39,30 +43,19 @@
     color: var(--text-primary);
 }
 
+.name.hide{
+    color: var(--text-muted);
+}
+
 .metadata p {
     margin: 0px;
     font-size: 0.6em;
     color: var(--text-muted);
 }
 
-button:hover {
+
+button:hover, button.grow {
     color: #ffffff;
     transform: scale(1.01);
     box-shadow: 4px 5px 17px -4px var(--primary);
-}
-
-button::before {
-    content: "";
-    position: absolute;
-    left: -50px;
-    top: 0;
-    width: 0;
-    height: 100%;
-    transform: skewX(45deg);
-    z-index: -1;
-    transition: width 1000ms;
-}
-
-button:hover::before {
-    width: 250%;
 }

@@ -1,6 +1,10 @@
 <!-- <app-fade-in [isVisible]="!fadeInAnim"> -->
-    <div *ngIf="file">
-        <button class="content" [ngClass]="{'selected':selected}" (click)="onClick()">
+    <div *ngIf="file" (mouseenter)="onMouseEnter()"
+    (mouseleave)="onMouseLeave()">
+        <button class="content" 
+        [ngClass]="{'selected':selected, 'grow':shouldGrow, 'hide':shouldHide}" 
+        (click)="onClick()" 
+        >
 
             <div class="content-left">
 
@@ -18,8 +22,8 @@
                 </div>
 
 
-                <div class="name">
-                    <app-highlightable-label [text]="file.Name" [highlight]="file.HighlightedText" />
+                <div class="name" [ngClass]="{'hide':shouldHide}">
+                    <app-highlightable-label [text]="file.Name" [highlight]="file.Variables.HighlightedText" />
                 </div>
 
                 <div class="metadata">

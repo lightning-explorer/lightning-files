@@ -52,9 +52,9 @@ export class InlineSearchService {
                     if (!input_was_backspace)
                         this.firstOccurenceOfQueryIndexSubject.next(i);
 
-                    file.HighlightedText = this.searchQuerySubject.getValue();
+                    file.Variables.HighlightedText = this.searchQuerySubject.getValue();
                 } else {
-                    file.HighlightedText = "";
+                    file.Variables.HighlightedText = "";
                 }
             }
         }

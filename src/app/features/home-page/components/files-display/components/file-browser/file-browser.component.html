@@ -1,4 +1,4 @@
-<div class="content" [@fadeAnimation]="animationState">
+<div class="content" [@fadeAnimation]="animationState" (dragover)="onMainDragOver($event)">
     <div *ngIf="currentDirectoryMetadata?.isAccessible; else isInaccessible" class="content">
         <app-inline-search-bar />
 
@@ -14,10 +14,15 @@
             <cdk-virtual-scroll-viewport itemSize="50" style="height: 100%; width: 100%;">
 
                 <div *cdkVirtualFor="let file of files; let i = index" class="item">
-                    <app-file-result [file]="file" [draggable]="true" (dragstart)="onFileDragStart($event, i, file)"
-                        (dragover)="onFileDragOver($event)" (drop)="onFileDrop($event, file)"
-                        [selected]="selectedIndices.has(i)" (click)="onFileClick(i, $event)"
-                        (dblclick)="onFileDoubleClick(file)" (contextmenu)="this.onFileRightClick(file, $event)" />
+                    <app-file-result [file]="file" [draggable]="true" 
+                        (dragstart)="onFileDragStart($event, i, file)"
+                        (dragover)="onFileDragOver($event, file)" 
+                        (drop)="onFileDrop($event, file)"
+                        (dragleave)="onFileDragLeave($event, file)"
+                        [selected]="selectedIndices.has(i)" 
+                        (click)="onFileClick(i, $event)"
+                        (dblclick)="onFileDoubleClick(file)" 
+                        (contextmenu)="this.onFileRightClick(file, $event)" />
                 </div>
 
             </cdk-virtual-scroll-viewport>

@@ -17,8 +17,9 @@ import { Subscription } from 'rxjs';
  */
 @Component({
     selector: 'iconify-icon',
-    template: `<div [innerHTML]="svgIcon | safeHtml"></div>`,
+    template: `<div [innerHTML]="svgIcon | safeHtml" class="content"></div>`,
     styles: [],
+    //styleUrl: "./iconify-icon.component.css",
     providers: [IconService]
 })
 export class IconifyIconComponent implements OnInit, OnChanges{

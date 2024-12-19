@@ -14,10 +14,11 @@ import { RadioButtonProps } from '@shared/components/buttons/radio-button/RadioB
   styleUrl: './move-items-popup.component.css'
 })
 export class MoveItemsPopupComponent {
-  isVisible = false;
-  itemsAdding = 0;
-  pathFrom = "test";
-  destPath = "test";
+
+  @Input() isVisible: boolean = false;
+  @Input() itemsAdding: number = 0;
+  @Input() pathFrom: string = '';
+  @Input() destPath: string = '';
 
   private get dontAskAgain(): boolean {
     return this.config.read("moveItemsDontAskAgain");
@@ -25,8 +26,6 @@ export class MoveItemsPopupComponent {
   private set dontAskAgain(val: boolean) {
     this.config.update("moveItemsDontAskAgain", val);
   }
-
-  private onYesCallback: (() => void) | undefined;
 
   constructor(private config: PersistentConfigService) { }
 
@@ -39,18 +38,15 @@ export class MoveItemsPopupComponent {
   };
 
 
-  open(pathFrom: string, destPath: string, itemsAdding: number, onYesCallback: () => void) {
-    if (!this.dontAskAgain) {
-      this.isVisible = true;
-      this.itemsAdding = itemsAdding;
-      this.pathFrom = pathFrom;
-      this.destPath = destPath;
-      this.onYesCallback = onYesCallback;
+  onYesClicked() {
+    if (this.onYesCallBack){
+      this.props.onYesCallBack()
+      this.destroy();
     }
   }
 
-  onYesClicked() {
-    if (this.onYesCallback)
-      this.onYesCallback();
+  private destroy(){
+    if(this.props?.onDestroy)
+      this.props.onDestroy();
   }
 }

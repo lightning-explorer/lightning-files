@@ -6,9 +6,9 @@ import { MoveItemsPopupComponent } from './popups/move-items-popup/move-items-po
 import { InlineSearchBarComponent } from './inline-search-bar/inline-search-bar.component';
 import { ContextMenuComponent } from '@shared/components/popups/context-menu/context-menu.component';
 import { FolderLoaderComponent } from '@shared/components/loaders/folder-loader/folder-loader.component';
-import { FileContextMenuService } from './services/interaction/context-menu.service';
-import { DragDropService } from './services/interaction/dragdrop.service';
-import { SelectService } from './services/interaction/select.service';
+import { FileContextMenuService } from '../../../file-result/services/context-menu.service';
+import { DragDropService } from '../../../file-result/services/dragdrop.service';
+import { SelectService } from '../../../file-result/services/select.service';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { FileModel } from '@core/models/file-model';
 import { DirectoryNavigatorService } from '@core/services/files/directory-navigator/directory-navigator.service';
@@ -130,29 +130,48 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
 
   onFileDragStart(event: DragEvent, index: number, item: FileModel) {
     this.selectService.populateSelected(this.files);
-    const selectedSet = new Set(this.selectedItems);
+    let selectedSet = new Set(this.selectedItems);
     if (!selectedSet.has(item)) {
       this.selectService.clearSelection();
       this.selectService.toggleSelection(index);
       this.selectService.populateSelected(this.files);
     }
+    selectedSet = new Set(this.selectedItems);
     this.dragService.onDragStart(event, selectedSet, this.dragPreview);
   }
 
-  onFileDragOver(event: DragEvent) {
-    this.dragService.onDragOver(event);
+  onFileDragOver(event: DragEvent, targetItem: FileModel) {
+    this.dragService.onDragOver(event, targetItem);
+  }
+
+  onFileDragLeave(event: DragEvent, targetItem: FileModel){
+    this.dragService.onDragLeave(event, targetItem);
   }
 
   onFileDrop(event: DragEvent, targetItem: FileModel) {
     if (!this.dragService.onDrop(event, targetItem, 0)) {
-      this.moveItemsPopup.open(this.currentDirectory, this.dragService.draggingItemsTo, this.selectService.selectedIndices.size, () => {
-        this.dragService.moveItems(targetItem);
+      this.moveItemsPopup.open({
+        isVisible:true,
+        itemsAdding:this.selectService.selectedIndices.size,
+        pathFrom:this.currentDirectory,
+        destPath: this.dragService.draggingItemsTo,
+        onYesCallBack:() => {this.dragService.moveItems(targetItem);},
+        onDestroy: ()=>{this.dragService.unhideAllDraggingItems();}
       });
     }
   }
 
+  /*
+this.currentDirectory, this.dragService.draggingItemsTo, this.selectService.selectedIndices.size, () => {
+        this.dragService.moveItems(targetItem);
+  */
+
   @HostListener('window:keydown', ['$event'])
   async handleKeydown(event: KeyboardEvent) {
     this.inlineSearchService.handleKeydown(event, this.files);
+  }
+
+  onMainDragOver(event: DragEvent){
+    event.preventDefault();
   }
 }

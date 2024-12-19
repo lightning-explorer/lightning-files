@@ -5,9 +5,9 @@ import { CommonModule } from '@angular/common';
 import { getIconFromPath } from '@core/util/get-icon-from-path';
 import { IconifyIconModule } from '@shared/components/IconifyIcons/icon.module';
 import { truncateText } from '@core/util/text-truncator';
-import { SelectService } from '../files-display/components/file-browser/services/interaction/select.service';
+import { SelectService } from '../file-result/services/select.service';
 import { ContextMenuComponent } from "@shared/components/popups/context-menu/context-menu.component";
-import { FileContextMenuService } from '../files-display/components/file-browser/services/interaction/context-menu.service';
+import { FileContextMenuService } from '../file-result/services/context-menu.service';
 import { Subscription } from 'rxjs';
 
 @Component({

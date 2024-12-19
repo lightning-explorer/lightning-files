@@ -19,7 +19,16 @@ import { FadeInComponent } from "@shared/components/misc/fade-in/fade-in.compone
   styleUrl: './file-result.component.scss'
 })
 export class FileResultComponent {
-  isVisible = false;
+  mouseOver = false;
+
+  get shouldGrow(){
+    const draggedOver = this.file?.Variables.DraggedOver;
+    const hide = this.file?.Variables.ShouldHide;
+    return (draggedOver || this.mouseOver) && !hide;
+  }
+  get shouldHide(){
+    return this.file?.Variables.ShouldHide;
+  }
 
   @Input() fadeInAnim: boolean = true;
 
@@ -44,5 +53,13 @@ export class FileResultComponent {
   onClick() {
     if (this.clickEvent)
       this.clickEvent();
+  }
+
+  onMouseEnter(){
+    this.mouseOver = true;
+  }
+
+  onMouseLeave(){
+    this.mouseOver = false;
   }
 }
