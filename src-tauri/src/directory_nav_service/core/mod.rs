@@ -10,6 +10,8 @@ pub mod files {
     }
     pub mod retrieve {
         mod helper;
+        mod file_retriever;
+        mod file_sorter;
         pub mod tauri_cmds;
     }
     pub mod user_input_validator {
@@ -23,5 +25,6 @@ pub mod drives {
     }
 }
 pub mod sys{
+    mod info;
     pub mod tauri_cmds;
 }

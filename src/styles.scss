@@ -49,22 +49,24 @@
 }
 
 .light-theme {
-  --background-color: #ffffff;
-  --background-transparent: #ffffff89;
-  --background-secondary: #ffeaea;
-  --background-darker: #eeeeee;
-  --background-ambient: #d1eeff;
-  --primary-color: #ffffff;
-  --primary-darker: #a0d0ff;
-  --contrast-color: #000000;
-  --font-color: #000000;
-  --secondary-color: #3478ff;
-  --secondary-color-contrast: #ffffff;
-  --selected-color: #82c2ff;
-  --third-color: #b38bff;
-  --fourth-color: #34aeff;
-  --icon-color: #138dff;
-  --transparent-select-color: #7fddff9a;
+  --bg-primary: #ffffff;
+  --bg-dark: #e3e0ff83;
+  --bg-transparent: #ffffff85;
+
+  --input: #ebe6ff;
+
+  --bg-grad1: #f9f1ff;
+  --bg-grad2: #f3f3f3fb;
+
+  --primary: #da44ff;
+  --primary-light: #ff23b6;
+
+  --text-primary: #000000;
+  --text-muted: #c4c4c4;
+
+  --icon: #aaddff;
+
+  --select-transparent: #d0aaff71;
 }
 
 html {

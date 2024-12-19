@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Information about the current user's system
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct SystemInfoModel {
     pub system_directory_path: String,

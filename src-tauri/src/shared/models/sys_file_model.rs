@@ -64,4 +64,14 @@ impl SystemFileModel {
         };
         Ok(model)
     }
+
+    pub fn get_ext(&self)->Option<String>{
+        let path = Path::new(&self.file_path);
+        path.extension().map(|x|x.to_string_lossy().to_string())
+    }
+
+    pub fn is_dir(&self)->bool{
+        let path = Path::new(&self.file_path);
+        path.is_dir() 
+    }
 }

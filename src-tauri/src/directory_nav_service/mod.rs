@@ -1,14 +1,15 @@
 mod dtos {
     pub mod inline_query_dto;
+    pub mod get_files_dtos;
+    pub mod sort_files_by_dto;
 }
 mod models {
     pub mod drive_model;
-    pub mod get_files_model;
     pub mod system_info_model;
+    pub mod date_range;
 }
 mod core;
 mod app_state {
-    pub mod sys_info_service;
     pub mod files_display;
     pub mod manager;
 }
