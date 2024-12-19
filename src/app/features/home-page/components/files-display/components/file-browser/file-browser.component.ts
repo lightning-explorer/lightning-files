@@ -140,6 +140,10 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     this.dragService.onDragStart(event, selectedSet, this.dragPreview);
   }
 
+  onFileDragEnd(event: DragEvent, targetItem: FileModel){
+    this.dragService.onDragEnd(event,targetItem);
+  }
+
   onFileDragOver(event: DragEvent, targetItem: FileModel) {
     this.dragService.onDragOver(event, targetItem);
   }

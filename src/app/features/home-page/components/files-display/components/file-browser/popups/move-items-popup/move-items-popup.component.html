@@ -1,13 +1,13 @@
-<app-modal-popup [(isVisible)]="isVisible" title="Warning" 
-[buttons]="buttons" >
+<app-modal-popup [(isVisible)]="props.isVisible" title="Warning" 
+[buttons]="buttons" [onClose]="this.props?.onDestroy">
 
-    <div *ngIf="itemsAdding; else elseBlock">
-        <p>Are you sure you want to move <b>{{itemsAdding}}</b> item from <b>{{pathFrom}}</b> to <b>{{destPath}}</b>?
+    <div *ngIf="props.itemsAdding; else elseBlock">
+        <p>Are you sure you want to move <b>{{props.itemsAdding}}</b> item from <b>{{props.pathFrom}}</b> to <b>{{props.destPath}}</b>?
         </p>
     </div>
 
     <ng-template #elseBlock>
-        <p>Are you sure you want to move <b>{{itemsAdding}}</b> items from <b>{{pathFrom}}</b> to <b>{{destPath}}</b>?
+        <p>Are you sure you want to move <b>{{props.itemsAdding}}</b> items from <b>{{props.pathFrom}}</b> to <b>{{props.destPath}}</b>?
         </p>
     </ng-template>
 

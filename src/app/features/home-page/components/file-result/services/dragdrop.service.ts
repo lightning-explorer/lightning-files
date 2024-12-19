@@ -56,6 +56,10 @@ export class DragDropService {
         return true;
     }
 
+    onDragEnd(event:DragEvent,targetItem: FileModel){
+        this.unhideAllDraggingItems();
+    }
+
     moveItems(targetDirectory: FileModel) {
         this.draggedItems.forEach(item => {
             const file = item.FilePath;

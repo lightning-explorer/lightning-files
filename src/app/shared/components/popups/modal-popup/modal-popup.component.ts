@@ -13,11 +13,15 @@ export class ModalPopupComponent {
   @Input() title: string = 'Modal Title';
   @Input() isVisible: boolean = false;
   @Input() buttons: ButtonModel[] = [];
+  @Input() onClose:(()=>void)|undefined;
   @Output() isVisibleChange = new EventEmitter<boolean>();
 
   close() {
     this.isVisible = false;
     this.isVisibleChange.emit(this.isVisible);
+    if(this.onClose){
+      this.onClose();
+    }
   }
 
   open() {

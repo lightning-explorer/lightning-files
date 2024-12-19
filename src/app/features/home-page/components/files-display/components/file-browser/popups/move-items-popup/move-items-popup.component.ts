@@ -6,6 +6,15 @@ import { RadioButtonComponent } from "@shared/components/buttons/radio-button/ra
 import { PersistentConfigService } from '@core/services/persistence/config.service';
 import { RadioButtonProps } from '@shared/components/buttons/radio-button/RadioButtonProps';
 
+export interface MoveItemsPopupProps{
+  isVisible:boolean,
+  itemsAdding:number,
+  pathFrom:string,
+  destPath:string,
+  onYesCallBack:(() => void) | undefined,
+  onDestroy:(() => void) | undefined,
+}
+
 @Component({
   selector: 'app-move-items-popup',
   standalone: true,
@@ -14,11 +23,14 @@ import { RadioButtonProps } from '@shared/components/buttons/radio-button/RadioB
   styleUrl: './move-items-popup.component.css'
 })
 export class MoveItemsPopupComponent {
-
-  @Input() isVisible: boolean = false;
-  @Input() itemsAdding: number = 0;
-  @Input() pathFrom: string = '';
-  @Input() destPath: string = '';
+  props:MoveItemsPopupProps = {
+    isVisible:false,
+    itemsAdding:0,
+    pathFrom:"",
+    destPath:"",
+    onYesCallBack:undefined,
+    onDestroy:undefined
+  };
 
   private get dontAskAgain(): boolean {
     return this.config.read("moveItemsDontAskAgain");
@@ -38,8 +50,14 @@ export class MoveItemsPopupComponent {
   };
 
 
+  open(props:MoveItemsPopupProps) {
+    if (!this.dontAskAgain) {
+      this.props = props;
+    }
+  }
+
   onYesClicked() {
-    if (this.onYesCallBack){
+    if (this.props?.onYesCallBack){
       this.props.onYesCallBack()
       this.destroy();
     }
