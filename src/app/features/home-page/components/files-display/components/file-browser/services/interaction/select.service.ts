@@ -3,14 +3,18 @@ import { FileModel } from '@core/models/file-model';
 import { DirectoryNavigatorService } from '@core/services/files/directory-navigator/directory-navigator.service';
 import { FileCrawlerService } from '@core/services/files/file_crawler.service';
 import { isPathAFile } from '@core/util/file/general';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable()
 /**
  * Handles both single click select and multiselect
  */
 export class SelectService {
-  selectedIndices = new Set<number>();
-  selectedItems: FileModel[] = [];
+  private selectedIndicesSubject = new BehaviorSubject<Set<number>>(new Set());
+  private selectedItemsSubject = new BehaviorSubject<FileModel[]>([]);
+
+  selectedIndices$ = this.selectedIndicesSubject.asObservable();
+  selectedItems$ = this.selectedItemsSubject.asObservable();
 
   lastSelectedIndex: number | null = null;
 
@@ -53,34 +57,41 @@ export class SelectService {
     // Ensure the range goes from the lower to the higher index
     const [from, to] = start < end ? [start, end] : [end, start];
     for (let i = from; i <= to; i++) {
-      this.selectedIndices.add(i);
+      const s = this.selectedIndicesSubject.getValue();
+      s.add(i);
+      this.selectedIndicesSubject.next(s);
     }
   }
 
   toggleSelection(index: number) {
-    if (this.selectedIndices.has(index)) {
-      this.selectedIndices.delete(index);
+    const s = this.selectedIndicesSubject.getValue();
+    if (s.has(index)) {
+      s.delete(index);
     } else {
-      this.selectedIndices.add(index);
+      s.add(index);
     }
+    this.selectedIndicesSubject.next(s);
   }
 
   clearSelection() {
-    this.selectedIndices.clear();
+    this.selectedIndicesSubject.next(new Set());
   }
 
   selectIndex(index: number) {
-    this.selectedIndices.add(index);
+    const s = this.selectedIndicesSubject.getValue();
+    s.add(index);
+    this.selectedIndicesSubject.next(s);
   }
 
   populateSelected(files: FileModel[]) {
-    const sortedIndices = Array.from(this.selectedIndices).sort((a, b) => a - b);
+    const s = this.selectedIndicesSubject.getValue();
+    const sortedIndices = Array.from(s).sort((a, b) => a - b);
     let res: FileModel[] = [];
     sortedIndices.forEach(x => {
       const item = files.at(x)
       if (item)
         res.push(item);
     });
-    this.selectedItems = res;
+    this.selectedItemsSubject.next(res);
   }
 }
