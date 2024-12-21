@@ -21,13 +21,12 @@ import { FadeInComponent } from "@shared/components/misc/fade-in/fade-in.compone
 export class FileResultComponent {
   mouseOver = false;
 
+  highlightedText: string = "";
+  draggedOver:boolean = false;
+  hide:boolean = false
+
   get shouldGrow(){
-    const draggedOver = this.file?.Variables.DraggedOver;
-    const hide = this.file?.Variables.ShouldHide;
-    return (draggedOver || this.mouseOver) && !hide;
-  }
-  get shouldHide(){
-    return this.file?.Variables.ShouldHide;
+    return (this.draggedOver || this.mouseOver) && !this.hide;
   }
 
   @Input() fadeInAnim: boolean = true;

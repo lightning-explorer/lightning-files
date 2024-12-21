@@ -2,7 +2,7 @@
     <div *ngIf="file" (mouseenter)="onMouseEnter()"
     (mouseleave)="onMouseLeave()">
         <button class="content" 
-        [ngClass]="{'selected':selected, 'grow':shouldGrow, 'hide':shouldHide}" 
+        [ngClass]="{'selected':selected, 'grow':shouldGrow, 'hide':hide}" 
         (click)="onClick()" 
         >
 
@@ -22,8 +22,8 @@
                 </div>
 
 
-                <div class="name" [ngClass]="{'hide':shouldHide}">
-                    <app-highlightable-label [text]="file.Name" [highlight]="file.Variables.HighlightedText" />
+                <div class="name" [ngClass]="{'hide':hide}">
+                    <app-highlightable-label [text]="file.Name" [highlight]="highlightedText" />
                 </div>
 
                 <div class="metadata">

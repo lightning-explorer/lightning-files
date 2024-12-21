@@ -7,6 +7,7 @@ import {
 import { FileModel } from "@core/models/file-model";
 import { FileResultComponent } from "../../../../../file-result/file-result.component";
 import { BehaviorSubject } from "rxjs";
+import { FilesListService } from "../../../../files-list.service";
 
 @Injectable()
 export class DragDropService {
@@ -16,14 +17,16 @@ export class DragDropService {
   draggingItemsTo$ = this.draggingItemsToSubject.asObservable();
   draggedItems$ = this.draggedItemsSubject.asObservable();
 
-  constructor() {}
+  constructor(private filesListService: FilesListService) {}
 
   onDragStart(
     event: DragEvent,
     items: Set<FileModel>,
     dragPreview: ElementRef
   ) {
-    items.forEach((x) => (x.Variables.ShouldHide = true));
+    items.forEach((f) =>
+      this.filesListService.updateFileState(f, { hide: true })
+    );
     this.draggedItemsSubject.next(items);
 
     const previewElement = dragPreview.nativeElement;
@@ -37,13 +40,14 @@ export class DragDropService {
     if (targetItem.IsDirectory) {
       event.preventDefault();
       event.dataTransfer!.dropEffect = "move";
-      targetItem.Variables.DraggedOver = true;
+
+      this.filesListService.updateFileState(targetItem, { draggedOver: true });
     }
   }
 
   onDragLeave(event: DragEvent, targetItem: FileModel) {
     event.preventDefault();
-    targetItem.Variables.DraggedOver = false;
+    this.filesListService.updateFileState(targetItem, { draggedOver: false });
   }
 
   /** Returns `false` if the user tries to drop too many items in (a warning will be triggered) */
@@ -55,7 +59,7 @@ export class DragDropService {
     // You can't drag a folder into itself
     if (this.draggedItemsSubject.getValue().has(targetItem)) return true;
 
-    targetItem.Variables.DraggedOver = false;
+    this.filesListService.updateFileState(targetItem, { draggedOver: false });
 
     this.draggingItemsToSubject.next(targetItem.FilePath);
     event.preventDefault();
@@ -88,7 +92,9 @@ export class DragDropService {
 
   unhideAllDraggingItems() {
     const currentItems = this.draggedItemsSubject.getValue();
-    currentItems.forEach((x) => (x.Variables.ShouldHide = false));
+    currentItems.forEach((f) =>
+      this.filesListService.updateFileState(f, { hide: false })
+    );
     this.draggedItemsSubject.next(new Set([...currentItems]));
   }
 }

@@ -1,38 +1,37 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule } from "@angular/common";
+import { Component, Input, OnDestroy, OnInit } from "@angular/core";
 import { ModalPopupComponent } from "@shared/components/popups/modal-popup/modal-popup.component";
-import { ButtonModel } from '@shared/components/popups/modal-popup/models/ButtonModel';
+import { ButtonModel } from "@shared/components/popups/modal-popup/models/ButtonModel";
 import { RadioButtonComponent } from "@shared/components/buttons/radio-button/radio-button.component";
-import { PersistentConfigService } from '@core/services/persistence/config.service';
-import { RadioButtonProps } from '@shared/components/buttons/radio-button/RadioButtonProps';
-import { SelectService } from '../../services/interaction/select.service';
-import { DragDropService } from '../../services/interaction/dragdrop.service';
-import { Subscription } from 'rxjs';
-
-
+import { PersistentConfigService } from "@core/services/persistence/config.service";
+import { RadioButtonProps } from "@shared/components/buttons/radio-button/RadioButtonProps";
+import { SelectService } from "../../services/interaction/select.service";
+import { DragDropService } from "../../services/interaction/dragdrop.service";
+import { Subscription } from "rxjs";
 
 @Component({
-  selector: 'app-move-items-popup',
+  selector: "app-move-items-popup",
   standalone: true,
   imports: [CommonModule, ModalPopupComponent, RadioButtonComponent],
-  templateUrl: './move-items-popup.component.html',
-  styleUrl: './move-items-popup.component.css'
+  templateUrl: "./move-items-popup.component.html",
+  styleUrl: "./move-items-popup.component.css",
 })
 export class MoveItemsPopupComponent implements OnInit, OnDestroy {
   private subscription = new Subscription();
 
-    itemsAdding$ = this.selectService.selectedIndices$;
-    destPath$ = this.dragDropService.draggingItemsTo$;
+  itemsAdding$ = this.selectService.selectedIndices$;
+  destPath$ = this.dragDropService.draggingItemsTo$;
 
-    @Input() isVisible = false;
-    @Input() pathFrom = "";
-    @Input() onYesClicked = ()=>{};
-    @Input() onDestroy = ()=>{};
+  @Input() isVisible = false;
+  @Input() pathFrom = "";
+  @Input() onYesClicked = () => {};
+  @Input() onDestroy = () => {};
 
-  constructor(private config: PersistentConfigService,
-    private selectService:SelectService,
-    private dragDropService:DragDropService){}
-
+  constructor(
+    private config: PersistentConfigService,
+    private selectService: SelectService,
+    private dragDropService: DragDropService
+  ) {}
 
   private get dontAskAgain(): boolean {
     return this.config.read("moveItemsDontAskAgain");
@@ -46,7 +45,7 @@ export class MoveItemsPopupComponent implements OnInit, OnDestroy {
   dontAskAgainRadioButton: RadioButtonProps = {
     text: "Don't ask again",
     onToggle: (val: boolean) => val,
-    isChecked: this.dontAskAgain // This now dynamically reflects the state of dontAskAgain
+    isChecked: this.dontAskAgain, // This now dynamically reflects the state of dontAskAgain
   };
 
   ngOnInit(): void {}

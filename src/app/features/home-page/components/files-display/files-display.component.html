@@ -1,7 +1,6 @@
-<div class="layout">
+<div class="layout" *ngIf="isLoading$ | async as loading">
 
-
-    <app-file-browser [files]="driveFiles" [isLoading]="loadingFiles" (fileClickedOn)="previewFile = $event"/>
+    <app-file-browser [isLoading]="loading" (fileClickedOn)="previewFile = $event"/>
 
     <!-- <app-file-preview [file]="previewFile?.FilePath"/> -->
 

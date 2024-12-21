@@ -1,8 +1,3 @@
-export interface FileModelVariables{
-    HighlightedText: string,
-    DraggedOver:boolean,
-    ShouldHide:boolean,
-}
 /**
  Corresponds to `SystemFileModel` in the Rust backend
  */
@@ -14,8 +9,6 @@ export interface FileModel {
     Score: number,
     Popularity: number,
     IsDirectory: boolean,
-    // TODO: do something with these, as they are just metadata
-    Variables:FileModelVariables
 }
 
 export function newDefaultFileModel(): FileModel {
@@ -27,6 +20,5 @@ export function newDefaultFileModel(): FileModel {
         Score: 0,
         Popularity: 0,
         IsDirectory: false,
-        Variables: {HighlightedText: "", DraggedOver: false, ShouldHide: false}
     }
 }
