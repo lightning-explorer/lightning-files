@@ -1,4 +1,3 @@
-
 /**
  Corresponds to `SystemFileModel` in the Rust backend
  */
@@ -10,7 +9,6 @@ export interface FileModel {
     Score: number,
     Popularity: number,
     IsDirectory: boolean,
-    HighlightedText: string,
 }
 
 export function newDefaultFileModel(): FileModel {
@@ -22,6 +20,5 @@ export function newDefaultFileModel(): FileModel {
         Score: 0,
         Popularity: 0,
         IsDirectory: false,
-        HighlightedText: ""
     }
 }

@@ -1,13 +1,13 @@
 import { Injectable } from "@angular/core";
 import { listen } from "@tauri-apps/api/event";
-import { defaultParams, GetFilesParamsModel } from "../files/directory-navigator/models/get-files-params";
-import { FileModel } from "../../models/file-model";
+import { GetFilesParamsDTO } from "@core/dtos/get-files-params-dto";
+import { FileModel, newDefaultFileModel } from "../../models/file-model";
 import { InvokeArgs, InvokeOptions } from "@tauri-apps/api/core";
 import { DriveModel } from "../../models/drive-model";
-import { InlineQueryDTO } from "../../dtos/output/inline-query-dto";
-import { SearchParamsDTO } from "../../dtos/output/search-params-dto";
-import { StreamingSearchParamsDTO } from "../../dtos/output/streaming-search-params-dtos";
-import { AddToCrawlerQueueDTO } from "../../dtos/output/add-to-crawler-queue-dto";
+import { InlineQueryDTO } from "@core/dtos/inline-query-dto";
+import { SearchParamsDTO } from "@core/dtos/search-params-dto";
+import { StreamingSearchParamsDTO } from "@core/dtos/streaming-search-params-dtos";
+import { AddToCrawlerQueueDTO } from "@core/dtos/add-to-crawler-queue-dto";
 import { IndexedDirModel } from "../../models/indexed-dir-model";
 
 import { SafeInvokeService } from "./safe-invoke.service";
@@ -23,11 +23,10 @@ export class TauriCommandsService {
         return await this.safeinvokeService.invokeSafe<T>(cmd, args, options);
     }
 
-    async getFilesAsModels(directory: string, onEventEmit: (file: FileModel) => void, params?: GetFilesParamsModel) {
-        if (!params)
-            params = defaultParams();
+    async getFilesAsModels(directory: string, onEventEmit: (file: FileModel) => void, params: GetFilesParamsDTO) {
         const unlisten = await listen<FileModel>("sys_file_model", (event) => {
-            onEventEmit(event.payload);
+            const model:FileModel = newDefaultFileModel();
+            onEventEmit({...model, ...event.payload});
         });
         try {
             await this.invokeSafe("get_files_as_models", { directory, params });

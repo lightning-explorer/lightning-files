@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { SearchParamsDTO } from "../../../dtos/output/search-params-dto";
+import { SearchParamsDTO } from "../../../dtos/search-params-dto";
 import { FileModel } from "../../../models/file-model";
 import { TauriCommandsService } from "../../tauri/commands.service";
 

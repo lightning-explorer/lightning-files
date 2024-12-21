@@ -1,0 +1,21 @@
+<app-modal-popup [(isVisible)]="isVisible" title="Warning" 
+[buttons]="buttons" [onClose]="this.onDestroy">
+
+    <div *ngIf="itemsAdding$ | async as items">
+        <div *ngIf="destPath$ | async as destPath">
+            <div *ngIf="items.size==1; else elseBlock">
+                <p>Are you sure you want to move <b>{{items.size}}</b> item from <b>{{pathFrom}}</b> to <b>{{destPath}}</b>?
+                </p>
+            </div>
+            <ng-template #elseBlock>
+                <p>Are you sure you want to move <b>{{items.size}}</b> items from <b>{{pathFrom}}</b> to <b>{{destPath}}</b>?
+                </p>
+            </ng-template>
+        </div>
+    </div>
+
+    <app-radio-button [props]="dontAskAgainRadioButton">
+        <p>Don't ask again</p>
+    </app-radio-button>
+
+</app-modal-popup>

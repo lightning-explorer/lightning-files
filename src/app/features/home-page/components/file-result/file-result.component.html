@@ -1,0 +1,36 @@
+<!-- <app-fade-in [isVisible]="!fadeInAnim"> -->
+    <div *ngIf="file" (mouseenter)="onMouseEnter()"
+    (mouseleave)="onMouseLeave()">
+        <button class="content" 
+        [ngClass]="{'selected':selected, 'grow':shouldGrow, 'hide':state.hide}" 
+        (click)="onClick()" 
+        >
+
+            <div class="content-left">
+
+                <div *ngIf="isPinned">
+                    <iconify-icon icon="pin" size="1em" color="--icon" />
+                </div>
+
+                <div>
+                    <div *ngIf="file.IsDirectory; else elseBlock">
+                        <iconify-icon icon="folder" />
+                    </div>
+                    <ng-template #elseBlock class="icon">
+                        <iconify-icon [icon]="icon" color="--icon" />
+                    </ng-template>
+                </div>
+
+
+                <div class="name" [ngClass]="{'hide':state.hide}">
+                    <app-highlightable-label [text]="file.Name" [highlight]="state.highlightedText" />
+                </div>
+
+                <div class="metadata">
+                    <p>{{file.FilePath}}</p>
+                </div>
+
+            </div>
+        </button>
+    </div>
+<!-- </app-fade-in> -->

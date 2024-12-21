@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
-import { GetFilesParamsModel } from "./models/get-files-params";
+import { getFilesParams_DefaultParams, GetFilesParamsDTO } from "../../../dtos/get-files-params-dto";
 import { TauriCommandsService } from "../../tauri/commands.service";
 import { FileModel } from "../../../models/file-model";
 import { DirectoryMetadata, newDirMetadataDefault } from "./models/directory-metadata";
@@ -24,7 +24,7 @@ export class DirectoryNavigatorService {
 
     constructor(private commandsService: TauriCommandsService) { }
 
-    async setCurrentDir(dir: string, params?: GetFilesParamsModel) {
+    async setCurrentDir(dir: string, params?: GetFilesParamsDTO) {
         // avoid redundant emissions
         if (this.currentDirSubject.getValue() !== dir) {
             const currentMeta = this.currentDirMetadataSubject.getValue();
@@ -34,13 +34,18 @@ export class DirectoryNavigatorService {
             });
             this.currentDirSubject.next(await this.commandsService.formatPathIntoDir(dir));
             this.isLoadingSubject.next(true);
+
             await this.setDriveFiles(params);
+
             this.isLoadingSubject.next(false);
         }
     }
 
-    async setDriveFiles(params?: GetFilesParamsModel) {
+    async setDriveFiles(params?: GetFilesParamsDTO) {
         const directory = this.currentDirSubject.getValue();
+
+        if(!params) 
+            params = getFilesParams_DefaultParams(); // No sorting logic or anything fancy
 
         this.currentFilesSubject.next([]);
         await this.commandsService.getFilesAsModels(directory, (file) => {

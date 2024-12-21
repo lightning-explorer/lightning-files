@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { FileModel } from "../../../models/file-model";
 import { BehaviorSubject } from "rxjs";
-import { StreamingSearchParamsDTO } from "../../../dtos/output/streaming-search-params-dtos";
+import { StreamingSearchParamsDTO } from "../../../dtos/streaming-search-params-dtos";
 import { TauriCommandsService } from "../../tauri/commands.service";
 
 @Injectable({ 'providedIn': 'root' })

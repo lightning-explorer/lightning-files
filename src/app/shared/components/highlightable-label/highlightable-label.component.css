@@ -1,5 +1,5 @@
 label{
-    color: var(--text-primary);
+    color: inherit;
     pointer-events: none;
 }
 

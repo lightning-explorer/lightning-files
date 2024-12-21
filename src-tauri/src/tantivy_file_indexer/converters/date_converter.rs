@@ -1,8 +1,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use chrono::{NaiveDateTime, Utc};
-use tantivy::{time::{OffsetDateTime, UtcOffset}, DateTime};
-
+use tantivy::{time::UtcOffset, DateTime};
 
 pub fn unix_time_to_tantivy_datetime(timestamp: u64) -> DateTime {
     let system_time = UNIX_EPOCH + std::time::Duration::from_secs(timestamp);
@@ -17,7 +16,12 @@ pub fn chrono_time_to_tantivy_datetime(chrono_dt: chrono::DateTime<chrono::Utc>)
     DateTime::from_timestamp_secs(timestamp_secs)
 }
 
-pub fn tantivy_time_to_chrono_datetime(tantivy_datetime:DateTime)->chrono::DateTime<Utc>{
+pub fn sys_time_to_chrono_datetime(sys_time: SystemTime) -> chrono::DateTime<Utc> {
+    let duration_since_epoch = sys_time.duration_since(UNIX_EPOCH).unwrap();
+    chrono::DateTime::<Utc>::from(UNIX_EPOCH + duration_since_epoch)
+}
+
+pub fn tantivy_time_to_chrono_datetime(tantivy_datetime: DateTime) -> chrono::DateTime<Utc> {
     let offset = tantivy_datetime.into_offset(UtcOffset::UTC);
 
     let unix_timestamp = offset.unix_timestamp(); // Get seconds since UNIX epoch
