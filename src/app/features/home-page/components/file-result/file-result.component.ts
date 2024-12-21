@@ -7,6 +7,8 @@ import { FileModel } from '@core/models/file-model';
 import { HighlightableLabelComponent } from "@shared/components/highlightable-label/highlightable-label.component";
 import { PinService } from '@core/services/files/tools/pin.service';
 import { FadeInComponent } from "@shared/components/misc/fade-in/fade-in.component";
+import { defaultFileState, FileState } from './file-state';
+import { FilesListService } from '../files-display/files-list.service';
 
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
@@ -21,22 +23,19 @@ import { FadeInComponent } from "@shared/components/misc/fade-in/fade-in.compone
 export class FileResultComponent {
   mouseOver = false;
 
-  highlightedText: string = "";
-  draggedOver:boolean = false;
-  hide:boolean = false
-
   get shouldGrow(){
-    return (this.draggedOver || this.mouseOver) && !this.hide;
+    return (this.state.draggedOver || this.mouseOver) && !this.state.hide;
   }
 
   @Input() fadeInAnim: boolean = true;
 
   @Input() file: FileModel | undefined;
+  @Input() state:FileState = defaultFileState();
   @Input() selected = false;
   @Input() clickEvent: (() => void) | undefined;
 
   constructor(
-    private pinService: PinService
+    private pinService: PinService,
   ) { }
 
   get isPinned(): boolean {

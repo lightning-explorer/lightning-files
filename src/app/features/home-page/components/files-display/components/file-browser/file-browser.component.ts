@@ -36,6 +36,7 @@ import { DirectoryMetadata } from "@core/services/files/directory-navigator/mode
 import { InlineSearchService } from "./services/inline-search.service";
 import { FailedToMoveItemsPopupComponent } from "./popups/generic-err-popup/generic-err-popup.component";
 import { FilesListService } from "../../files-list.service";
+import { FileState } from "../../../file-result/file-state";
 
 @Component({
   selector: "app-file-browser",
@@ -74,7 +75,8 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
   // Ensures that the virtual scroller renders correctly and is refreshes to compensate
 
-  files:FileModel[] = [];
+  files: FileModel[] = [];
+  states: FileState[] = [];
 
   @ViewChild("dragPreview") dragPreview!: ElementRef;
   @ViewChild("moveItemsPopup") moveItemsPopup!: MoveItemsPopupComponent;
@@ -93,16 +95,19 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   constructor(
     private inlineSearchService: InlineSearchService, // Global service
     private directoryService: DirectoryNavigatorService, // Global service
-    private filesListService:FilesListService,
+    private filesListService: FilesListService,
     private dragService: DragDropService,
     private selectService: SelectService,
     private contextMenuService: FileContextMenuService
   ) {}
 
   ngOnInit(): void {
-    this.subscription.add(this.filesListService.observeAllFiles().subscribe((x)=>
-      this.files=x
-    ));
+    this.subscription.add(
+      this.filesListService.observeAllFileStates().subscribe((x) => {
+        this.files = Array.from(x.keys());
+        this.states = Array.from(x.values());
+      })
+    );
 
     this.subscription.add(
       this.inlineSearchService.firstOccurenceOfQueryIndex$.subscribe((x) =>

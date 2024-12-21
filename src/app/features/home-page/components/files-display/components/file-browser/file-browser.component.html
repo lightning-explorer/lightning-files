@@ -14,7 +14,9 @@
             <cdk-virtual-scroll-viewport itemSize="50" style="height: 100%; width: 100%;">
 
                 <div *cdkVirtualFor="let file of files; let i = index" class="item">
-                    <app-file-result [file]="file" [draggable]="true" 
+                    <app-file-result [file]="file"
+                        [state]="states[i]"
+                        [draggable]="true" 
                         (dragstart)="onFileDragStart($event, i, file)"
                         (dragover)="onFileDragOver($event, file)" 
                         (drop)="onFileDrop($event, file)"

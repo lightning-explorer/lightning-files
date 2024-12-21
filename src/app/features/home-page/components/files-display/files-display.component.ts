@@ -4,7 +4,7 @@ import { DirectoryNavigatorService } from "@core/services/files/directory-naviga
 import { FormControl } from "@angular/forms";
 import { FileModel } from "@core/models/file-model";
 import { FilePreviewComponent } from "./components/file-preview/file-preview.component";
-import { Subscription } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { FilesListService } from "./files-list.service";
 import { CommonModule } from "@angular/common";
 
@@ -16,20 +16,34 @@ import { CommonModule } from "@angular/common";
   templateUrl: "./files-display.component.html",
   styleUrl: "./files-display.component.scss",
 })
-export class FilesDisplayComponent implements OnInit {
+export class FilesDisplayComponent implements OnInit, OnDestroy {
+  private subscription = new Subscription();
 
-  isLoading$ = this.directoryService.isLoading$;
+  isLoading = false;
   inputControl = new FormControl();
 
   // The file that the user last selected on (clicked)
   previewFile: FileModel | undefined;
 
   constructor(
-    private directoryService: DirectoryNavigatorService,
+    private filesListService: FilesListService,
+    private directoryService: DirectoryNavigatorService
   ) {}
 
   ngOnInit(): void {
+    this.subscription.add(
+      this.directoryService.currentFiles$.subscribe((x) =>
+        this.filesListService.setFiles(x)
+      )
+    );
+    this.subscription.add(
+      this.directoryService.isLoading$.subscribe((x) => (this.isLoading = x))
+    );
+
     this.directoryService.setDriveFiles();
   }
 
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
 }
