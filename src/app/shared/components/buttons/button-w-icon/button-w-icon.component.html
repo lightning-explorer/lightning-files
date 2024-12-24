@@ -1,12 +1,13 @@
 <div class="content">
-    <button>
-        <div class="name">
-            <p>{{text}}</p>
+  <button (click)="click()">
+    <div class="name">
+      
+      <iconify-icon [icon]="iconName" [size]="iconSize" [color]="iconColor" class="icon"/>
 
-
-            <mat-icon>{{iconName}}</mat-icon>
-
-
-        </div>
-    </button>
+      <ng-content>
+        
+      </ng-content>
+      
+    </div>
+  </button>
 </div>

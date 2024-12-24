@@ -13,7 +13,6 @@ pub struct IsAppRunning {
 #[tauri::command]
 pub async fn is_running(is_running: State<'_, IsAppRunning>) -> Result<bool, String> {
     let running = *is_running.running.lock().await;
-    println!("Pinged is_running. Is the app running?: {}", running);
     Ok(running)
 }
 
@@ -27,7 +26,7 @@ pub fn initialize_app(handle: AppHandle) {
 }
 
 pub async fn initialize_app_async(handle: AppHandle) {
-    let index_files = false;
+    let index_files = true;
 
     let service_container = AppServiceContainer::new_async(&handle).await;
     let crawler_service = Arc::clone(&service_container.crawler_service);
@@ -54,6 +53,6 @@ pub async fn initialize_app_async(handle: AppHandle) {
 
         handles.join_all().await;
     } else {
-        println!("index_files in initialize_app is set to false. No files will be indexed and no file crawlers will be spawned.")
+        println!("index_files in initialize_app_async is set to false. No files will be indexed and no file crawlers will be spawned.")
     }
 }

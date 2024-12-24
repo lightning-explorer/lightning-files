@@ -4,39 +4,25 @@ import { listen } from "@tauri-apps/api/event";
 import { TauriCommandsService } from "./commands.service";
 import { BehaviorSubject } from "rxjs";
 import { invoke } from "@tauri-apps/api/core";
-import { DirectoryNavigatorService } from "../files/directory-navigator/directory-navigator.service";
 
-@Injectable({ 'providedIn': 'root' })
+@Injectable({ providedIn: "root" })
 export class TauriLifecycleService {
 
-    private isAppInitializedSubject = new BehaviorSubject<boolean>(false);
-    isAppInitialized$ = this.isAppInitializedSubject.asObservable();
+  private isAppInitializedSubject = new BehaviorSubject<boolean>(false);
+  isAppInitialized$ = this.isAppInitializedSubject.asObservable();
 
-    constructor(private configService: PersistentConfigService,
-        private directoryNavService: DirectoryNavigatorService) { }
+  constructor(private configService: PersistentConfigService) {}
 
-    async onStartup() {
-        this.initializeApp();
-    }
+  isFirstUse():boolean {
+    return this.configService.read("isFirstUse");
+  }
 
+  async onStartup() {
+    await this.configService.load();
+  }
 
-    async onShutdown() {
-        console.log("OnShutdown called");
-        this.uninitializeApp();
-    }
-
-    /**
-     Put app-specific logic in here
-     */
-    async initializeApp() {
-        this.configService.load();
-        this.directoryNavService.setCurrentDir("C:\\");
-    }
-
-    /**
-     Put app-specific logic in here
-     */
-    async uninitializeApp() {
-        this.configService.save();
-    }
+  async onShutdown() {
+    this.configService.update("isFirstUse", false);
+    await this.configService.save();
+  }
 }

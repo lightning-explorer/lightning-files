@@ -3,7 +3,6 @@ import { getFileExtension } from '@core/util/file/get-extension';
 import { detectFileType, isFileBinary } from '@core/util/file/file-type';
 import { CommonModule } from '@angular/common';
 import { ExtendBarComponent } from "./extend-bar/extend-bar.component";
-import { isPathAFile } from '@core/util/file/general';
 import { Subscription } from 'rxjs';
 import { TauriCommandsService } from '@core/services/tauri/commands.service';
 
@@ -43,7 +42,7 @@ export class FilePreviewComponent implements AfterViewInit, OnChanges, OnDestroy
 
   async previewFile(filePath: string) {
     this.isLoading = true;
-    if (await isPathAFile(filePath)) {
+    if (await this.commandsService.isPathAFile(filePath)) {
       const isBinary = await isFileBinary(filePath);
       if (isBinary != undefined) {
         if (!isBinary) {

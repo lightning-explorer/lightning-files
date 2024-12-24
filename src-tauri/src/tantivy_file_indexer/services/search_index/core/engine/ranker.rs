@@ -1,4 +1,4 @@
-use crate::shared::models::sys_file_model::SystemFileModel;
+use crate::{shared::models::sys_file_model::SystemFileModel, tantivy_file_indexer::util::string};
 
 pub fn rank_new_file(file: &SystemFileModel) -> SystemFileModel {
     SystemFileModel {
@@ -49,9 +49,7 @@ fn calculate_penalty_length(name: &str, base_penalty: f64, avg_length: usize) ->
 }
 
 fn calculate_penalty_unreadable(name: &str, base_penalty: f64) -> f64 {
-    let total_chars = name.len() as f64;
-    let letter_chars = name.chars().filter(|c| c.is_alphabetic()).count() as f64;
-    let noise_ratio = 1.0 - (letter_chars / total_chars);
+    let noise_ratio = string::calculate_alphabetic_noise_ratio(name);
 
     base_penalty * noise_ratio.powi(2)
 }

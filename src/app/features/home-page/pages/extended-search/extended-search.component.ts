@@ -6,7 +6,7 @@ import { Subscription } from "rxjs";
 import { LocalStreamingSearchService } from "@core/services/search/text/local-streaming-search.service";
 import { ExtendedSearchService } from "./extended-search.service";
 import { FileBrowserComponent } from "../../components/files-display/components/file-browser/file-browser.component";
-import { FilesListService } from "../../components/files-display/files-list.service";
+import { FilesListService } from "../../components/files-display/services/files-list.service";
 
 @Component({
   selector: "app-extended-search",
@@ -18,12 +18,15 @@ import { FilesListService } from "../../components/files-display/files-list.serv
 })
 export class ExtendedSearchComponent implements OnInit, OnDestroy {
   subscription = new Subscription();
+  searchQuery$ = this.searchService.searchString$;
 
   constructor(
     private searchService: ExtendedSearchService,
     private filesListService: FilesListService,
     private zone: NgZone
-  ) {}
+  ) {
+
+  }
 
   ngOnInit(): void {
     this.subscription.add(

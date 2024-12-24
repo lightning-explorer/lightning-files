@@ -46,7 +46,7 @@
 }
 
 .content-button.active:hover {
-    background-color: var(--select-transparent);
+    background-color: var(--select-primary);
 }
 
 .content-wrapper {
@@ -64,5 +64,5 @@
 }
 
 .dropdown-button:hover {
-    background-color: var(--select-transparent);
+    background-color: var(--select-primary);
 }

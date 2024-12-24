@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::{path::PathBuf, sync::Arc, time::Duration};
 
 use crate::{
     shared::models::sys_file_model::SystemFileModel,
@@ -9,6 +9,8 @@ use crate::{
         },
     },
 };
+
+use super::reviewer;
 pub enum CrawlerError {
     ReadDirError(String),
     PushToQueueError(String),
@@ -29,47 +31,40 @@ where
         return Ok(Vec::new());
     }
 
-    let mut dir = tokio::fs::read_dir(&file.path)
-        .await
-        .map_err(|err| CrawlerError::ReadDirError(err.to_string()))?;
-
     let mut dtos = Vec::new();
     let mut dir_paths_found: Vec<CrawlerFile> = Vec::new();
 
-    while let Ok(Some(entry)) = dir.next_entry().await {
-        let entry_path = entry.path();
-
-        match entry.metadata().await {
-            Ok(metadata) => match SystemFileModel::try_new_from_meta(entry_path.clone(), &metadata)
-            {
-                Ok(dto) => {
-                    dtos.push(dto);
-                    // If it is a directory, push it to the queue so that it can get processed
-                    if metadata.is_dir() {
-                        dir_paths_found.push(CrawlerFile {
-                            path: entry_path,
-                            priority: file.priority + 1,
-                            taken: false,
-                        });
+    process_files(&file.path, |entry_path| {
+        if let Ok(metadata) = entry_path.metadata() {
+            if reviewer::path_warrants_processing(&entry_path) {
+                match SystemFileModel::try_new_from_meta(entry_path.clone(), &metadata) {
+                    Ok(dto) => {
+                        dtos.push(dto);
+                        // If it is a directory, push it to the queue so that it can get processed
+                        if metadata.is_dir() {
+                            dir_paths_found.push(CrawlerFile {
+                                path: entry_path,
+                                priority: file.priority + 1,
+                                taken: false,
+                            });
+                        }
+                    }
+                    Err(err) => {
+                        println!(
+                            "Crawler failed to generate DTO for file: {}. Error: {}",
+                            entry_path.to_string_lossy(),
+                            err
+                        );
                     }
                 }
-                Err(err) => {
-                    println!(
-                        "Crawler failed to generate DTO for file: {}. Error: {}",
-                        entry_path.to_string_lossy(),
-                        err
-                    );
-                }
-            },
-            Err(err) => {
-                println!(
-                    "Crawler failed to get metadata for file: {}. Error: {}",
-                    entry_path.to_string_lossy(),
-                    err
-                );
+            } else {
+                // Optional log:
+                //println!("Crawler found file/directory not worth processing: {}", entry_path.to_string_lossy());
             }
         }
-    }
+    })
+    .await?;
+
     // Push the entries in bulk
     async_retry::retry_with_backoff(
         |_| queue.push(&dir_paths_found),
@@ -80,4 +75,19 @@ where
     .map_err(CrawlerError::PushToQueueError)?;
 
     Ok(dtos)
+}
+
+async fn process_files<F>(dir_path: &PathBuf, mut process_fn: F) -> Result<(), CrawlerError>
+where
+    F: FnMut(PathBuf),
+{
+    let mut dir = tokio::fs::read_dir(&dir_path)
+        .await
+        .map_err(|err| CrawlerError::ReadDirError(err.to_string()))?;
+
+    while let Ok(Some(entry)) = dir.next_entry().await {
+        process_fn(entry.path());
+    }
+
+    Ok(())
 }

@@ -73,7 +73,7 @@ impl Querier {
 
     /// Whereas the other query functions just return the items however they were presented in the index, this function adds an extra post-processing
     /// step where files belonging to the same drive, folders, sharing the same extension, etc. are grouped together.
-    ///
+    ///  
     /// ### NOTE:
     /// this function slightly differs from `advanced_query_streamed` in the fact that the emit function will emit all of the organized files
     /// that get accumulated, meaning that the frontend needs to REPLACE its list of files with whatever gets emitted, as opposed to appending the
@@ -140,13 +140,7 @@ impl Querier {
         }
     }
 
-    fn organize_docs_group(docs: &mut Vec<TantivyFileModel>) {
-        let groups = organizer::sort_by_groups(docs.drain(..)); // Use `drain` to take ownership of elements
-        *docs = groups
-            .into_iter()
-            .flat_map(|(_, files)| files) // Flatten the grouped files into a single Vec
-            .collect();
-    }
+ 
 
     fn organize_docs_score(docs: &mut Vec<TantivyFileModel>) {
         organizer::sort_by_score(docs);

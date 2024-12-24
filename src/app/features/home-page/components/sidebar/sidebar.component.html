@@ -1,21 +1,34 @@
 <div class="content">
-    <p class="app-name">FILE EXPLORER 2
-    </p>
+  <p class="app-name">FILE EXPLORER 2</p>
 
-    <div class="top">
-        <div class="scroll-region">
-
-            <app-dropdown-button text="DRIVES" [onClick]="drivesButtonClick" icon="hardDisk"
-                iconColor="--primary --primary-light" [expanded]="true">
-                <div *ngFor="let drive of drives">
-                    <app-drive-result [drive]="drive" />
-                </div>
-            </app-dropdown-button>
-
-
+  <div class="top">
+    <div class="scroll-region">
+      <app-dropdown-button
+        text="Drives"
+        [onClick]="drivesButtonClicked"
+        icon="hardDisk"
+        iconColor="--primary --primary-light"
+        [expanded]="true"
+      >
+        <div *ngIf="drives$ | async as drives">
+          <div *ngFor="let drive of drives">
+            <app-drive-result [drive]="drive" (click)="driveClicked(drive)" />
+          </div>
         </div>
+      </app-dropdown-button>
+
+      <app-dropdown-button text="Quick Access" [expanded]="true">
+        <div *ngIf="quickAccessPaths$ | async as paths">
+          <div *ngFor="let path of paths">
+            <app-quick-access-shortcut
+              [path]="path"
+              (click)="quickAccessShortcutClicked(path)"
+            />
+          </div>
+        </div>
+      </app-dropdown-button>
     </div>
+  </div>
 
-    <app-toolbar class="toolbar" />
-
+  <app-toolbar class="toolbar" />
 </div>

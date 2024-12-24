@@ -1,9 +1,9 @@
 import { Injectable, input } from "@angular/core";
 import { InlineQueryDTO } from "@core/dtos/inline-query-dto";
 import { FileModel } from "@core/models/file-model";
-import { filterAlphanumeric } from "@shared/services/keyboard-press-filter";
+import { filterAlphanumeric } from "@shared/util/keyboard-press-filter";
 import { BehaviorSubject, Observable } from "rxjs";
-import { FilesListService } from "../../../files-list.service";
+import { FilesListService } from "../../../services/files-list.service";
 
 /**
  Calls the Rust backend to handle the query operation

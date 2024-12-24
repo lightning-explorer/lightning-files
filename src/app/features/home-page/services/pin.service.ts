@@ -5,7 +5,7 @@ import { PersistentConfigService } from "@core/services/persistence/config.servi
 import { BehaviorSubject, Subscription } from "rxjs";
 
 
-@Injectable({ 'providedIn': 'root' })
+@Injectable()
 export class PinService implements OnDestroy {
 
     private subscription = new Subscription();

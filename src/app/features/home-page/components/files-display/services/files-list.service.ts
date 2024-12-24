@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { defaultFileState, FileState } from "../file-result/file-state";
+import { defaultFileState, FileState } from "../../file-result/file-state";
 import { BehaviorSubject, Observable } from "rxjs";
 import { FileModel } from "@core/models/file-model";
 
@@ -7,12 +7,16 @@ import { FileModel } from "@core/models/file-model";
 export class FilesListService {
   private fileStates = new Map<FileModel, BehaviorSubject<FileState>>();
   private filesSubject = new BehaviorSubject<FileModel[]>([]);
-  private fileStatesSubject = new BehaviorSubject<Map<FileModel, FileState>>(new Map());
+  private fileStatesSubject = new BehaviorSubject<Map<FileModel, FileState>>(
+    new Map()
+  );
 
   constructor() {}
 
   /** Get current state or create a new reactive state for a file */
-  private getOrCreateFileStateSubject(file: FileModel): BehaviorSubject<FileState> {
+  private getOrCreateFileStateSubject(
+    file: FileModel
+  ): BehaviorSubject<FileState> {
     if (!this.fileStates.has(file)) {
       const initialState = defaultFileState();
       this.fileStates.set(file, new BehaviorSubject(initialState));
@@ -61,7 +65,9 @@ export class FilesListService {
   /** Emit the current snapshot of the fileStates map */
   private emitFileStates() {
     const snapshot = new Map<FileModel, FileState>();
-    this.fileStates.forEach((subject, file) => snapshot.set(file, subject.value));
+    this.fileStates.forEach((subject, file) =>
+      snapshot.set(file, subject.value)
+    );
     this.fileStatesSubject.next(snapshot);
   }
 }

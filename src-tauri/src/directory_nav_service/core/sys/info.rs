@@ -6,8 +6,6 @@ pub fn get_sys_info()->SystemInfoModel{
 }
 
 fn sys_info_windows() -> SystemInfoModel {
-    let system_directory_path =
-        std::env::var("SystemDrive").expect("Failed to get system drive path");
 
     let home_directory_path: Option<String> =
     dirs::home_dir().map(|x| x.to_string_lossy().into_owned());
@@ -25,7 +23,6 @@ fn sys_info_windows() -> SystemInfoModel {
     dirs::picture_dir().map(|x| x.to_string_lossy().into_owned());
 
     SystemInfoModel {
-        system_directory_path,
         home_directory_path,
         desktop_directory_path,
         downloads_directory_path,

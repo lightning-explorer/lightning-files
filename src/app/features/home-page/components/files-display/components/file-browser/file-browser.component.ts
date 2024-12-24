@@ -30,13 +30,13 @@ import {
   trigger,
 } from "@angular/animations";
 import { FileModel } from "@core/models/file-model";
-import { DirectoryNavigatorService } from "@core/services/files/directory-navigator/directory-navigator.service";
 import { debounceTime, Subject, Subscription, tap } from "rxjs";
-import { DirectoryMetadata } from "@core/services/files/directory-navigator/models/directory-metadata";
+import { DirectoryMetadata } from "@core/models/directory-metadata";
 import { InlineSearchService } from "./services/inline-search.service";
 import { FailedToMoveItemsPopupComponent } from "./popups/generic-err-popup/generic-err-popup.component";
-import { FilesListService } from "../../files-list.service";
+import { FilesListService } from "../../services/files-list.service";
 import { FileState } from "../../../file-result/file-state";
+import { DirectoryNavigatorService } from "src/app/features/home-page/services/directory-navigator.service";
 
 @Component({
   selector: "app-file-browser",

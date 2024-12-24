@@ -1,12 +1,12 @@
 import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
-import { getFilesParams_DefaultParams, GetFilesParamsDTO } from "../../../dtos/get-files-params-dto";
-import { TauriCommandsService } from "../../tauri/commands.service";
-import { FileModel } from "../../../models/file-model";
-import { DirectoryMetadata, newDirMetadataDefault } from "./models/directory-metadata";
+import { getFilesParams_DefaultParams, GetFilesParamsDTO } from "@core/dtos/get-files-params-dto";
+import { TauriCommandsService } from "@core/services/tauri/commands.service";
+import { FileModel } from "@core/models/file-model";
+import { DirectoryMetadata, newDirMetadataDefault } from "@core/models/directory-metadata";
 import { DirectoryHistoryService } from "./directory-history.service";
 
-@Injectable({ 'providedIn': 'root' })
+@Injectable()
 export class DirectoryNavigatorService {
 
     private currentDirSubject = new BehaviorSubject<string>("");
@@ -52,6 +52,10 @@ export class DirectoryNavigatorService {
             const updatedFiles = [...this.currentFilesSubject.getValue(), file];
             this.currentFilesSubject.next(updatedFiles);
         }, params);
+    }
+
+    async isPathAFile(filePath:string):Promise<boolean>{
+        return await this.commandsService.isPathAFile(filePath);
     }
 
     async getDirectoryPath(): Promise<string> {

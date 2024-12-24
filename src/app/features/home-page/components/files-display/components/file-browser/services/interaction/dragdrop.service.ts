@@ -7,7 +7,7 @@ import {
 import { FileModel } from "@core/models/file-model";
 import { FileResultComponent } from "../../../../../file-result/file-result.component";
 import { BehaviorSubject } from "rxjs";
-import { FilesListService } from "../../../../files-list.service";
+import { FilesListService } from "../../../../services/files-list.service";
 
 @Injectable()
 export class DragDropService {

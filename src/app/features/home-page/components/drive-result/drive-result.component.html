@@ -1,8 +1,9 @@
 <div *ngIf="drive">
-    <button class="content" (click)="onClick()">
-        <iconify-icon icon="hardDrive" size="1em" color="--icon" />
-        <label>
-            {{drive.Name}} {{drive.Label}}
-        </label>
-    </button>
+  <app-button-w-icon
+    iconName="hardDrive"
+    iconSize="1.2em"
+    iconColor="--icon"
+  >
+    {{ drive.Name }}
+  </app-button-w-icon>
 </div>

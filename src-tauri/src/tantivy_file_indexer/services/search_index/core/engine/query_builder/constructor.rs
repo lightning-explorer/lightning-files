@@ -1,10 +1,13 @@
 use tantivy::{
-    query::{BooleanQuery, Occur, Query, QueryParser, RangeQuery, TermQuery},
+    query::{BooleanQuery, FuzzyTermQuery, Occur, Query, QueryParser, RangeQuery, TermQuery},
     schema::Schema,
     DateTime, IndexReader, TantivyError, Term,
 };
 
-use crate::tantivy_file_indexer::dtos::search_params_dto::{DateRange, SearchParamsDTO};
+use crate::tantivy_file_indexer::{
+    dtos::search_params_dto::{DateRange, SearchParamsDTO},
+    enums::search_query_type::SearchQueryType,
+};
 
 pub struct QueryConstructor {
     schema: Schema,
@@ -16,20 +19,35 @@ impl QueryConstructor {
         Self { schema, reader }
     }
 
-    /// Construct a query to retrieve files, based off of the files' schema
+    /// Construct a query according to the query type specified in the parameters
     pub fn construct_query(
+        &self,
+        search_params: &SearchParamsDTO,
+    ) -> tantivy::Result<Box<dyn Query>> {
+        match search_params.query_type {
+            SearchQueryType::Term => self
+                .construct_standard_query(search_params)
+                .map(|x| Box::new(x) as Box<dyn Query>),
+            SearchQueryType::Fuzzy => self
+                .construct_fuzzy_query(search_params)
+                .map(|x| Box::new(x) as Box<dyn Query>),
+        }
+    }
+
+    /// Construct a query to retrieve files, based off of the files' schema
+    fn construct_standard_query(
         &self,
         search_params: &SearchParamsDTO,
     ) -> tantivy::Result<BooleanQuery> {
         let mut queries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
 
         if let Some(file_path) = &search_params.file_path {
-            let query = self.create_standard_query("path", &file_path, Occur::Should)?;
+            let query = self.create_standard_query("path", file_path, Occur::Should)?;
             queries.push(query);
         }
 
         if let Some(query_str) = &search_params.name {
-            let query = self.create_standard_query("name", &query_str, Occur::Should)?;
+            let query = self.create_standard_query("name", query_str, Occur::Should)?;
             queries.push(query);
         }
 
@@ -42,12 +60,34 @@ impl QueryConstructor {
         }
 
         if let Some(metadata) = &search_params.metadata {
-            let query = self.create_term_query("metadata", &metadata, Occur::Must)?;
+            let query = self.create_term_query("metadata", metadata, Occur::Must)?;
             queries.push(query);
         }
 
         // Combine all the queries into a BooleanQuery
         Ok(BooleanQuery::new(queries))
+    }
+
+    fn construct_fuzzy_query(
+        &self,
+        search_params: &SearchParamsDTO,
+    ) -> tantivy::Result<FuzzyTermQuery> {
+        let term = if let Some(file_path) = &search_params.file_path {
+            let field = self.schema.get_field("path")?;
+            let term = Term::from_field_text(field, file_path);
+            Ok(term)
+        } else if let Some(name) = &search_params.name {
+            let field = self.schema.get_field("name")?;
+            let term = Term::from_field_text(field, name);
+            Ok(term)
+        } else {
+            Err(TantivyError::InvalidArgument(
+                "Fuzzy query only works on file_path or name fields".to_string(),
+            ))
+        }?;
+        // Distance must be less than 3 or else Tantivy throws an error
+        let query = FuzzyTermQuery::new(term, 2, true);
+        Ok(query)
     }
 
     fn create_standard_query(
@@ -86,17 +126,5 @@ impl QueryConstructor {
         let term = Term::from_field_text(field, query);
         let query = TermQuery::new(term, tantivy::schema::IndexRecordOption::WithFreqs);
         Ok((occur, Box::new(query)))
-    }
-
-    /// Construct a term query for a single field.
-    ///
-    /// This can be useful if the Tantivy index is treated as the database and you want to find a certain field with an exact value
-    pub fn construct_term_query(
-        &self,
-        field_name: &str,
-        query: &str,
-    ) -> tantivy::Result<(Occur, Box<dyn Query>)> {
-        let q = self.create_term_query(field_name, query, Occur::Must)?;
-        Ok(q)
     }
 }

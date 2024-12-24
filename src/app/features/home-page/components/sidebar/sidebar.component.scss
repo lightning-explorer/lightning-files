@@ -1,41 +1,46 @@
 :host {
-    display: flex;
-    flex: 1;
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary) transparent;
+  display: flex;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
 }
 
 .app-name {
-    font-family: "Jaro";
-    color: var(--primary);
-    font-size: 1.4em;
-    text-wrap: nowrap;
+  font-family: "Jaro";
+  color: var(--primary);
+  font-size: 1.4em;
+  text-wrap: nowrap;
 }
 
 .content {
-    display: flex;
-    position: relative;
-    flex-direction: column;
-    border-top-right-radius: 10px;
-    width: 200px;
-    background-color: var(--bg-dark);
-    padding: 1em;
-    box-sizing: border-box;
-    overflow-x: hidden;
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  border-top-right-radius: 10px;
+  width: 200px;
+  background-color: var(--bg-dark);
+  padding: 1em;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .top {
-    display: flex;
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
+  display: flex;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.scroll-region {
+  display: flex;
+  flex-direction: column;
 }
 
 .divider {
-    display: block;
-    border-radius: 10px;
-    height: 5px;
-    background-color: var(--secondary-color);
-    margin-top: 10px;
-    margin-bottom: 10px;
+  display: block;
+  border-radius: 10px;
+  height: 5px;
+  background-color: var(--secondary-color);
+  margin-top: 10px;
+  margin-bottom: 10px;
 }

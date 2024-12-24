@@ -1,36 +1,51 @@
-import { Component, OnDestroy } from '@angular/core';
-import { DriveService } from '@core/services/files/drive.service';
-import { DriveModel } from '@core/models/drive-model';
-import { CommonModule } from '@angular/common';
+import { Component, OnDestroy } from "@angular/core";
+import { DriveService } from "@core/services/files/drive.service";
+import { DriveModel } from "@core/models/drive-model";
+import { CommonModule } from "@angular/common";
 import { DriveResultComponent } from "../drive-result/drive-result.component";
 import { ToolbarComponent } from "./toolbar/toolbar.component";
 import { DropdownButtonComponent } from "@shared/components/buttons/dropdown-button/dropdown-button.component";
-import { Subscription } from 'rxjs';
+import { Subscription } from "rxjs";
+import { QuickAccessFilesService, QuickAccessPath } from "@core/services/files/quick-access.service";
+import { QuickAccessShortcutComponent } from "../quick-access-shortcut/quick-access-shortcut.component";
+import { DirectoryNavigatorService } from "../../services/directory-navigator.service";
+import { HomePageService } from "../../services/home-page.service";
 
 @Component({
-  selector: 'app-sidebar',
+  selector: "app-sidebar",
   standalone: true,
-  imports: [CommonModule, DriveResultComponent, ToolbarComponent, DropdownButtonComponent],
-  templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.scss'
+  imports: [
+    CommonModule,
+    DriveResultComponent,
+    ToolbarComponent,
+    DropdownButtonComponent,
+    QuickAccessShortcutComponent
+],
+  templateUrl: "./sidebar.component.html",
+  styleUrl: "./sidebar.component.scss",
 })
-export class SidebarComponent implements OnDestroy {
-  subscription = new Subscription();
-  drives: DriveModel[] = [];
+export class SidebarComponent {
+  drives$ = this.driveService.drives$;
+  quickAccessPaths$ = this.quickAccessService.quickAccessPaths$;
 
-  constructor(private driveService: DriveService) {
+  constructor(
+    private directoryNavService:DirectoryNavigatorService,
+    private homePageService: HomePageService,
+    private driveService: DriveService,
+    private quickAccessService: QuickAccessFilesService
+  ) {
     driveService.refreshDrives();
-    this.subscription.add(this.driveService.drives$.subscribe(x =>
-      this.drives = x
-    ));
   }
 
-  ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+  drivesButtonClicked(){}
+
+  driveClicked(drive:DriveModel) {
+    this.directoryNavService.setCurrentDir(drive.Name);
+    this.homePageService.setPage("main");
   }
 
-  drivesButtonClick() {
-
+  quickAccessShortcutClicked(path:QuickAccessPath){
+    this.directoryNavService.setCurrentDir(path.path);
   }
 
 }

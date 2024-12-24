@@ -1,27 +1,29 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { FileCrawlerService } from '../../core/services/files/file_crawler.service';
-import { IndexedDirModel } from '../../core/models/indexed-dir-model';
-import { CommonModule } from '@angular/common';
-import { interval, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Router } from "@angular/router";
+import { FileCrawlerService } from "../../core/services/files/backend/file_crawler.service";
+import { IndexedDirModel } from "../../core/models/indexed-dir-model";
+import { CommonModule } from "@angular/common";
+import { interval, Subject, Subscription, switchMap, takeUntil } from "rxjs";
 
 @Component({
-  selector: 'app-settings-page',
+  selector: "app-settings-page",
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './settings-page.component.html',
-  styleUrl: './settings-page.component.css'
+  templateUrl: "./settings-page.component.html",
+  styleUrl: "./settings-page.component.css",
 })
 export class SettingsPageComponent implements OnInit, OnDestroy {
-
   crawlerQueue: IndexedDirModel[] = [];
   crawlerPriorityCounts: Array<{ priority: number; count: number }> = [];
-  crawlerAnalyzerData: Array<{ label: string, data: string }> = [];
+  crawlerAnalyzerData: Array<{ label: string; data: string }> = [];
 
   private readonly refreshIntervalMs = 4000; // 4 seconds
   private destroy$ = new Subject<void>();
 
-  constructor(private router: Router, private fileCrawlerService: FileCrawlerService) { }
+  constructor(
+    private router: Router,
+    private fileCrawlerService: FileCrawlerService
+  ) {}
 
   async ngOnInit(): Promise<void> {
     interval(this.refreshIntervalMs)
@@ -29,12 +31,14 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         switchMap(() => this.refreshCrawlerData())
       )
-      .subscribe()
+      .subscribe();
   }
 
   private async refreshCrawlerData() {
-    this.crawlerPriorityCounts = await this.fileCrawlerService.viewCrawlerPriorityCounts();
-    this.crawlerAnalyzerData = await this.fileCrawlerService.getCrawlerAnalyzerData();
+    this.crawlerPriorityCounts =
+      await this.fileCrawlerService.viewCrawlerPriorityCounts();
+    this.crawlerAnalyzerData =
+      await this.fileCrawlerService.getCrawlerAnalyzerData();
   }
 
   leaveSettingsButtonClick() {

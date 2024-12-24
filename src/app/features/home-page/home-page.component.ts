@@ -1,44 +1,60 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from "@angular/core";
 
-import { CommonModule } from '@angular/common';
+import { CommonModule } from "@angular/common";
 
 import { SidebarComponent } from "./components/sidebar/sidebar.component";
 import { FilesDisplayComponent } from "./components/files-display/files-display.component";
-import { MatIconModule } from '@angular/material/icon';
+import { MatIconModule } from "@angular/material/icon";
 
 import { TopHeaderComponent } from "./components/top-header/top-header.component";
 import { PinnedFilesHeaderComponent } from "./components/pinned-files-header/pinned-files-header.component";
-import { HomePageService, SubPage } from './home-page.service';
+import { HomePageService, SubPage } from "./services/home-page.service";
 import { ExtendedSearchComponent } from "./pages/extended-search/extended-search.component";
-import { ExtendedSearchService } from './pages/extended-search/extended-search.service';
+import { ExtendedSearchService } from "./pages/extended-search/extended-search.service";
+import { DirectoryNavigatorService } from "./services/directory-navigator.service";
+import { DirectoryHistoryService } from "./services/directory-history.service";
+import { PinService } from "./services/pin.service";
+import { FileOperationsService } from "./services/file-operations.service";
 
 @Component({
-  selector: 'app-home-page',
+  selector: "app-home-page",
   standalone: true,
-  imports: [CommonModule, SidebarComponent, FilesDisplayComponent, MatIconModule, TopHeaderComponent, PinnedFilesHeaderComponent, ExtendedSearchComponent],
-  templateUrl: './home-page.component.html',
-  styleUrl: './home-page.component.scss',
-  providers: [HomePageService, ExtendedSearchService]
+  imports: [
+    CommonModule,
+    SidebarComponent,
+    MatIconModule,
+    PinnedFilesHeaderComponent,
+    TopHeaderComponent,
+  ],
+  templateUrl: "./home-page.component.html",
+  styleUrl: "./home-page.component.scss",
+  providers: [
+    HomePageService,
+    DirectoryNavigatorService,
+    DirectoryHistoryService,
+    PinService,
+    FileOperationsService,
+    ExtendedSearchService,
+  ],
 })
 export class HomePageComponent implements OnInit {
   page: SubPage = "main";
   pages = {
-    main:FilesDisplayComponent,
-    extendedSearch: ExtendedSearchComponent
-  }
-  get currentPage(){
+    main: FilesDisplayComponent,
+    extendedSearch: ExtendedSearchComponent,
+  };
+  get currentPage() {
     return this.pages[this.page] || null;
   }
 
-  constructor(private homePageService: HomePageService, private extendedSearchService: ExtendedSearchService) {
-
-    this.homePageService.page$.subscribe(page =>
-      this.page = page
-    );
+  constructor(
+    private directoryNavService:DirectoryNavigatorService,
+    private homePageService: HomePageService,
+  ) {
+    this.homePageService.page$.subscribe((page) => (this.page = page));
   }
 
   ngOnInit(): void {
-
+    this.directoryNavService.setCurrentDir("C:");
   }
-
 }
