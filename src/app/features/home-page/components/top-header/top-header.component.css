@@ -21,6 +21,6 @@
 
 .heading button:hover {
     letter-spacing: 3px;
-    background-color: var(--select-transparent);
+    background-color: var(--select-primary);
     color: var(--text-primary);
 }

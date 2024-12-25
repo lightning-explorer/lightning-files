@@ -69,6 +69,27 @@
   --select-primary: #85e3ff80;
 }
 
+.light-theme2 {
+  --bg-primary: #ffffff;
+  --bg-dark: #b8d1ff83;
+  --bg-transparent: #64f5ff85;
+
+  --input: #ffe6e6;
+
+  --bg-grad1: #b8f7ff;
+  --bg-grad2: #fafeffe3;
+
+  --primary: #ff5511;
+  --primary-light: #ffb62f;
+
+  --text-primary: #000000;
+  --text-muted: #979797;
+
+  --icon: #ff7878;
+
+  --select-primary: #ffa9a9ce;
+}
+
 html {
   background: radial-gradient(
     circle at 100% 107%,

@@ -15,6 +15,7 @@ import { DirectoryNavigatorService } from "./services/directory-navigator.servic
 import { DirectoryHistoryService } from "./services/directory-history.service";
 import { PinService } from "./services/pin.service";
 import { FileOperationsService } from "./services/file-operations.service";
+import { HomePageSearchService } from "./services/home-page-search.service";
 
 @Component({
   selector: "app-home-page",
@@ -30,6 +31,7 @@ import { FileOperationsService } from "./services/file-operations.service";
   styleUrl: "./home-page.component.scss",
   providers: [
     HomePageService,
+    HomePageSearchService,
     DirectoryNavigatorService,
     DirectoryHistoryService,
     PinService,

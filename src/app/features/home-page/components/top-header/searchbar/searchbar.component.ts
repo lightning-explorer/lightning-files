@@ -17,6 +17,7 @@ import { HomePageService, SubPage } from "../../../services/home-page.service";
 import { ExtendedSearchService } from "../../../pages/extended-search/extended-search.service";
 import { DirectoryNavigatorService } from "../../../services/directory-navigator.service";
 import { FileOperationsService } from "../../../services/file-operations.service";
+import { HomePageSearchService } from "../../../services/home-page-search.service";
 
 @Component({
   selector: "app-searchbar",
@@ -34,28 +35,23 @@ export class SearchbarComponent implements OnInit, OnDestroy {
   subscription = new Subscription();
 
   isOnExtendedSearchPage = false;
-
   exceededSearchResults = false;
-  maxSearchResults = 50;
-  searchInput: string = "";
 
   searchResults: FileModel[] = [];
   inputControl = new FormControl();
 
   constructor(
     private homePageService: HomePageService,
-    private extendedSearchService: ExtendedSearchService,
-
-    private searchEngineService: LocalStreamingSearchService,
+    private searchEngineService: HomePageSearchService,
     private fileOperationsService: FileOperationsService,
     private zone: NgZone // Allows forced change detection
   ) {}
 
   ngOnInit(): void {
     this.subscription.add(
-      this.homePageService.page$.subscribe((page) => {
-        this.isOnExtendedSearchPage = page == "extendedSearch";
-      })
+      this.searchEngineService.isOnExtendedSearchPage$.subscribe(
+        (x) => (this.isOnExtendedSearchPage = x)
+      )
     );
 
     this.subscription.add(
@@ -68,12 +64,12 @@ export class SearchbarComponent implements OnInit, OnDestroy {
 
     this.subscription.add(
       this.searchEngineService.files$.subscribe((newFiles) => {
+        const maxResults = this.searchEngineService.maxSearchResults;
         if (!this.isOnExtendedSearchPage) {
           this.zone.run(() => {
             // Tell the component to update itself
-            this.searchResults = newFiles.slice(0, this.maxSearchResults);
-            this.exceededSearchResults =
-              newFiles.length > this.maxSearchResults;
+            this.searchResults = newFiles.slice(0, maxResults);
+            this.exceededSearchResults = newFiles.length > maxResults;
           });
         }
       })
@@ -85,21 +81,12 @@ export class SearchbarComponent implements OnInit, OnDestroy {
   }
 
   async search(value: string) {
-    let searchParams: SearchParamsDTO = {
+    // TODO: maybe make this not partial in the future
+    const searchParams: Partial<SearchParamsDTO> = {
       FilePath: value,
-      NumResults: this.isOnExtendedSearchPage
-        ? 500
-        : this.maxSearchResults + 10,
-      QueryType: "Fuzzy",
     };
 
-    let streamParams: StreamingSearchParamsDTO = {
-      StreamIdentifier: "search",
-      StartingSize: 10,
-      NumEvents: 10,
-      Params: searchParams,
-    };
-    this.searchEngineService.query(streamParams);
+    await this.searchEngineService.search(searchParams);
   }
 
   onResultClick(model: FileModel) {
@@ -117,6 +104,5 @@ export class SearchbarComponent implements OnInit, OnDestroy {
   onViewAllResultsClick() {
     this.homePageService.setPage("extendedSearch");
     this.searchResults.length = 0;
-    this.extendedSearchService.search(this.searchInput);
   }
 }

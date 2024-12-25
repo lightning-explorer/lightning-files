@@ -39,7 +39,7 @@
 }
 
 .maximize:hover, .minimize:hover{
-    background-color: var(--select-transparent);
+    background-color: var(--select-primary);
 }
 
 .close:hover{
