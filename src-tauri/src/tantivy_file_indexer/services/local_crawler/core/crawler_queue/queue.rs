@@ -1,4 +1,10 @@
-use std::{path::PathBuf, sync::Arc};
+use std::{
+    path::PathBuf,
+    sync::{
+        atomic::{AtomicI64, Ordering},
+        Arc,
+    },
+};
 
 use chrono::Utc;
 use sea_orm::DbErr;
@@ -21,6 +27,8 @@ pub const DEFAULT_PRIORITY: Priority = 5;
 pub struct CrawlerQueue {
     db: Arc<LocalDbService>,
     notify: Arc<Notify>,
+    /// The UNIX timestamp representing when the database was last vacuumed
+    last_vacuum: Arc<AtomicI64>,
 }
 
 // Rather than locally writing to JSON, write to the database.
@@ -30,16 +38,18 @@ impl CrawlerQueue {
         Self {
             db,
             notify: Arc::new(Notify::new()),
+            last_vacuum: Arc::new(AtomicI64::new(0)),
         }
     }
 
-    pub async fn push_defaults(&self, paths: &[PathBuf]) {
+    pub async fn push_defaults(&self, paths: &[PathBuf]) -> Result<(), DbErr> {
         let files: Vec<(PathBuf, u32)> = paths
             .iter()
             .map(|path| (path.clone(), DEFAULT_PRIORITY))
             .collect();
 
-        self.push_many(&files).await;
+        self.push_many(&files).await?;
+        Ok(())
     }
 
     pub async fn fetch_many(&self, amount: u64) -> Result<Vec<(PathBuf, Priority)>, DbErr> {
@@ -178,6 +188,19 @@ impl CrawlerQueue {
             }
         }
         Ok(res)
+    }
+
+    pub async fn vacuum_db(&self) -> Result<(), DbErr> {
+        let now = Utc::now().timestamp();
+        let last_vacuum_timestamp = self.last_vacuum.load(Ordering::SeqCst);
+        let diff = (now - last_vacuum_timestamp).abs();
+        // Check if the difference exceeds 10 minutes (600 seconds)
+        // This helps avoid too many consecutive vacuum calls
+        if diff > 600 {
+            self.last_vacuum.store(now, Ordering::SeqCst);
+            self.db.vacuum_database().await?;
+        } // else, ignore vacuuming the db for now
+        Ok(())
     }
 
     /**

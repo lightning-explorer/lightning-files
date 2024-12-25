@@ -2,10 +2,14 @@ import { Injectable } from "@angular/core";
 import { ContextMenuComponent } from "@shared/components/popups/context-menu/context-menu.component";
 import { FileModel } from "@core/models/file-model";
 import { PinService } from "src/app/features/home-page/services/pin.service";
+import { TauriCommandsService } from "@core/services/tauri/commands.service";
 
 @Injectable()
 export class FileContextMenuService {
-  constructor(private pinService: PinService) {}
+  constructor(
+    private pinService: PinService,
+    private commandsService: TauriCommandsService
+  ) {}
 
   openMenu(menu: ContextMenuComponent, event: MouseEvent, caller: FileModel) {
     event.preventDefault();
@@ -23,7 +27,13 @@ export class FileContextMenuService {
             this.pinService.pinFile(caller);
           },
         };
-    const buttons = [pin];
+    const openInExplorer = {
+      name: "Open in Windows File Explorer",
+      action: () => {
+        this.commandsService.openInExplorer(caller.FilePath);
+      },
+    };
+    const buttons = [pin, openInExplorer];
 
     menu.buttons = buttons;
     menu.toggleOpen(event);

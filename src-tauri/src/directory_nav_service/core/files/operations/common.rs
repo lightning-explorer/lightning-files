@@ -24,13 +24,12 @@ pub fn move_path_into_directory(target_dir: &Path, source_path: &Path) -> std::i
 
     // Build the destination path
     let destination = target_dir.join(file_name);
-
-    // Move the file or directory to the target location
     fs::rename(source_path, destination)?;
 
     Ok(())
 }
 
+/// Moves the file into the recycle bin. Not permanently deleting it
 pub fn delete_path(path: &str) -> Result<(), trash::Error> {
     trash::delete(path)
 }

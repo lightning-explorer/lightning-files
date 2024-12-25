@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use super::{super::super::super::util::path_ops, common, file_reader, metadata};
+use super::{super::super::super::util::path_ops, cmd_prompt, common, file_reader, metadata};
 
 #[tauri::command]
 pub fn get_directory_path(file_path: &str) -> String {
@@ -89,4 +89,9 @@ pub fn move_path_into_directory(target_dir: &str, source_path: &str)->Result<(),
 #[tauri::command]
 pub fn delete_file(file_path:&str)->Result<(), String>{
     common::delete_path(file_path).map_err(|err|err.to_string())
+}
+
+#[tauri::command]
+pub fn open_in_explorer(path: &str) -> Result<(), String>{
+    cmd_prompt::open_in_explorer(path)
 }

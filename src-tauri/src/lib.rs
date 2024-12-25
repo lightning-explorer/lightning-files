@@ -46,6 +46,7 @@ pub fn run() {
             // Common commands:
             move_path_into_directory,
             delete_file,
+            open_in_explorer
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();

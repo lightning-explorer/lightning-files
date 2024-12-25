@@ -51,7 +51,7 @@ where
                     }
                     Err(err) => {
                         println!(
-                            "Crawler failed to generate DTO for file: {}. Error: {}",
+                            "Crawler failed to generate model for file: {}. Error: {}",
                             entry_path.to_string_lossy(),
                             err
                         );

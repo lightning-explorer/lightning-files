@@ -3,15 +3,16 @@ pub mod files {
         pub mod tauri_cmds;
     }
     pub mod operations {
-        pub mod file_reader;
-        pub mod metadata;
-        pub mod common;
+        mod cmd_prompt;
+        mod common;
+        mod file_reader;
+        mod metadata;
         pub mod tauri_cmds;
     }
     pub mod retrieve {
-        mod helper;
         mod file_retriever;
         mod file_sorter;
+        mod helper;
         pub mod tauri_cmds;
     }
     pub mod user_input_validator {
@@ -24,7 +25,7 @@ pub mod drives {
         pub mod get_sys_drives;
     }
 }
-pub mod sys{
+pub mod sys {
     mod info;
     pub mod tauri_cmds;
 }

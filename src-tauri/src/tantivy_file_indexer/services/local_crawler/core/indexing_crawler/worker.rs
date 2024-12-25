@@ -67,7 +67,9 @@ where
                         // let time = Instant::now();
 
                         let dtos = self.handle_crawl(&file).await;
-                        num_files_processed += dtos.len();
+                        let len = dtos.len();
+                        num_files_processed += len;
+
                         dtos_bank.push((file, dtos));
 
                         // // optional log
@@ -83,6 +85,10 @@ where
                             // Commit all and drain the bank of files
                             num_files_processed = 0;
                             dtos_bank = self.commit_dtos_bank(dtos_bank).await;
+                        }
+
+                        if let Err(err) = self.handle_vacuum().await {
+                            println!("Crawler error vacuuming database: {}", err);
                         }
                     }
                     None if !dtos_bank.is_empty() => {
@@ -195,6 +201,15 @@ where
             |_| self.crawler_queue.fetch_next(),
             8,
             Duration::from_millis(200),
+        )
+        .await
+    }
+
+    async fn handle_vacuum(&self) -> Result<(), String> {
+        async_retry::retry_with_backoff(
+            |_| self.crawler_queue.collect_garbage(),
+            3,
+            Duration::from_millis(1000),
         )
         .await
     }

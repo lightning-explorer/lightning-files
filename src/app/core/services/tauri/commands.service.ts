@@ -41,7 +41,7 @@ export class TauriCommandsService {
 
     async formatPathIntoDir(path: string): Promise<string> {
         return await this.invokeSafe<string | undefined>("format_path_into_dir", { path: path }).then((newPath) => {
-            return newPath == undefined ? path : newPath;
+            return newPath === undefined ? path : newPath;
         });
     }
 
@@ -332,6 +332,20 @@ export class TauriCommandsService {
     async deleteFile(filePath:string): Promise<boolean> {
         try{
             await this.invokeSafe<void>("delete_file", { filePath });
+            return true;
+        } catch(err){
+            console.log(err);
+            return false;
+        }
+    }
+
+    /** Attempts to open the location of the file in the OS native file explorer
+     * 
+     * Returns `true` if the operation was successful 
+     */
+    async openInExplorer(path:string): Promise<boolean>{
+        try{
+            await this.invokeSafe<void>("open_in_explorer", { path });
             return true;
         } catch(err){
             console.log(err);

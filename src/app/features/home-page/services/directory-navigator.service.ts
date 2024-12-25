@@ -4,7 +4,6 @@ import { getFilesParams_DefaultParams, GetFilesParamsDTO } from "@core/dtos/get-
 import { TauriCommandsService } from "@core/services/tauri/commands.service";
 import { FileModel } from "@core/models/file-model";
 import { DirectoryMetadata, newDirMetadataDefault } from "@core/models/directory-metadata";
-import { DirectoryHistoryService } from "./directory-history.service";
 
 @Injectable()
 export class DirectoryNavigatorService {
@@ -32,7 +31,8 @@ export class DirectoryNavigatorService {
                 ...currentMeta,
                 isAccessible: await this.commandsService.isDirectoryAccessible(dir),
             });
-            this.currentDirSubject.next(await this.commandsService.formatPathIntoDir(dir));
+            const formattedDir = await this.commandsService.formatPathIntoDir(dir);
+            this.currentDirSubject.next(formattedDir);
             this.isLoadingSubject.next(true);
 
             await this.setDriveFiles(params);

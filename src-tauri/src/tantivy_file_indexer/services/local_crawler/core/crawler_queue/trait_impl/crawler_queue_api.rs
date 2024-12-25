@@ -22,7 +22,9 @@ impl CrawlerQueueApi for CrawlerQueue {
         async move {
             // Crawler queue handles any errors
             // Also automatically adds the files to the recently_indexed table and refreshes it
-            self.push_many(&entries).await;
+            self.push_many(&entries)
+                .await
+                .map_err(|err| err.to_string())?;
             Ok(())
         }
     }
@@ -55,5 +57,9 @@ impl CrawlerQueueApi for CrawlerQueue {
         self.set_taken_to_false_all()
             .await
             .map_err(|err| err.to_string())
+    }
+
+    async fn collect_garbage(&self) -> Result<(), Self::Error> {
+        self.vacuum_db().await.map_err(|err| err.to_string())
     }
 }
