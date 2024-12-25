@@ -1,8 +1,4 @@
-import { Injectable, OnDestroy, OnInit } from "@angular/core";
-import { SearchParamsDTO } from "@core/dtos/search-params-dto";
-import { StreamingSearchParamsDTO } from "@core/dtos/streaming-search-params-dtos";
-import { FileModel } from "@core/models/file-model";
-import { BehaviorSubject, last, Subscription } from "rxjs";
+import { Injectable } from "@angular/core";
 import { HomePageSearchService } from "../../services/home-page-search.service";
 
 @Injectable()
@@ -12,3 +8,4 @@ export class ExtendedSearchService {
 
   constructor(private searchService: HomePageSearchService) {}
 }
+ 
