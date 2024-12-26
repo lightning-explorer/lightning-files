@@ -106,10 +106,6 @@ impl CrawlerCommitPipeline for TantivyPipeline {
 
     async fn remove_many(&self, models: &Vec<Self::InputModel>) -> Result<(), Self::Error> {
         if !models.is_empty() {
-            println!(
-                "Tantivy Pipeline: removing {} models from the index",
-                models.len()
-            );
             let tantivy_models: Vec<Self::IndexedModel> =
                 models.iter().map(|model| model.clone().into()).collect();
             util::map_err(
@@ -122,7 +118,10 @@ impl CrawlerCommitPipeline for TantivyPipeline {
 }
 
 /// Returns the files you passed in, aggregated and ranked
-fn rank_files(existing: Vec<(&SystemFileModel, &SystemFileModel)>, brand_new: Vec<&SystemFileModel>) -> Vec<TantivyFileModel>{
+fn rank_files(
+    existing: Vec<(&SystemFileModel, &SystemFileModel)>,
+    brand_new: Vec<&SystemFileModel>,
+) -> Vec<TantivyFileModel> {
     let mut tantivy_models: Vec<TantivyFileModel> = Vec::new();
     tantivy_models.extend(
         existing

@@ -9,10 +9,11 @@ mod core {
         }
     }
     pub mod indexing_crawler {
+        pub mod garbage_collector;
         mod crawler;
         mod worker;
+        pub mod builder;
         pub mod reviewer;
-        pub mod worker_manager;
     }
 }
 pub mod analyzer {

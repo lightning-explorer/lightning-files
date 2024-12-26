@@ -1,5 +1,5 @@
 use std::{fs, path::PathBuf};
-use tantivy::{schema::Schema, Index, IndexReader, IndexWriter};
+use tantivy::{indexer::LogMergePolicy, schema::Schema, Index, IndexReader, IndexWriter};
 //
 use crate::tantivy_file_indexer::{
     services::search_index::models::file::TantivyFileModel,
@@ -12,7 +12,7 @@ Creates the Tantivy index at the given directory
 pub fn initialize_tantity(
     buffer_size: usize,
     index_path: PathBuf,
-) -> (Schema, IndexReader, IndexWriter) {
+) -> (Index, Schema, IndexReader, IndexWriter) {
     let schema = TantivyFileModel::schema();
     // Create the Tantivy index
     let index = if index_path.exists() {
@@ -34,5 +34,5 @@ pub fn initialize_tantity(
         .try_into()
         .unwrap();
     
-    (schema, index_reader, index_writer)
+    (index, schema, index_reader, index_writer)
 }

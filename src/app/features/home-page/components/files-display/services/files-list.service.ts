@@ -7,9 +7,7 @@ import { FileModel } from "@core/models/file-model";
 export class FilesListService {
   private fileStates = new Map<FileModel, BehaviorSubject<FileState>>();
   private filesSubject = new BehaviorSubject<FileModel[]>([]);
-  private fileStatesSubject = new BehaviorSubject<Map<FileModel, FileState>>(
-    new Map()
-  );
+  private statesSubject = new BehaviorSubject<FileState[]>([]);
 
   constructor() {}
 
@@ -57,17 +55,17 @@ export class FilesListService {
     return this.filesSubject.asObservable();
   }
 
-  /** Observe the entire fileStates map */
-  observeAllFileStates(): Observable<Map<FileModel, FileState>> {
-    return this.fileStatesSubject.asObservable();
+  /** Observe the entire list of file states */
+  observeAllStates(): Observable<FileState[]> {
+    return this.statesSubject.asObservable();
   }
 
   /** Emit the current snapshot of the fileStates map */
   private emitFileStates() {
-    const snapshot = new Map<FileModel, FileState>();
-    this.fileStates.forEach((subject, file) =>
-      snapshot.set(file, subject.value)
-    );
-    this.fileStatesSubject.next(snapshot);
+    let states:FileState[] = [];
+    this.fileStates.forEach((stateSubject, _) =>{
+      states.push(stateSubject.value);
+    });
+    this.statesSubject.next(states);
   }
 }

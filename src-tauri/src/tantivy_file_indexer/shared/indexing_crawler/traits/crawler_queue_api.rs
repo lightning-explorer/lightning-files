@@ -28,7 +28,4 @@ pub trait CrawlerQueueApi: Clone + Send + Sync + 'static {
 
     /// Set the `taken` status of every item in the database to `false`
     fn set_taken_to_false_all(&self) -> impl Future<Output = Result<(), Self::Error>> + Send;
-
-    /// Do something as vacuum the database assumimg that it is dynamically allocated
-    fn collect_garbage(&self) -> impl Future<Output = Result<(), Self::Error>> + Send;
 }

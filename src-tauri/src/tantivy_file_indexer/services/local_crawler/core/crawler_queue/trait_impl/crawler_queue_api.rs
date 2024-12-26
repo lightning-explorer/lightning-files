@@ -58,8 +58,4 @@ impl CrawlerQueueApi for CrawlerQueue {
             .await
             .map_err(|err| err.to_string())
     }
-
-    async fn collect_garbage(&self) -> Result<(), Self::Error> {
-        self.vacuum_db().await.map_err(|err| err.to_string())
-    }
 }

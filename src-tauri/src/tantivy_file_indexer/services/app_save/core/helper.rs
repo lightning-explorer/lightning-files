@@ -4,7 +4,7 @@ use std::{
 };
 
 use serde::{de::DeserializeOwned, Serialize};
-use serde_json::{from_reader, to_writer_pretty};
+use serde_json::{from_reader, to_writer};
 
 pub fn get_file_path(app_path: &Path, file: &str) -> PathBuf {
     let new_path = app_path.join(file);
@@ -31,9 +31,9 @@ pub fn save<T>(app_path: &Path, name: &str, data: T) -> Result<(), std::io::Erro
 where
     T: Serialize,
 {
-    let path = get_file_path(app_path, format!("{}.json", name).as_str());
+    let path = get_file_path(app_path, &format!("{}.json", name));
     let file = File::create(path)?;
-    to_writer_pretty(file, &data)?;
+    to_writer(file, &data)?;
     Ok(())
 }
 

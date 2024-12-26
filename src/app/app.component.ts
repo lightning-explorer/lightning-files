@@ -21,7 +21,7 @@ export class AppComponent implements OnInit {
   ) { }
 
   async ngOnInit() {
-    this.themeService.setTheme('light-theme2');
+    //this.themeService.setTheme('light-theme2');
     await this.lifecycleService.onStartup();
   }
 

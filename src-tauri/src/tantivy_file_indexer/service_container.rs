@@ -1,4 +1,3 @@
-
 use crate::directory_nav_service;
 
 use super::services::{
@@ -37,9 +36,9 @@ impl AppServiceContainer {
         let crawler_analyzer_service = Self::initialize_crawler_analyzer_service(15);
 
         let crawler_service = Self::initialize_crawler_service(
-            2,
             Arc::clone(&local_db_service),
             Arc::clone(&search_service),
+            Arc::clone(&app_save_service),
         )
         .await;
 
@@ -82,11 +81,11 @@ impl AppServiceContainer {
     }
 
     async fn initialize_crawler_service(
-        max_concurrent: usize,
         db_service: Arc<LocalDbService>,
         search_service: Arc<SearchIndexService>,
+        app_save_service: Arc<AppSaveService>,
     ) -> Arc<FileCrawlerService> {
-        Arc::new(FileCrawlerService::new_async(max_concurrent, db_service, search_service).await)
+        Arc::new(FileCrawlerService::new_async(db_service, search_service, app_save_service).await)
     }
 
     fn initialize_crawler_analyzer_service(analyze_every: u64) -> Arc<FileCrawlerAnalyzerService> {

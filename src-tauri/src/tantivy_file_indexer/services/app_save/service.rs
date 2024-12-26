@@ -32,6 +32,9 @@ impl AppSaveService {
         create_file(&self.save_dir, path)
     }
 
+    /// Save arbitrary data in JSON format on the disk.
+    /// 
+    /// Note: do not include '.json' when you pass in a value for `name`
     pub fn save<T>(&self, name: &str, data: T) -> Result<(), std::io::Error>
     where
         T: Serialize,

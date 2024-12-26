@@ -17,7 +17,10 @@ use crate::{
     },
 };
 
-use super::crawler::{self, CrawlerError};
+use super::{
+    crawler::{self, CrawlerError},
+    garbage_collector::CrawlerGarbageCollector,
+};
 
 pub struct IndexingCrawlerWorker<C, P>
 where
@@ -28,6 +31,7 @@ where
     pipeline: Arc<P>,
     notify: Arc<Notify>,
     batch_size: usize,
+    garbage_collector: Option<Arc<CrawlerGarbageCollector>>,
 }
 
 impl<C, P> IndexingCrawlerWorker<C, P>
@@ -49,7 +53,12 @@ where
             pipeline,
             notify,
             batch_size,
+            garbage_collector: None,
         }
+    }
+
+    pub fn inject_garbage_collector(&mut self, c: Arc<CrawlerGarbageCollector>) {
+        self.garbage_collector = Some(c);
     }
 
     pub async fn worker_task(&self) {
@@ -69,6 +78,12 @@ where
                         let dtos = self.handle_crawl(&file).await;
                         let len = dtos.len();
                         num_files_processed += len;
+                        // Register this number of files to the garbage collector, if there is one
+                        if let Some(collector) = &self.garbage_collector {
+                            if let Err(err) = collector.register_num_files_processed(len) {
+                                println!("Error registering files to gbg collector: {}", err);
+                            }
+                        }
 
                         dtos_bank.push((file, dtos));
 
@@ -85,10 +100,6 @@ where
                             // Commit all and drain the bank of files
                             num_files_processed = 0;
                             dtos_bank = self.commit_dtos_bank(dtos_bank).await;
-                        }
-
-                        if let Err(err) = self.handle_vacuum().await {
-                            println!("Crawler error vacuuming database: {}", err);
                         }
                     }
                     None if !dtos_bank.is_empty() => {
@@ -201,15 +212,6 @@ where
             |_| self.crawler_queue.fetch_next(),
             8,
             Duration::from_millis(200),
-        )
-        .await
-    }
-
-    async fn handle_vacuum(&self) -> Result<(), String> {
-        async_retry::retry_with_backoff(
-            |_| self.crawler_queue.collect_garbage(),
-            3,
-            Duration::from_millis(1000),
         )
         .await
     }

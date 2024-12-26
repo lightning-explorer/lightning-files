@@ -21,6 +21,7 @@ export class FilesDisplayComponent implements OnInit, OnDestroy {
 
   isLoading = false;
   inputControl = new FormControl();
+  noFilesMsg = "";
 
   // The file that the user last selected on (clicked)
   previewFile: FileModel | undefined;
@@ -38,6 +39,11 @@ export class FilesDisplayComponent implements OnInit, OnDestroy {
     );
     this.subscription.add(
       this.directoryService.isLoading$.subscribe((x) => (this.isLoading = x))
+    );
+    this.subscription.add(
+      this.directoryService.currentDir$.subscribe(x=>
+        this.noFilesMsg = x
+      )
     );
 
     this.directoryService.setDriveFiles();

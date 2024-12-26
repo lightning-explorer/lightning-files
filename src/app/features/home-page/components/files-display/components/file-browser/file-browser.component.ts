@@ -4,9 +4,11 @@ import {
   EventEmitter,
   HostListener,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
+  SimpleChanges,
   ViewChild,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
@@ -37,6 +39,7 @@ import { FailedToMoveItemsPopupComponent } from "./popups/generic-err-popup/gene
 import { FilesListService } from "../../services/files-list.service";
 import { FileState } from "../../../file-result/file-state";
 import { DirectoryNavigatorService } from "src/app/features/home-page/services/directory-navigator.service";
+import { RxS } from "@shared/util/reactive";
 
 @Component({
   selector: "app-file-browser",
@@ -71,9 +74,8 @@ import { DirectoryNavigatorService } from "src/app/features/home-page/services/d
   ],
 })
 export class FileBrowserComponent implements OnInit, OnDestroy {
-  subscription = new Subscription();
+  rx = new RxS(); // subscription manager
   @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
-  // Ensures that the virtual scroller renders correctly and is refreshes to compensate
 
   files: FileModel[] = [];
   states: FileState[] = [];
@@ -85,8 +87,6 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   @Input() isLoading: boolean = false;
   @Output() fileClickedOn = new EventEmitter<FileModel>();
 
-  currentDirectoryMetadata: DirectoryMetadata | undefined;
-  currentDirectory: string = "";
   animationState = "visible";
 
   selectedIndices: Set<number> = new Set();
@@ -94,7 +94,6 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
 
   constructor(
     private inlineSearchService: InlineSearchService, // Global service
-    private directoryService: DirectoryNavigatorService, // Global service
     private filesListService: FilesListService,
     private dragService: DragDropService,
     private selectService: SelectService,
@@ -102,50 +101,35 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.subscription.add(
-      this.filesListService.observeAllFileStates().subscribe((x) => {
-        this.files = Array.from(x.keys());
-        this.states = Array.from(x.values());
-      })
+    this.rx.watch(this.filesListService.observeAllFiles(), (x) => {
+      this.hideAndFadeIn();
+      this.files = x;
+    });
+
+    this.rx.watch(
+      this.filesListService.observeAllStates(),
+      (x) => (this.states = x)
     );
 
-    this.subscription.add(
-      this.inlineSearchService.firstOccurenceOfQueryIndex$.subscribe((x) =>
-        this.inlineSearchToFirstOccurence(x)
-      )
+    this.rx.watch(this.inlineSearchService.firstOccurenceOfQueryIndex$, (x) =>
+      this.inlineSearchToFirstOccurence(x)
     );
 
-    this.subscription.add(
-      this.directoryService.currentDirMetadata$.subscribe((x) => {
-        this.selectService.clearSelection();
-        this.hideAndFadeIn();
-        this.currentDirectoryMetadata = x;
-      })
+    this.rx.watch(
+      this.selectService.selectedIndices$,
+      (x) => (this.selectedIndices = x)
     );
 
-    this.subscription.add(
-      this.directoryService.currentDir$.subscribe((dir) => {
-        this.currentDirectory = dir;
-      })
-    );
-
-    this.subscription.add(
-      this.selectService.selectedIndices$.subscribe(
-        (x) => (this.selectedIndices = x)
-      )
-    );
-
-    this.subscription.add(
-      this.selectService.selectedItems$.subscribe(
-        (x) => (this.selectedItems = x)
-      )
+    this.rx.watch(
+      this.selectService.selectedItems$,
+      (x) => (this.selectedItems = x)
     );
 
     this.hideAndFadeIn();
   }
 
   ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    this.rx.unsub();
   }
 
   hideAndFadeIn() {
@@ -215,7 +199,6 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   onFileDrop(event: DragEvent, targetItem: FileModel) {
     if (!this.dragService.onDrop(event, targetItem, 0)) {
       this.moveItemsPopup.isVisible = true;
-      this.moveItemsPopup.pathFrom = this.currentDirectory;
       this.moveItemsPopup.onYesClicked = () => {
         this.dragService.moveItems(targetItem);
       };
