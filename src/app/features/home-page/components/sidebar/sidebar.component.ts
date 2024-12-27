@@ -47,8 +47,6 @@ export class SidebarComponent {
   driveClicked(drive:DriveModel) {
     this.directoryNavService.setCurrentDir(drive.Name);
     this.homePageService.setPage("main");
-
-    this.themeService.setTheme("light-theme");
   }
 
   quickAccessShortcutClicked(path:QuickAccessPath){
