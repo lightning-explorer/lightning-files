@@ -1,20 +1,26 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
-import { IconifyIconModule } from "../../IconifyIcons/icon.module";
-import { animate, state, style, transition, trigger } from '@angular/animations';
+import { CommonModule } from "@angular/common";
+import { Component, Input, OnInit, ViewEncapsulation } from "@angular/core";
+import { IconifyIconModule } from "../../icons/IconifyIcons/icon.module";
+import {
+  animate,
+  state,
+  style,
+  transition,
+  trigger,
+} from "@angular/animations";
 
 @Component({
-  selector: 'app-dropdown-button',
+  selector: "app-dropdown-button",
   standalone: true,
   imports: [CommonModule, IconifyIconModule],
-  templateUrl: './dropdown-button.component.html',
-  styleUrl: './dropdown-button.component.css',
+  templateUrl: "./dropdown-button.component.html",
+  styleUrl: "./dropdown-button.component.css",
   animations: [
-    trigger('dropdownAnimation', [
-      state('void', style({ opacity: 0, transform: 'translateY(-20px)' })),
-      state('*', style({ opacity: 1, transform: 'translateY(0)' })),
-      transition('void => *', [animate('90ms ease-out')]),
-      transition('* => void', [animate('90ms ease-in')]),
+    trigger("dropdownAnimation", [
+      state("void", style({ opacity: 0, transform: "translateY(-20px)" })),
+      state("*", style({ opacity: 1, transform: "translateY(0)" })),
+      transition("void => *", [animate("90ms ease-out")]),
+      transition("* => void", [animate("90ms ease-in")]),
     ]),
   ],
 })

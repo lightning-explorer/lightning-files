@@ -1,0 +1,11 @@
+.content{
+    display: flex;
+    color: var(--text-primary);
+    align-items: center;
+    padding: .1em;
+    padding-bottom: 1em;
+}
+
+.content label{
+    margin-left: .4em;
+}

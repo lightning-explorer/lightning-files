@@ -3,7 +3,7 @@ import { PinService } from "src/app/features/home-page/services/pin.service";
 import { FileModel } from "@core/models/file-model";
 import { CommonModule } from "@angular/common";
 import { getIconFromPath } from "@core/util/get-icon-from-path";
-import { IconifyIconModule } from "@shared/components/IconifyIcons/icon.module";
+import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.module";
 import { truncateText } from "@core/util/text-truncator";
 import { SelectService } from "../files-display/components/file-browser/services/interaction/select.service";
 import { ContextMenuComponent } from "@shared/components/popups/context-menu/context-menu.component";

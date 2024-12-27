@@ -51,7 +51,6 @@ import { RxS } from "@shared/util/reactive";
     MoveItemsPopupComponent,
     ContextMenuComponent,
     InlineSearchBarComponent,
-    FolderLoaderComponent,
     FailedToMoveItemsPopupComponent,
   ],
   providers: [
@@ -141,12 +140,11 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     }, 100); // Match this to the duration of the hide animation
 
     // Ensure that the CDK viewport renders correctly
-    for (let i = 0; i < 3; i++) {
-      setTimeout(() => {
-        this.viewport.checkViewportSize();
-        console.log("viewport");
-      }, 200 * (i + 1));
-    }
+    // for (let i = 0; i < 3; i++) {
+    //   setTimeout(() => {
+    //     this.viewport.checkViewportSize();
+    //   }, 200 * (i + 1));
+    // }
   }
 
   // scroll to the first occurence of a file/directory with offset

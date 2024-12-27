@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
-import { IconifyIconModule } from "@shared/components/IconifyIcons/icon.module";
+import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.module";
 import { getIconFromPath } from "@core/util/get-icon-from-path";
 import { FileModel } from "@core/models/file-model";
 import { HighlightableLabelComponent } from "@shared/components/highlightable-label/highlightable-label.component";
@@ -16,6 +16,7 @@ import { FadeInComponent } from "@shared/components/misc/fade-in/fade-in.compone
 import { defaultFileState, FileState } from "./file-state";
 import { FilesListService } from "../files-display/services/files-list.service";
 import { DirectoryNavigatorService } from "../../services/directory-navigator.service";
+import { IconifyIconClusterComponent } from "../../../../shared/components/icons/iconify-icon-cluster/iconify-icon-cluster.component";
 
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
@@ -29,7 +30,8 @@ import { DirectoryNavigatorService } from "../../services/directory-navigator.se
     IconifyIconModule,
     HighlightableLabelComponent,
     FadeInComponent,
-  ],
+    IconifyIconClusterComponent
+],
   templateUrl: "./file-result.component.html",
   styleUrl: "./file-result.component.scss",
 })
@@ -60,9 +62,7 @@ export class FileResultComponent {
     return getIconFromPath(this.file ? this.file.FilePath : "");
   }
 
-  onClick() {
-
-  }
+  onClick() {}
 
   onMouseEnter() {
     this.mouseOver = true;

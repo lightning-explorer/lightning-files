@@ -11,6 +11,7 @@ export class ColorThemeService {
     this.renderer = this.rendererFactory.createRenderer(null, null);
   }
 
+  /** Example: `light-theme`, `dark-theme` */
   setTheme(themeName: string): void {
     if (this.themeClass) {
       this.renderer.removeClass(document.documentElement, this.themeClass);

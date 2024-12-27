@@ -10,6 +10,8 @@ import { QuickAccessFilesService, QuickAccessPath } from "@core/services/files/q
 import { QuickAccessShortcutComponent } from "../quick-access-shortcut/quick-access-shortcut.component";
 import { DirectoryNavigatorService } from "../../services/directory-navigator.service";
 import { HomePageService } from "../../services/home-page.service";
+import { ColorThemeService } from "@core/services/customization/color-theme.service";
+import { AppIconNameComponent } from "../../../../layout/app-icon-name/app-icon-name.component";
 
 @Component({
   selector: "app-sidebar",
@@ -19,7 +21,8 @@ import { HomePageService } from "../../services/home-page.service";
     DriveResultComponent,
     ToolbarComponent,
     DropdownButtonComponent,
-    QuickAccessShortcutComponent
+    QuickAccessShortcutComponent,
+    AppIconNameComponent
 ],
   templateUrl: "./sidebar.component.html",
   styleUrl: "./sidebar.component.scss",
@@ -32,7 +35,9 @@ export class SidebarComponent {
     private directoryNavService:DirectoryNavigatorService,
     private homePageService: HomePageService,
     private driveService: DriveService,
-    private quickAccessService: QuickAccessFilesService
+    private quickAccessService: QuickAccessFilesService,
+
+    private themeService:ColorThemeService
   ) {
     driveService.refreshDrives();
   }
@@ -42,6 +47,8 @@ export class SidebarComponent {
   driveClicked(drive:DriveModel) {
     this.directoryNavService.setCurrentDir(drive.Name);
     this.homePageService.setPage("main");
+
+    this.themeService.setTheme("light-theme");
   }
 
   quickAccessShortcutClicked(path:QuickAccessPath){
