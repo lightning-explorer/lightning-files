@@ -1,38 +1,12 @@
-Things to add:
+# Lightning Explorer
 
-## Organization:
+An in-development File Explorer made to be cross-platform (currently, only Windows is supported at the moment,) as well as have an emphasis on speed and ease-of-use.
 
-- Refactor directory structure to make things more modular and organized
+> NOTE: this project is in a proof-of-concept state at the moment. It is not fully functional yet.
 
-## Display:
+![demo](assets/images/demo1.png)
+main interface
 
-- The thing that displays the current directory that you are in truncates the file name. When you click on it, (it is selected,) it should show the file's entire name so that way if it is copied, you get the whole thing rather than file/.../directory
-- Optional dashboard to see how many files are indexed and can be searched
+# Contributing
 
-## Operations:
-
-- Button to create new file/folder
-- Smart indexing/search functionality
-- Moving a file into a folder
-
-## Context menu:
-
-Should be able to:
-
-- Rename file
-- Copy/Paste file
-- Delete file
-
-## Sort ability:
-
-- Name
-- Date created
-- Date modified
-- Size
-- File type
-
-# Refactor:
-
-- decouple the big mod file and have individual components manage their own mod file
-- better organize model files
-- Rather than loading in Google Fonts, embed them into the project so that way the release builds don't have to fetch them
+If you are interested, then please let me know.

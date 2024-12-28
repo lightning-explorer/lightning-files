@@ -1,5 +1,5 @@
 <div *ngIf="path">
-    <app-button-w-icon iconName="folder" iconSize="1.2em">
+    <app-button-w-svg [svgSrc]="this.getSvgIconPath()">
         {{path.name}}
-    </app-button-w-icon>
+    </app-button-w-svg>
 </div>

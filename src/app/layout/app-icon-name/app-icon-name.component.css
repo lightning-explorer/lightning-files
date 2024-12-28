@@ -6,6 +6,12 @@
     padding-bottom: 1em;
 }
 
-.content label{
+.name{
     margin-left: .4em;
+}
+
+.name .version{
+    color: var(--text-muted);
+    font-size: .6em;
+    margin-left: .2em;
 }

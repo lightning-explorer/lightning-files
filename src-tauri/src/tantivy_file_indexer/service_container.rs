@@ -5,7 +5,6 @@ use super::services::{
     local_crawler::{analyzer::service::FileCrawlerAnalyzerService, service::FileCrawlerService},
     local_db::service::LocalDbService,
     search_index::service::SearchIndexService,
-    vector_db::service::VectorDbService,
 };
 use std::{path::PathBuf, sync::Arc};
 
@@ -74,10 +73,6 @@ impl AppServiceContainer {
         app_save_service: &Arc<AppSaveService>,
     ) -> Arc<LocalDbService> {
         Arc::new(LocalDbService::new_async(app_save_service).await)
-    }
-
-    fn initialize_vector_service() -> Arc<VectorDbService> {
-        Arc::new(VectorDbService::new())
     }
 
     async fn initialize_crawler_service(
