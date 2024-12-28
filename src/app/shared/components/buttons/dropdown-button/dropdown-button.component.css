@@ -35,7 +35,7 @@
     font-size: 1em;
     transition: .1s ease all;
     pointer-events: none;
-    padding: .5em;
+    padding: .2em;
     padding-right: .8em;
     padding-left: .8em;
     border-radius: 20px;
@@ -63,6 +63,3 @@
     transition: .1s ease all;
 }
 
-.dropdown-button:hover {
-    background-color: var(--select-primary);
-}

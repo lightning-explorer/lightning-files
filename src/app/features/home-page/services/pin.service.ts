@@ -13,8 +13,8 @@ export class PinService implements OnDestroy {
     public pinnedFiles$ = this.pinnedFilesSubject.asObservable();
 
     constructor(private configService: PersistentConfigService) {
-        this.subscription.add(this.configService.config$.subscribe(x => {
-            this.pinnedFilesSubject.next(x.pinnedFiles)
+        this.subscription.add(this.configService.observeKey("pinnedFiles").subscribe(x => {
+            this.pinnedFilesSubject.next(x)
         }));
     }
 

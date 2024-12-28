@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, distinctUntilChanged, map, Observable } from "rxjs";
 import { ConfigKeys, getDefaultConfig } from "./config-keys";
 import { TauriCommandsService } from "../tauri/commands.service";
 
@@ -10,8 +10,8 @@ export class PersistentConfigService {
   private configFileName = "appconfig";
 
   private configSubject = new BehaviorSubject<ConfigKeys>(getDefaultConfig());
-  public config$ = this.configSubject.asObservable();
- 
+  private config$ = this.configSubject.asObservable();
+
   constructor(private commandsService: TauriCommandsService) {}
 
   /** Save the config  to disk */
@@ -40,11 +40,28 @@ export class PersistentConfigService {
     return false;
   }
 
-  update<K extends keyof ConfigKeys>(key: K, data: ConfigKeys[K]) {
-    const obj = { ...this.configSubject.getValue() };
-    obj[key] = data;
-    this.configSubject.next(obj);
+  /** Subscribe to changes for one certain field in the config */
+  observeKey<K extends keyof ConfigKeys>(key: K): Observable<ConfigKeys[K]> {
+    return this.config$.pipe(
+        map(config => config[key]),
+        distinctUntilChanged()
+    );
+}
+
+  /** Update the entire config object */
+  updateConfig(newConfig: Partial<ConfigKeys>) {
+    const currentConfig = this.configSubject.value;
+    this.configSubject.next({ ...currentConfig, ...newConfig });
   }
+
+  /**  Update a specific key in the config */
+  update<K extends keyof ConfigKeys>(key: K, value: ConfigKeys[K]): void {
+    const currentConfig = this.configSubject.value;
+    this.configSubject.next({
+        ...currentConfig,
+        [key]: value
+    });
+}
 
   read<K extends keyof ConfigKeys>(key: K): ConfigKeys[K] {
     const config = this.configSubject.getValue();

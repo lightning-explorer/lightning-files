@@ -28,14 +28,14 @@ export class FileContextMenuService {
           },
         };
     const openInExplorer = {
-      name: "Open in Windows File Explorer",
+      name: "Open in Explorer",
       action: () => {
         this.commandsService.openInExplorer(caller.FilePath);
       },
     };
-    const buttons = [pin, openInExplorer];
+    const content = [pin, "div", openInExplorer];
 
-    menu.buttons = buttons;
+    menu.content = content;
     menu.toggleOpen(event);
   }
 }

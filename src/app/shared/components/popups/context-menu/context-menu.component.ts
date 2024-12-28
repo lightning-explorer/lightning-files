@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, Input } from '@angular/core';
 import { ContextMenuButton } from './models/ContextMenuButton';
 
+type ContextMenuItem = (ContextMenuButton|{});
 @Component({
   selector: 'app-context-menu',
   standalone: true,
@@ -10,11 +11,15 @@ import { ContextMenuButton } from './models/ContextMenuButton';
   styleUrl: './context-menu.component.css'
 })
 export class ContextMenuComponent {
-  @Input() buttons: ContextMenuButton[] = [];
+  @Input() content: ContextMenuItem[] = [];
 
   isVisible = false;
   xPos = 0;
   yPos = 0;
+
+  isItemAButton(item:ContextMenuItem):item is ContextMenuButton{
+    return (item as ContextMenuButton).action !== undefined;
+  }
 
   toggleOpen(event: MouseEvent) {
     this.isVisible = !this.isVisible;

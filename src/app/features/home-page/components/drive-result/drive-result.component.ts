@@ -11,11 +11,12 @@ import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.mo
 import { HomePageService } from "../../services/home-page.service";
 import { DirectoryNavigatorService } from "../../services/directory-navigator.service";
 import { ButtonWIconComponent } from "../../../../shared/components/buttons/button-w-icon/button-w-icon.component";
+import { ButtonWSvgComponent } from "../../../../shared/components/buttons/button-w-svg/button-w-svg.component";
 
 @Component({
   selector: "app-drive-result",
   standalone: true,
-  imports: [CommonModule, IconifyIconModule, ButtonWIconComponent],
+  imports: [CommonModule, IconifyIconModule, ButtonWIconComponent, ButtonWSvgComponent],
   templateUrl: "./drive-result.component.html",
   styleUrl: "./drive-result.component.scss",
 })

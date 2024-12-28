@@ -12,3 +12,4 @@ export interface ConfigKeys {
 export function getDefaultConfig(): ConfigKeys {
     return { isFirstUse: true, moveItemsDontAskAgain: false, pinnedFiles: [], quickAccessFiles: [] };
 }
+

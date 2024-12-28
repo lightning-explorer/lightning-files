@@ -26,18 +26,24 @@
   font-style: normal;
 }
 
+* {
+  /* Disables the default blue bg when highlighting text with the cursor*/
+  user-select: none;
+}
+
 :root {
   margin: 0px;
+  --bg-light: #332f4d;
   --bg-primary: #1d1a2f;
-  --bg-dark: #13121c;
+  --bg-dark: #0f0d0f;
   --bg-transparent: #1d1a2f89;
 
   --input: #2d2c31;
 
-  --bg-grad1: #281c30;
-  --bg-grad2: #1d171ffb;
+  --bg-grad1: #1e1b20;
+  --bg-grad2: #1b1b1bfb;
 
-  --primary: #ff2050;
+  --primary: #ff20b5;
   --primary-light: #ff5096;
 
   --text-primary: #ffffff;
@@ -49,6 +55,7 @@
 }
 
 .light-theme {
+  --bg-light: #e6e6e6;
   --bg-primary: #ffffff;
   --bg-dark: #e3e0ff83;
   --bg-transparent: #ffffff85;
@@ -67,27 +74,6 @@
   --icon: #78aeff;
 
   --select-primary: #85e3ff80;
-}
-
-.light-theme2 {
-  --bg-primary: #ffffff;
-  --bg-dark: #b8d1ff83;
-  --bg-transparent: #64f5ff85;
-
-  --input: #ffe6e6;
-
-  --bg-grad1: #b8f7ff;
-  --bg-grad2: #fafeffe3;
-
-  --primary: #ff5511;
-  --primary-light: #ffb62f;
-
-  --text-primary: #000000;
-  --text-muted: #979797;
-
-  --icon: #ff7878;
-
-  --select-primary: #ffa9a9ce;
 }
 
 html {

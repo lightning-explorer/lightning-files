@@ -27,8 +27,6 @@ import {
 export class DropdownButtonComponent implements OnInit {
   @Input() text = "";
   @Input() onClick: (() => void) | undefined;
-  @Input() icon: string | undefined;
-  @Input() iconColor: string | undefined;
   @Input() expanded = false;
 
   dropDownIcon = "dropDown";
