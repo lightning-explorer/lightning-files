@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, Input } from '@angular/core';
 import { ContextMenuButton } from './models/ContextMenuButton';
-
+// 
 type ContextMenuItem = (ContextMenuButton|{});
 @Component({
   selector: 'app-context-menu',
