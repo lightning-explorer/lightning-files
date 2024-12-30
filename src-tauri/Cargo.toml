@@ -39,6 +39,7 @@ rand_chacha = "0.3"
 sqlx = { version = "0.8.2", features = ["sqlite" ] }
 vevtor = "0.1.0"
 trash = "3.0" # for moving files to the recycle bin
+tauri-plugin-drag = "2.0.0"
 
 [package.metadata.tauri.windows]
 requiresAdmin = true

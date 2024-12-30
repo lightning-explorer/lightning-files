@@ -13,6 +13,7 @@ mod tantivy_file_indexer;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_drag::init())
         .invoke_handler(tauri::generate_handler![
             get_files_as_models,
             format_path_into_dir,

@@ -1233,6 +1233,13 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
+"@crabnebula/tauri-plugin-drag@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@crabnebula/tauri-plugin-drag/-/tauri-plugin-drag-2.0.0.tgz#a470a5d78ecd5506dc055d5e09c46c9db1dd1c1e"
+  integrity sha512-HgYEwqvbwVY2/nqaGNI9jVAnhKvuzR85jpBgjkZjsxFYS0MToWQUywbNjYNvfGQFavxsL9EXkVIoB3EXA1ypCA==
+  dependencies:
+    "@tauri-apps/api" "^2.0.0"
+
 "@discoveryjs/json-ext@0.5.7":
   version "0.5.7"
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"

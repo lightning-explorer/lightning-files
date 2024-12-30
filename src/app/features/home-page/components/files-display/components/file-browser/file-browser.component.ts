@@ -182,7 +182,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
       this.selectService.populateSelected(this.files);
     }
     selectedSet = new Set(this.selectedItems);
-    this.dragService.onDragStart(event, selectedSet, this.dragPreview);
+    this.dragService.onDragStart(event, selectedSet);
   }
 
   onFileDragEnd(event: DragEvent, targetItem: FileModel) {

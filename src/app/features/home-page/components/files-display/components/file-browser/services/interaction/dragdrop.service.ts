@@ -5,9 +5,9 @@ import {
   RendererFactory2,
 } from "@angular/core";
 import { FileModel } from "@core/models/file-model";
-import { FileResultComponent } from "../../../../../file-result/file-result.component";
 import { BehaviorSubject } from "rxjs";
 import { FilesListService } from "../../../../services/files-list.service";
+import { startDrag } from "@crabnebula/tauri-plugin-drag";
 
 @Injectable()
 export class DragDropService {
@@ -22,15 +22,16 @@ export class DragDropService {
   onDragStart(
     event: DragEvent,
     items: Set<FileModel>,
-    dragPreview: ElementRef
   ) {
+    event.preventDefault();
     items.forEach((f) =>
       this.filesListService.updateFileState(f, { hide: true })
     );
     this.draggedItemsSubject.next(items);
 
-    const previewElement = dragPreview.nativeElement;
-    event.dataTransfer?.setDragImage(previewElement, 0, 0);
+    startDrag({item:Array.from(items).map(x=>x.FilePath),
+      icon:'assets/icons/appicon.svg'
+    })
 
     event.dataTransfer?.setData("text/plain", JSON.stringify(items));
     event.dataTransfer!.effectAllowed = "move";
