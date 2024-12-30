@@ -10,12 +10,11 @@ import {
 import { IconService } from "./icon.service";
 import { Subscription } from "rxjs";
 import { CssObserverService } from "@core/services/misc/css-observer.service";
-import { RxS } from "@shared/util/reactive";
 
-interface Alignment{
-  top:number,
-  left:number,
-  align:"top-left"|"top-right"|"bottom-left"|"bottom-right"
+interface Alignment {
+  top: number;
+  left: number;
+  align: "top-left" | "top-right" | "bottom-left" | "bottom-right";
 }
 
 /**
@@ -39,7 +38,7 @@ interface Alignment{
   providers: [],
 })
 export class IconifyIconComponent implements OnInit, OnChanges, OnDestroy {
-  rxs = new RxS();
+  subscription = new Subscription();
   @Input() icon: string = "default";
   @Input() size: string | undefined;
   @Input() color: string | undefined;
@@ -55,7 +54,9 @@ export class IconifyIconComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit(): void {
     this.updateIcon();
-    this.rxs.watch(this.styleChangeService.changes$, () => this.updateIcon());
+    this.subscription.add(
+      this.styleChangeService.changes$.subscribe((_) => this.updateIcon())
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -65,7 +66,7 @@ export class IconifyIconComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.rxs.unsub();
+    this.subscription.unsubscribe();
   }
 
   private updateIcon() {

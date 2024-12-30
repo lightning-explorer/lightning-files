@@ -33,14 +33,10 @@ import {
 } from "@angular/animations";
 import { FileModel } from "@core/models/file-model";
 import { debounceTime, Subject, Subscription, tap } from "rxjs";
-import { DirectoryMetadata } from "@core/models/directory-metadata";
 import { InlineSearchService } from "./services/inline-search.service";
 import { FailedToMoveItemsPopupComponent } from "./popups/generic-err-popup/generic-err-popup.component";
 import { FilesListService } from "../../services/files-list.service";
 import { FileState } from "../../../file-result/file-state";
-import { DirectoryNavigatorService } from "src/app/features/home-page/services/directory-navigator.service";
-import { RxS } from "@shared/util/reactive";
-
 @Component({
   selector: "app-file-browser",
   standalone: true,
@@ -73,7 +69,7 @@ import { RxS } from "@shared/util/reactive";
   ],
 })
 export class FileBrowserComponent implements OnInit, OnDestroy {
-  rx = new RxS(); // subscription manager
+  subscription = new Subscription();
   @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
 
   files: FileModel[] = [];
@@ -100,35 +96,42 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.rx.watch(this.filesListService.observeAllFiles(), (x) => {
-      this.hideAndFadeIn();
-      this.files = x;
-    });
-
-    this.rx.watch(
-      this.filesListService.observeAllStates(),
-      (x) => (this.states = x)
+    this.subscription.add(
+      this.filesListService.observeAllFiles().subscribe((x) => {
+        this.hideAndFadeIn();
+        this.files = x;
+      })
     );
 
-    this.rx.watch(this.inlineSearchService.firstOccurenceOfQueryIndex$, (x) =>
-      this.inlineSearchToFirstOccurence(x)
+    this.subscription.add(
+      this.filesListService
+        .observeAllStates()
+        .subscribe((x) => (this.states = x))
     );
 
-    this.rx.watch(
-      this.selectService.selectedIndices$,
-      (x) => (this.selectedIndices = x)
+    this.subscription.add(
+      this.inlineSearchService.firstOccurenceOfQueryIndex$.subscribe((x) =>
+        this.inlineSearchToFirstOccurence(x)
+      )
     );
 
-    this.rx.watch(
-      this.selectService.selectedItems$,
-      (x) => (this.selectedItems = x)
+    this.subscription.add(
+      this.selectService.selectedIndices$.subscribe(
+        (x) => (this.selectedIndices = x)
+      )
+    );
+
+    this.subscription.add(
+      this.selectService.selectedItems$.subscribe(
+        (x) => (this.selectedItems = x)
+      )
     );
 
     this.hideAndFadeIn();
   }
 
   ngOnDestroy(): void {
-    this.rx.unsub();
+    this.subscription.unsubscribe();
   }
 
   hideAndFadeIn() {
