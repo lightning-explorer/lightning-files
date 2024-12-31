@@ -87,7 +87,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   selectedItems: FileModel[] = [];
 
   constructor(
-    private inlineSearchService: InlineSearchService, // Global service
+    private inlineSearchService: InlineSearchService,
     private filesListService: FilesListService,
     private dragService: DragDropService,
     private selectService: SelectService,
