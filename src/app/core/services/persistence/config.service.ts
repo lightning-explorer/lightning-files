@@ -5,16 +5,34 @@ import { TauriCommandsService } from "../tauri/commands.service";
 
 @Injectable({ providedIn: "root" })
 export class PersistentConfigService {
-  // TODO: ensure config is loaded before reading
   private configLoaded = false;
   private configFileName = "appconfig";
 
   private configSubject = new BehaviorSubject<ConfigKeys>(getDefaultConfig());
   private config$ = this.configSubject.asObservable();
 
-  constructor(private commandsService: TauriCommandsService) {}
+  private configLoadedPromise: Promise<void>;
 
-  /** Save the config  to disk */
+  constructor(private commandsService: TauriCommandsService) {
+    this.configLoadedPromise = this.loadConfig();
+  }
+
+  private async loadConfig(): Promise<void> {
+    console.log("Attempting to load JSON config from disk");
+    const config = await this.commandsService
+      .loadJsonLocal<ConfigKeys>(this.configFileName)
+      .catch((err) => {
+        console.log(`Error loading config: ${err}`);
+        return undefined;
+      });
+
+    this.configLoaded = true;
+    if (config) {
+      this.configSubject.next(config);
+    }
+  }
+
+  /** Save the config to disk */
   async save(): Promise<boolean> {
     const result = await this.commandsService.saveJsonLocal(
       this.configSubject.getValue(),
@@ -23,47 +41,49 @@ export class PersistentConfigService {
     return result;
   }
 
-  /** Load the config from disk */
-  async load(): Promise<boolean> {
-    console.log("Attempting to load JSON config from disk");
-    const config = await this.commandsService
-      .loadJsonLocal<ConfigKeys>(this.configFileName)
-      .catch((err) => {
-        console.log(`error loading config: ${err}`);
-        return undefined;
-      });
-    this.configLoaded = true;
-    if (config) {
-      this.configSubject.next(config);
-      return true;
+  /** Ensure the config is loaded before accessing */
+  private ensureLoaded(): Promise<void> {
+    if (this.configLoaded) {
+      return Promise.resolve();
     }
-    return false;
+    return this.configLoadedPromise;
   }
 
   /** Subscribe to changes for one certain field in the config */
   observeKey<K extends keyof ConfigKeys>(key: K): Observable<ConfigKeys[K]> {
     return this.config$.pipe(
-        map(config => config[key]),
-        distinctUntilChanged()
+      map((config) => config[key]),
+      distinctUntilChanged()
     );
-}
-
-  /** Update the entire config object */
-  updateConfig(newConfig: Partial<ConfigKeys>) {
-    const currentConfig = this.configSubject.value;
-    this.configSubject.next({ ...currentConfig, ...newConfig });
   }
 
-  /**  Update a specific key in the config */
-  update<K extends keyof ConfigKeys>(key: K, value: ConfigKeys[K]): void {
+  /** Update a specific key in the config */
+  async update<K extends keyof ConfigKeys>(key: K, value: ConfigKeys[K]): Promise<void> {
     const currentConfig = this.configSubject.value;
     this.configSubject.next({
-        ...currentConfig,
-        [key]: value
+      ...currentConfig,
+      [key]: value,
     });
-}
+    // TODO: debounce the save operation if needed
+    await this.save();
+  }
+ 
+  /** Waits until the config is fully loaded, then returns the value */
+  async read<K extends keyof ConfigKeys>(key: K): Promise<ConfigKeys[K]> {
+    await this.ensureLoaded();
+    const config = this.configSubject.getValue();
+    return config[key];
+  }
 
-  read<K extends keyof ConfigKeys>(key: K): ConfigKeys[K] {
+  /** Attempts to read an item from the config.
+   *
+   * Returns the fallback value if the config hasn't been loaded from disk yet.
+   */
+  readOrElse<K extends keyof ConfigKeys>(
+    key: K,
+    fallback: ConfigKeys[K]
+  ): ConfigKeys[K] {
+    if (!this.configLoaded) return fallback;
     const config = this.configSubject.getValue();
     return config[key];
   }

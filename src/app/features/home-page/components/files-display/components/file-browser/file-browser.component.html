@@ -33,13 +33,4 @@
 
 <app-generic-err-popup #genericErrPopup />
 
-<div class="drag-preview" #dragPreview>
-  <div *ngFor="let item of selectedItems | slice : 0 : 5">
-    {{ item.Name }}
-  </div>
-  <div *ngIf="selectedItems.length > 5">
-    ...and {{ selectedItems.length - 5 }} more
-  </div>
-</div>
-
 <app-context-menu #contextMenu />

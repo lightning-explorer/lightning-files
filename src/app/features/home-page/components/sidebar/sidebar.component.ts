@@ -19,7 +19,6 @@ import { AppIconNameComponent } from "../../../../layout/app-icon-name/app-icon-
   imports: [
     CommonModule,
     DriveResultComponent,
-    ToolbarComponent,
     DropdownButtonComponent,
     QuickAccessShortcutComponent,
     AppIconNameComponent
@@ -46,11 +45,16 @@ export class SidebarComponent {
 
   driveClicked(drive:DriveModel) {
     this.directoryNavService.setCurrentDir(drive.Name);
-    this.homePageService.setPage("main");
+    this.toMainPage();
   }
 
-  quickAccessShortcutClicked(path:QuickAccessPath){
+  quickAccessShortcutClicked(path:QuickAccessPath){ 
     this.directoryNavService.setCurrentDir(path.path);
+    this.toMainPage();
+  }
+
+  private toMainPage(){
+    this.homePageService.setPage("main");
   }
 
 }

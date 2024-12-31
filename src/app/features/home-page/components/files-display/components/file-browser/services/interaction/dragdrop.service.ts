@@ -11,11 +11,14 @@ import { startDrag } from "@crabnebula/tauri-plugin-drag";
 
 @Injectable()
 export class DragDropService {
-  private draggingItemsToSubject = new BehaviorSubject<string>(""); // this is a directory path
+  private draggingItemsToSubject = new BehaviorSubject<FileModel|undefined>(undefined);
   private draggedItemsSubject = new BehaviorSubject<Set<FileModel>>(new Set());
 
   draggingItemsTo$ = this.draggingItemsToSubject.asObservable();
   draggedItems$ = this.draggedItemsSubject.asObservable();
+  get numberOfItemsBeingDragged(){
+    return this.draggedItemsSubject.getValue().size;
+  }
 
   constructor(private filesListService: FilesListService) {}
 
@@ -23,15 +26,15 @@ export class DragDropService {
     event: DragEvent,
     items: Set<FileModel>,
   ) {
-    event.preventDefault();
+    //event.preventDefault();
     items.forEach((f) =>
       this.filesListService.updateFileState(f, { hide: true })
     );
     this.draggedItemsSubject.next(items);
 
-    startDrag({item:Array.from(items).map(x=>x.FilePath),
-      icon:'assets/icons/appicon.svg'
-    })
+    //startDrag({item:Array.from(items).map(x=>x.FilePath),
+    //  icon:'assets/icons/appicon.svg'
+    //})
 
     event.dataTransfer?.setData("text/plain", JSON.stringify(items));
     event.dataTransfer!.effectAllowed = "move";
@@ -55,38 +58,35 @@ export class DragDropService {
   onDrop(
     event: DragEvent,
     targetItem: FileModel,
-    maxNumDroppable: number
-  ): boolean {
+  ){
     // You can't drag a folder into itself
-    if (this.draggedItemsSubject.getValue().has(targetItem)) return true;
+    if (this.draggedItemsSubject.getValue().has(targetItem)) return;
 
     this.filesListService.updateFileState(targetItem, { draggedOver: false });
 
-    this.draggingItemsToSubject.next(targetItem.FilePath);
+    this.draggingItemsToSubject.next(targetItem);
     event.preventDefault();
 
-    if (targetItem.IsDirectory) {
-      if (this.draggedItemsSubject.getValue().size > maxNumDroppable) {
-        return false;
-      }
-      this.unhideAllDraggingItems();
-      this.moveItems(targetItem);
-    } else {
-      this.unhideAllDraggingItems();
-    }
-    return true;
+    this.unhideAllDraggingItems();
+    return;
   }
 
   onDragEnd(event: DragEvent, targetItem: FileModel) {
     this.unhideAllDraggingItems();
   }
 
-  moveItems(targetDirectory: FileModel) {
+  /** Attempt to move the items that were being dragged into their previous target */
+  moveDraggedItems() {
+    const target = this.draggingItemsToSubject.getValue();
+    // Ensure that the target exists and is a directory
+    if(!target || !target.IsDirectory)
+      return;
+
     this.draggedItemsSubject.getValue().forEach((item) => {
       const file = item.FilePath;
-      const moveTo = targetDirectory.FilePath;
+      const moveTo = target.FilePath;
       if (file != moveTo) {
-        console.log(`Moved ${item.FilePath} to ${targetDirectory.FilePath}`);
+        console.log(`Moved ${item.FilePath} to ${moveTo}`);
       }
     });
   }

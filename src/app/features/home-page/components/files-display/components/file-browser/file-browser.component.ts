@@ -75,7 +75,6 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   files: FileModel[] = [];
   states: FileState[] = [];
 
-  @ViewChild("dragPreview") dragPreview!: ElementRef;
   @ViewChild("moveItemsPopup") moveItemsPopup!: MoveItemsPopupComponent;
   @ViewChild("contextMenu") contextMenu!: ContextMenuComponent;
 
@@ -198,14 +197,18 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   }
 
   onFileDrop(event: DragEvent, targetItem: FileModel) {
-    if (!this.dragService.onDrop(event, targetItem, 0)) {
+    this.dragService.onDrop(event, targetItem);
+    if (this.dragService.numberOfItemsBeingDragged > 0) {
       this.moveItemsPopup.isVisible = true;
+      // TODO: possibly put this logic in a service
       this.moveItemsPopup.onYesClicked = () => {
-        this.dragService.moveItems(targetItem);
+        this.dragService.moveDraggedItems();
       };
       this.moveItemsPopup.onDestroy = () => {
         this.dragService.unhideAllDraggingItems();
       };
+    }else{
+      this.dragService.moveDraggedItems();
     }
   }
 

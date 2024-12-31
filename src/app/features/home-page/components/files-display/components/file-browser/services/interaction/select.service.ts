@@ -18,7 +18,6 @@ export class SelectService {
   lastSelectedIndex: number | null = null;
 
   constructor(
-    private directoryService: DirectoryNavigatorService,
     private fileOperationsService:FileOperationsService
   ) {}
 

@@ -13,12 +13,8 @@ export class TauriLifecycleService {
 
   constructor(private configService: PersistentConfigService) {}
 
-  isFirstUse():boolean {
-    return this.configService.read("isFirstUse");
-  }
-
-  async onStartup() {
-    await this.configService.load();
+  async isFirstUse():Promise<boolean> {
+    return await this.configService.read("isFirstUse");
   }
 
   async onShutdown() {

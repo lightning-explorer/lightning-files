@@ -20,7 +20,7 @@ export class MoveItemsPopupComponent implements OnInit, OnDestroy {
   private subscription = new Subscription();
 
   itemsAdding$ = this.selectService.selectedIndices$;
-  destPath$ = this.dragDropService.draggingItemsTo$;
+  dest$ = this.dragDropService.draggingItemsTo$;
 
   @Input() isVisible = false;
   @Input() pathFrom = "";
@@ -34,7 +34,7 @@ export class MoveItemsPopupComponent implements OnInit, OnDestroy {
   ) {}
 
   private get dontAskAgain(): boolean {
-    return this.config.read("moveItemsDontAskAgain");
+    return this.config.readOrElse("moveItemsDontAskAgain", false);
   }
   private set dontAskAgain(val: boolean) {
     this.config.update("moveItemsDontAskAgain", val);

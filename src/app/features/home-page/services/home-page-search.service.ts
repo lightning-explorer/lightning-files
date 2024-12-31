@@ -18,16 +18,13 @@ export class HomePageSearchService implements OnDestroy {
 
   files$ = this.searchService.files$;
 
-  private page: SubPage | undefined;
-
   constructor(
     private searchService: LocalStreamingSearchService,
     private homePageService: HomePageService
   ) {
     this.subscription.add(
-      this.homePageService.page$.subscribe((x) => {
-        this.page = x;
-        this.isOnExtendedSearchPageSubject.next(x === "extendedSearch");
+      this.homePageService.page$.subscribe((page) => {
+        this.isOnExtendedSearchPageSubject.next(page === "extendedSearch");
       })
     );
   }
@@ -36,8 +33,10 @@ export class HomePageSearchService implements OnDestroy {
     // Assuming we are still querying based off the file path
     this.searchQueryStrSubject.next(params.FilePath ?? "");
 
+    this.homePageService.setPage('extendedSearch');
+
     let searchParams: SearchParamsDTO = {
-      NumResults: this.isOnExtendedSearch() ? 500 : this.maxSearchResults,
+      NumResults: 100,
       QueryType: "Fuzzy",
       ...params,
     };
@@ -49,10 +48,6 @@ export class HomePageSearchService implements OnDestroy {
       Params: searchParams,
     };
     await this.searchService.query(streamParams);
-  }
-
-  isOnExtendedSearch(): boolean {
-    return this.page == "extendedSearch";
   }
 
   ngOnDestroy(): void {

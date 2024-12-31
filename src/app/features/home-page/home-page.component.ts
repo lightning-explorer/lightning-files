@@ -16,6 +16,7 @@ import { DirectoryHistoryService } from "./services/directory-history.service";
 import { PinService } from "./services/pin.service";
 import { FileOperationsService } from "./services/file-operations.service";
 import { HomePageSearchService } from "./services/home-page-search.service";
+import { PersistentConfigService } from "@core/services/persistence/config.service";
 
 @Component({
   selector: "app-home-page",
@@ -50,13 +51,19 @@ export class HomePageComponent implements OnInit {
   }
 
   constructor(
-    private directoryNavService:DirectoryNavigatorService,
+    private directoryNavService: DirectoryNavigatorService,
     private homePageService: HomePageService,
+    private configService: PersistentConfigService
   ) {
     this.homePageService.page$.subscribe((page) => (this.page = page));
   }
 
-  ngOnInit(): void {
-    this.directoryNavService.setCurrentDir("C:");
+  async ngOnInit(): Promise<void> {
+    const lastDirAt = await this.configService.read(
+      "lastDirectoryAt",
+    );
+    console.log(lastDirAt);
+    const dir = lastDirAt ?? "C:\\";
+    this.directoryNavService.setCurrentDir(dir);
   }
 }

@@ -2,6 +2,7 @@ import { Injectable, OnDestroy } from "@angular/core";
 import { DirectoryNavigatorService } from "./directory-navigator.service";
 import { DirectoryMetadata } from "../../../core/models/directory-metadata";
 import { Subscription } from "rxjs";
+import { PersistentConfigService } from "@core/services/persistence/config.service";
 
 /**
  * Provides functionality for the undo and redo buttons
@@ -15,7 +16,10 @@ export class DirectoryHistoryService implements OnDestroy {
   private undoStack: string[] = [];
   private redoStack: string[] = [];
 
-  constructor(private directoryNavService: DirectoryNavigatorService) {
+  constructor(
+    private directoryNavService: DirectoryNavigatorService,
+    private configService: PersistentConfigService
+  ) {
     this.subscription.add(
       this.directoryNavService.currentDir$.subscribe((dir) => {
         this.updateNavigate(dir);
@@ -24,6 +28,8 @@ export class DirectoryHistoryService implements OnDestroy {
   }
 
   updateNavigate(newDirectory: string) {
+    this.configService.update('lastDirectoryAt', newDirectory);
+
     const oldDir = this.currentDir;
     this.currentDir = newDirectory;
     if (this.selfUpdated) {
