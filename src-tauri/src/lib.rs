@@ -3,7 +3,6 @@ use tantivy_file_indexer::{
     services::app_save::tauri_exports::*,
     services::local_crawler::tauri_exports::*, /*services::local_db::tables::files::tauri_exports::*,*/
     services::local_db::tauri_exports::*, services::search_index::tauri_exports::*,
-    services::vector_db::tauri_exports::*,
 };
 mod app_init;
 mod directory_nav_service;
