@@ -22,13 +22,14 @@ export class LocalStreamingSearchService {
       !this.fuzzyQueryIsAdequate(innerParams)
     )
       return; // Early return
-    await this.commandsService.searchIndexQueryStreamingOrganized(
+    await this.commandsService.searchIndexQueryStreaming(
       params,
       (emittedFiles) => {
         // Check if the emitted result corresponds to the correct query.
         // The query string is stored in the metadata field
         if (emittedFiles.Metadata == params.Params.FilePath) {
-          this.filesSubject.next(emittedFiles.Data);
+          const currentFiles = this.filesSubject.getValue();
+          this.filesSubject.next([...currentFiles, ...emittedFiles.Data]);
         }
       }
     );

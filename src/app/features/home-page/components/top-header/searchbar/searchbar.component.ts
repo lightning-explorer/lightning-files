@@ -5,17 +5,7 @@ import { SearchParamsDTO } from "@core/dtos/search-params-dto";
 import { CommonModule } from "@angular/common";
 import { FileResultComponent } from "../../file-result/file-result.component";
 import { FileModel, newDefaultFileModel } from "@core/models/file-model";
-
-import { LocalSearchEngineService } from "@core/services/search/text/local-search-engine.service";
-import { VectorSearchEngineService } from "@core/services/search/vector/vector-search.service";
-import { VectorSearchParamsModel } from "@core/services/search/vector/dtos/output/vector-search-params";
-
-import { vectorResultToModel } from "@core/models/converters/VectorResultToModel";
-import { LocalStreamingSearchService } from "@core/services/search/text/local-streaming-search.service";
-import { StreamingSearchParamsDTO } from "@core/dtos/streaming-search-params-dtos";
 import { HomePageService, SubPage } from "../../../services/home-page.service";
-import { ExtendedSearchService } from "../../../pages/extended-search/extended-search.service";
-import { DirectoryNavigatorService } from "../../../services/directory-navigator.service";
 import { FileOperationsService } from "../../../services/file-operations.service";
 import { HomePageSearchService } from "../../../services/home-page-search.service";
 
@@ -60,19 +50,6 @@ export class SearchbarComponent implements OnInit, OnDestroy {
         .subscribe(async (value) => {
           await this.search(value);
         })
-    );
-
-    this.subscription.add(
-      this.searchEngineService.files$.subscribe((newFiles) => {
-        const maxResults = this.searchEngineService.maxSearchResults;
-        if (!this.isOnExtendedSearchPage) {
-          this.zone.run(() => {
-            // Tell the component to update itself
-            this.searchResults = newFiles.slice(0, maxResults);
-            this.exceededSearchResults = newFiles.length > maxResults;
-          });
-        }
-      })
     );
   }
 

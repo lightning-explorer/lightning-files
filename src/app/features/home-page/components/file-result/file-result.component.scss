@@ -1,15 +1,16 @@
 .content {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   padding: 0.2em;
   border: 0px;
   border-radius: 10px;
-  overflow: hidden;
+
   margin: 0.2em;
   width: 100%;
-  align-items: center;
+  height: 100%;
   pointer-events: none;
   transition: all ease 100ms;
+  overflow: hidden;
 }
 
 .content.selected {
@@ -47,10 +48,15 @@
   color: var(--text-muted);
 }
 
-.metadata p {
+.metadata {
+  display: flex;
+  gap: 0px;
   margin: 0px;
-  font-size: 0.6em;
+  padding-left: .2rem;
+  font-size: 0.6rem;
   color: var(--text-muted);
+  align-self: flex-start;
+  white-space: nowrap;
 }
 
 button:hover,

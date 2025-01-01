@@ -4,6 +4,7 @@ import {
   EventEmitter,
   HostListener,
   Input,
+  NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -37,6 +38,7 @@ import { InlineSearchService } from "./services/inline-search.service";
 import { FailedToMoveItemsPopupComponent } from "./popups/generic-err-popup/generic-err-popup.component";
 import { FilesListService } from "../../services/files-list.service";
 import { FileState } from "../../../file-result/file-state";
+
 @Component({
   selector: "app-file-browser",
   standalone: true,
@@ -59,7 +61,7 @@ import { FileState } from "../../../file-result/file-state";
   styleUrl: "./file-browser.component.css",
   animations: [
     trigger("fadeAnimation", [
-      state("hidden", style({ opacity: 0, display: "none" })),
+      state("hidden", style({ opacity: 0, display: "block" })),
       state("visible", style({ opacity: 1, display: "block" })),
       transition("hidden => visible", [
         style({ display: "block" }),
@@ -78,7 +80,10 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   @ViewChild("moveItemsPopup") moveItemsPopup!: MoveItemsPopupComponent;
   @ViewChild("contextMenu") contextMenu!: ContextMenuComponent;
 
+  @Input() showFullFilePaths = false;
+  @Input() allowFadeIn:boolean = true;
   @Input() isLoading: boolean = false;
+
   @Output() fileClickedOn = new EventEmitter<FileModel>();
 
   animationState = "visible";
@@ -86,18 +91,25 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   selectedIndices: Set<number> = new Set();
   selectedItems: FileModel[] = [];
 
+  private debounceTimer: any = null;
+
   constructor(
     private inlineSearchService: InlineSearchService,
     private filesListService: FilesListService,
     private dragService: DragDropService,
     private selectService: SelectService,
-    private contextMenuService: FileContextMenuService
+    private contextMenuService: FileContextMenuService,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit(): void {
     this.subscription.add(
       this.filesListService.observeAllFiles().subscribe((x) => {
-        this.hideAndFadeIn();
+        if(this.allowFadeIn){
+          this.hideAndFadeIn();
+        }else{
+          this.viewport.checkViewportSize();
+        }
         this.files = x;
       })
     );
@@ -134,19 +146,21 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   }
 
   hideAndFadeIn() {
+    // Set the component to "hidden" state immediately
     this.animationState = "hidden";
 
-    setTimeout(() => {
-      this.animationState = "visible";
-      this.viewport?.checkViewportSize();
-    }, 100); // Match this to the duration of the hide animation
+    // Clear any existing debounce timer
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
 
-    // Ensure that the CDK viewport renders correctly
-    // for (let i = 0; i < 3; i++) {
-    //   setTimeout(() => {
-    //     this.viewport.checkViewportSize();
-    //   }, 200 * (i + 1));
-    // }
+    // Set a new debounce timer
+    this.debounceTimer = setTimeout(() => {
+      this.ngZone.run(() => {
+        this.animationState = "visible";
+        this.viewport?.checkViewportSize();
+      });
+    }, 100); // Adjust the delay (in milliseconds) as needed
   }
 
   // scroll to the first occurence of a file/directory with offset
@@ -207,7 +221,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
       this.moveItemsPopup.onDestroy = () => {
         this.dragService.unhideAllDraggingItems();
       };
-    }else{
+    } else {
       this.dragService.moveDraggedItems();
     }
   }

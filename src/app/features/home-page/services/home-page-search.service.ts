@@ -9,7 +9,6 @@ import { StreamingSearchParamsDTO } from "@core/dtos/streaming-search-params-dto
 export class HomePageSearchService implements OnDestroy {
   private subscription = new Subscription();
 
-  readonly maxSearchResults = 50;
   private isOnExtendedSearchPageSubject = new BehaviorSubject<boolean>(false);
   isOnExtendedSearchPage$ = this.isOnExtendedSearchPageSubject.asObservable();
 
@@ -36,8 +35,8 @@ export class HomePageSearchService implements OnDestroy {
     this.homePageService.setPage('extendedSearch');
 
     let searchParams: SearchParamsDTO = {
-      NumResults: 100,
-      QueryType: "Fuzzy",
+      NumResults: 500,
+      QueryType: "Hybrid",
       ...params,
     };
 

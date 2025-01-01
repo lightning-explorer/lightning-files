@@ -27,10 +27,16 @@ impl QueryConstructor {
         match search_params.query_type {
             SearchQueryType::Term => self
                 .construct_standard_query(search_params)
-                .map(|x| Box::new(x) as Box<dyn Query>),
+                .map(|x| Box::new(BooleanQuery::new(x)) as Box<dyn Query>),
             SearchQueryType::Fuzzy => self
                 .construct_fuzzy_query(search_params)
                 .map(|x| Box::new(x) as Box<dyn Query>),
+            SearchQueryType::Hybrid => {
+                let mut terms = self.construct_standard_query(search_params)?;
+                let fuzzy = self.construct_fuzzy_query(search_params)?;
+                terms.push((Occur::Should, Box::new(fuzzy)));
+                Ok(Box::new(BooleanQuery::new(terms)))
+            }
         }
     }
 
@@ -38,7 +44,7 @@ impl QueryConstructor {
     fn construct_standard_query(
         &self,
         search_params: &SearchParamsDTO,
-    ) -> tantivy::Result<BooleanQuery> {
+    ) -> tantivy::Result<Vec<(Occur, Box<dyn Query>)>> {
         let mut queries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
 
         if let Some(file_path) = &search_params.file_path {
@@ -64,8 +70,7 @@ impl QueryConstructor {
             queries.push(query);
         }
 
-        // Combine all the queries into a BooleanQuery
-        Ok(BooleanQuery::new(queries))
+        Ok(queries)
     }
 
     fn construct_fuzzy_query(

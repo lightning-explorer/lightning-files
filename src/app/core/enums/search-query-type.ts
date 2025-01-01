@@ -1,1 +1,1 @@
-export type SearchQueryType = "Term" | "Fuzzy";
+export type SearchQueryType = "Term" | "Fuzzy" | "Hybrid";

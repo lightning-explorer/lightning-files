@@ -9,10 +9,12 @@
       itemSize="32"
       style="height: 100%; width: 100%"
     >
+
       <div *cdkVirtualFor="let file of files; let i = index;" class="item">
         <app-file-result
           [file]="file"
           [state]="states[i]"
+          [displayPath]="showFullFilePaths"
           [draggable]="true"
           (dragstart)="onFileDragStart($event, i, file)"
           (dragover)="onFileDragOver($event, file)"

@@ -10,7 +10,6 @@ import { TopHeaderComponent } from "./components/top-header/top-header.component
 import { PinnedFilesHeaderComponent } from "./components/pinned-files-header/pinned-files-header.component";
 import { HomePageService, SubPage } from "./services/home-page.service";
 import { ExtendedSearchComponent } from "./pages/extended-search/extended-search.component";
-import { ExtendedSearchService } from "./pages/extended-search/extended-search.service";
 import { DirectoryNavigatorService } from "./services/directory-navigator.service";
 import { DirectoryHistoryService } from "./services/directory-history.service";
 import { PinService } from "./services/pin.service";
@@ -37,7 +36,6 @@ import { PersistentConfigService } from "@core/services/persistence/config.servi
     DirectoryHistoryService,
     PinService,
     FileOperationsService,
-    ExtendedSearchService,
   ],
 })
 export class HomePageComponent implements OnInit {

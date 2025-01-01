@@ -1,6 +1,12 @@
 <div class="content">
-    <div class="top" *ngIf="searchQuery$ | async as query">
-        <label>Showing all results for <b>{{query}}</b></label>
-    </div>
-    <app-file-browser [isLoading]="false" />
+  <div class="top" *ngIf="searchQuery$ | async as query">
+    <label
+      >Showing all results for <b>{{ query }}</b></label
+    >
+  </div>
+  <app-file-browser
+    [isLoading]="false"
+    [allowFadeIn]="false"
+    [showFullFilePaths]="true"
+  />
 </div>

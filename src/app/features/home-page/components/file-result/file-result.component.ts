@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, HostBinding, Input, OnChanges, OnInit, SimpleChanges } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.module";
@@ -7,7 +7,7 @@ import { FileModel } from "@core/models/file-model";
 import { HighlightableLabelComponent } from "@shared/components/highlightable-label/highlightable-label.component";
 import { PinService } from "src/app/features/home-page/services/pin.service";
 import { defaultFileState, FileState } from "./file-state";
-import { DirectoryNavigatorService } from "../../services/directory-navigator.service";
+import { fadeInAnimation } from "@shared/animations/fade-in-animation";
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
 
@@ -19,38 +19,34 @@ import { DirectoryNavigatorService } from "../../services/directory-navigator.se
     MatIconModule,
     IconifyIconModule,
     HighlightableLabelComponent,
-  ],
+],
   templateUrl: "./file-result.component.html",
   styleUrl: "./file-result.component.scss",
 })
-export class FileResultComponent {
+export class FileResultComponent{
   mouseOver = false;
 
   get shouldGrow() {
     return (this.state.draggedOver || this.mouseOver) && !this.state.hide;
   }
 
-  @Input() fadeInAnim: boolean = true;
-
   @Input() file: FileModel | undefined;
   @Input() state: FileState = defaultFileState();
   @Input() selected = false;
+  @Input() displayPath = false;
 
   constructor(
     private pinService: PinService,
-    private directoryNavService: DirectoryNavigatorService
   ) {}
 
   get isPinned(): boolean {
     if (!this.file) return false;
     return this.pinService.isFilePinned(this.file);
   }
-
+ 
   get icon(): string {
     return getIconFromPath(this.file ? this.file.FilePath : "");
   }
-
-  onClick() {}
 
   onMouseEnter() {
     this.mouseOver = true;
@@ -59,4 +55,5 @@ export class FileResultComponent {
   onMouseLeave() {
     this.mouseOver = false;
   }
+
 }
