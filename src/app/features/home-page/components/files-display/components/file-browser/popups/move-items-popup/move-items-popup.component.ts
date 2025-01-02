@@ -8,6 +8,7 @@ import { RadioButtonProps } from "@shared/components/buttons/radio-button/RadioB
 import { SelectService } from "../../services/interaction/select.service";
 import { DragDropService } from "../../services/interaction/dragdrop.service";
 import { Subscription } from "rxjs";
+import { DirectoryNavigatorService } from "src/app/features/home-page/services/directory-navigator.service";
 
 @Component({
   selector: "app-move-items-popup",
@@ -19,16 +20,14 @@ import { Subscription } from "rxjs";
 export class MoveItemsPopupComponent implements OnInit, OnDestroy {
   private subscription = new Subscription();
 
+  currentDir$ = this.directoryNavService.currentDir$;
   itemsAdding$ = this.selectService.selectedIndices$;
   dest$ = this.dragDropService.draggingItemsTo$;
-
-  @Input() isVisible = false;
-  @Input() pathFrom = "";
-  @Input() onYesClicked = () => {};
-  @Input() onDestroy = () => {};
+  _isVisible = false;
 
   constructor(
     private config: PersistentConfigService,
+    private directoryNavService:DirectoryNavigatorService,
     private selectService: SelectService,
     private dragDropService: DragDropService
   ) {}
@@ -47,6 +46,23 @@ export class MoveItemsPopupComponent implements OnInit, OnDestroy {
     onToggle: (val: boolean) => val,
     isChecked: this.dontAskAgain, // This now dynamically reflects the state of dontAskAgain
   };
+
+  /** Returns `false` if the config has disabled this popup */
+  attemptOpen():boolean{
+    if(!this.dontAskAgain){
+      this._isVisible = true;
+      return true;
+    }
+    return false;
+  }
+
+  async onYesClicked(){
+    await this.dragDropService.moveDraggedItemsAsync();
+  }
+
+  onDestroy(){
+    this.dragDropService.unhideAllDraggingItems();
+  }
 
   ngOnInit(): void {}
 

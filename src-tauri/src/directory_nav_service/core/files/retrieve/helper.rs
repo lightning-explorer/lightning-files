@@ -21,7 +21,7 @@ pub fn create_file_model_from_path(file_path: PathBuf) -> Option<SystemFileModel
                 date_created,
                 metadata: "".to_string(),
                 size,
-                popularity: 0.0,
+                popularity: 0.0, // The popularity here should not be 0
                 is_directory,
             })
         }

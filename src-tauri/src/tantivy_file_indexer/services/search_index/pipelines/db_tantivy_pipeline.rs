@@ -37,14 +37,14 @@ impl DbTantivyPipeline {
     /// Helper function to get stale models. The `models` parameter represents the new models and `children` are the old ones
     fn classify_stale_models(
         &self,
-        children: &[SystemFileModel],
+        children_keys: Vec<String>,
         models: &[SystemFileModel],
-    ) -> Vec<SystemFileModel> {
+    ) -> Vec<String> {
         let mut stale = Vec::new();
 
-        for child in children.iter() {
-            if !models.iter().any(|file| file.file_path == child.file_path) {
-                stale.push(child.clone());
+        for key in children_keys.iter() {
+            if !models.iter().any(|file| file.file_path == key) {
+                stale.push(key.clone());
             }
         }
         stale
@@ -56,16 +56,13 @@ impl CrawlerCommitPipeline for DbTantivyPipeline {
     type InputModel = SystemFileModel;
     type Error = String;
 
-    async fn get_children(
+    async fn get_children_keys(
         &self,
         parent: &Self::InputModel,
-    ) -> Result<Vec<Self::InputModel>, Self::Error> {
+    ) -> Result<Vec<String>, Self::Error> {
         let dir = parent.file_path.clone();
         let paths = Self::map_err(self.files_table.get_paths_from_dir(&dir).await)?;
-        Ok(paths
-            .into_iter()
-            .map(SystemFileModel::new_shallow)
-            .collect())
+        Ok(paths.into_iter().collect())
     }
 
     async fn upsert_many(
@@ -73,7 +70,7 @@ impl CrawlerCommitPipeline for DbTantivyPipeline {
         models: &[Self::InputModel],
         parent: &Self::InputModel,
     ) -> Result<(), Self::Error> {
-        let children = self.get_children(parent).await?;
+        let children = self.get_children_keys(parent).await?;
         let stale = self.classify_stale_models(&children, models);
 
         // Remove stale paths

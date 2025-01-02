@@ -7,7 +7,7 @@ import { FilesDisplayComponent } from "./components/files-display/files-display.
 import { MatIconModule } from "@angular/material/icon";
 
 import { TopHeaderComponent } from "./components/top-header/top-header.component";
-import { PinnedFilesHeaderComponent } from "./components/pinned-files-header/pinned-files-header.component";
+import { PinnedFilesHeaderComponent } from "./components/top-header/pinned-files-header/pinned-files-header.component";
 import { HomePageService, SubPage } from "./services/home-page.service";
 import { ExtendedSearchComponent } from "./pages/extended-search/extended-search.component";
 import { DirectoryNavigatorService } from "./services/directory-navigator.service";
@@ -57,9 +57,7 @@ export class HomePageComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    const lastDirAt = await this.configService.read(
-      "lastDirectoryAt",
-    );
+    const lastDirAt = await this.configService.read("lastDirectoryAt");
     console.log(lastDirAt);
     const dir = lastDirAt ?? "C:\\";
     this.directoryNavService.setCurrentDir(dir);

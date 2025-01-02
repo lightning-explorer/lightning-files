@@ -1,21 +1,32 @@
-<app-modal-popup [(isVisible)]="isVisible" title="Warning" 
-[buttons]="buttons" [onClose]="this.onDestroy">
-
+<app-modal-popup
+  [(isVisible)]="_isVisible"
+  title="Warning"
+  [buttons]="buttons"
+  [onClose]="this.onDestroy.bind(this)"
+  class="content"
+>
+  <div *ngIf="currentDir$ | async as pathFrom">
     <div *ngIf="itemsAdding$ | async as items">
-        <div *ngIf="dest$ | async as dest">
-            <div *ngIf="items.size==1; else elseBlock">
-                <p>Are you sure you want to move <b>{{items.size}}</b> item from <b>{{pathFrom}}</b> to <b>{{dest.FilePath}}</b>?
-                </p>
-            </div>
-            <ng-template #elseBlock>
-                <p>Are you sure you want to move <b>{{items.size}}</b> items from <b>{{pathFrom}}</b> to <b>{{dest.FilePath}}</b>?
-                </p>
-            </ng-template>
+      <div *ngIf="dest$ | async as dest">
+        <div *ngIf="items.size == 1; else elseBlock">
+          <p>
+            Are you sure you want to move <b>{{ items.size }}</b> item from
+            <b>{{ pathFrom }}</b> to <b>{{ dest.FilePath }}</b
+            >?
+          </p>
         </div>
+        <ng-template #elseBlock>
+          <p>
+            Are you sure you want to move <b>{{ items.size }}</b> items from
+            <b>{{ pathFrom }}</b> to <b>{{ dest.FilePath }}</b
+            >?
+          </p>
+        </ng-template>
+      </div>
     </div>
+  </div>
 
-    <app-radio-button [props]="dontAskAgainRadioButton">
-        <p>Don't ask again</p>
-    </app-radio-button>
-
+  <app-radio-button [props]="dontAskAgainRadioButton">
+    <p>Don't ask again</p>
+  </app-radio-button>
 </app-modal-popup>

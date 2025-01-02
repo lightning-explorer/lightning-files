@@ -8,24 +8,31 @@ import { FileModel } from "@core/models/file-model";
 import { BehaviorSubject } from "rxjs";
 import { FilesListService } from "../../../../services/files-list.service";
 import { startDrag } from "@crabnebula/tauri-plugin-drag";
+import { TauriCommandsService } from "@core/services/tauri/commands.service";
 
 @Injectable()
 export class DragDropService {
-  private draggingItemsToSubject = new BehaviorSubject<FileModel|undefined>(undefined);
+  private draggingItemsToSubject = new BehaviorSubject<FileModel | undefined>(
+    undefined
+  );
   private draggedItemsSubject = new BehaviorSubject<Set<FileModel>>(new Set());
 
   draggingItemsTo$ = this.draggingItemsToSubject.asObservable();
   draggedItems$ = this.draggedItemsSubject.asObservable();
-  get numberOfItemsBeingDragged(){
+  get numberOfItemsBeingDragged() {
     return this.draggedItemsSubject.getValue().size;
   }
+  /** Returns true if the files were attempted to be dropped in a directory */
+  get draggingItemsToADirectory(): boolean {
+    return this.draggingItemsToSubject.getValue()?.IsDirectory ?? false;
+  }
 
-  constructor(private filesListService: FilesListService) {}
+  constructor(
+    private commandsService: TauriCommandsService,
+    private filesListService: FilesListService
+  ) {}
 
-  onDragStart(
-    event: DragEvent,
-    items: Set<FileModel>,
-  ) {
+  onDragStart(event: DragEvent, items: Set<FileModel>) {
     //event.preventDefault();
     items.forEach((f) =>
       this.filesListService.updateFileState(f, { hide: true })
@@ -54,11 +61,7 @@ export class DragDropService {
     this.filesListService.updateFileState(targetItem, { draggedOver: false });
   }
 
-  /** Returns `false` if the user tries to drop too many items in (a warning will be triggered) */
-  onDrop(
-    event: DragEvent,
-    targetItem: FileModel,
-  ){
+  onDrop(event: DragEvent, targetItem: FileModel) {
     // You can't drag a folder into itself
     if (this.draggedItemsSubject.getValue().has(targetItem)) return;
 
@@ -76,15 +79,15 @@ export class DragDropService {
   }
 
   /** Attempt to move the items that were being dragged into their previous target */
-  moveDraggedItems() {
+  async moveDraggedItemsAsync() {
     const target = this.draggingItemsToSubject.getValue();
     // Ensure that the target exists and is a directory
-    if(!target || !target.IsDirectory)
-      return;
+    if (!target || !target.IsDirectory) return;
 
-    this.draggedItemsSubject.getValue().forEach((item) => {
+    this.draggedItemsSubject.getValue().forEach(async (item) => {
       const file = item.FilePath;
       const moveTo = target.FilePath;
+      await this.commandsService.movePathIntoDirectory(moveTo,file);
       if (file != moveTo) {
         console.log(`Moved ${item.FilePath} to ${moveTo}`);
       }

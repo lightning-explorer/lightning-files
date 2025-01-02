@@ -34,6 +34,7 @@ export class FileResultComponent{
   @Input() state: FileState = defaultFileState();
   @Input() selected = false;
   @Input() displayPath = false;
+  @Input() altColor = false;
 
   constructor(
     private pinService: PinService,

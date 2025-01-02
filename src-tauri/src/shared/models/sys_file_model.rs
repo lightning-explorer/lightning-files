@@ -21,21 +21,21 @@ pub struct SystemFileModel {
 }
 
 impl SystemFileModel {
-    pub fn new_shallow(file_path: String) -> Self {
-        // Attempt to also set the name of the file, given that the file path passed in is valid
-        let path = Path::new(&file_path);
-        let name = path.file_name().map(|name|name.to_string_lossy().to_string()).unwrap_or_default();
-        Self {
-            name,
-            file_path,
-            metadata: "".to_string(),
-            date_modified: Utc::now(),
-            date_created: Utc::now(),
-            size: 0,
-            popularity: 0.0,
-            is_directory: false,
-        }
-    }
+    // pub fn new_shallow(file_path: String) -> Self {
+    //     // Attempt to also set the name of the file, given that the file path passed in is valid
+    //     let path = Path::new(&file_path);
+    //     let name = path.file_name().map(|name|name.to_string_lossy().to_string()).unwrap_or_default();
+    //     Self {
+    //         name,
+    //         file_path,
+    //         metadata: "".to_string(),
+    //         date_modified: Utc::now(),
+    //         date_created: Utc::now(),
+    //         size: 0,
+    //         popularity: 0.0,
+    //         is_directory: false,
+    //     }
+    // }
     pub fn try_new_from_meta(path: PathBuf, meta: &std::fs::Metadata) -> Result<Self,String> {
         let size = meta.file_size();
 

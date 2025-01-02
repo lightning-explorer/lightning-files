@@ -4,6 +4,17 @@
       
       <app-app-icon-name/>
 
+      <app-dropdown-button text="Quick Access" [expanded]="true">
+        <div *ngIf="quickAccessPaths$ | async as paths">
+          <div *ngFor="let path of paths">
+            <app-quick-access-shortcut
+              [path]="path" 
+              (click)="quickAccessShortcutClicked(path)"
+            />
+          </div>
+        </div>
+      </app-dropdown-button>
+
       <app-dropdown-button
         text="Drives"
         [onClick]="drivesButtonClicked"
@@ -16,18 +27,8 @@
             <app-drive-result [drive]="drive" (click)="driveClicked(drive)" />
           </div>
         </div>
-      </app-dropdown-button>
+      </app-dropdown-button>  
 
-      <app-dropdown-button text="Quick Access" [expanded]="true">
-        <div *ngIf="quickAccessPaths$ | async as paths">
-          <div *ngFor="let path of paths">
-            <app-quick-access-shortcut
-              [path]="path"
-              (click)="quickAccessShortcutClicked(path)"
-            />
-          </div>
-        </div>
-      </app-dropdown-button>
     </div>
   </div>
 

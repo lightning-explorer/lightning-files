@@ -210,19 +210,15 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     this.dragService.onDragLeave(event, targetItem);
   }
 
-  onFileDrop(event: DragEvent, targetItem: FileModel) {
+  async onFileDrop(event: DragEvent, targetItem: FileModel) {
     this.dragService.onDrop(event, targetItem);
-    if (this.dragService.numberOfItemsBeingDragged > 0) {
-      this.moveItemsPopup.isVisible = true;
-      // TODO: possibly put this logic in a service
-      this.moveItemsPopup.onYesClicked = () => {
-        this.dragService.moveDraggedItems();
-      };
-      this.moveItemsPopup.onDestroy = () => {
-        this.dragService.unhideAllDraggingItems();
-      };
-    } else {
-      this.dragService.moveDraggedItems();
+    if(this.dragService.draggingItemsToADirectory){
+      if (this.dragService.numberOfItemsBeingDragged > 0) {
+        // If the popup doesn't get opened, it means the user disabled it
+        if(!this.moveItemsPopup.attemptOpen()){
+          await this.dragService.moveDraggedItemsAsync();
+        }
+      }
     }
   }
 

@@ -14,10 +14,10 @@ pub trait CrawlerCommitPipeline: Send + Sync + 'static {
     /**
     Get all of the paths that exist inside the specified directory
      */
-    fn get_children(
+    fn get_children_keys(
         &self,
         parent: &Self::InputModel,
-    ) -> impl Future<Output = Result<Vec<Self::InputModel>, Self::Error>> + Send;
+    ) -> impl Future<Output = Result<Vec<String>, Self::Error>> + Send;
 
     fn upsert_many(
         &self,

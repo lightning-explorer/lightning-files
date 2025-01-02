@@ -19,6 +19,11 @@
     align-items: center;
 }
 
+.top label{
+    line-height: 1rem;
+    margin-bottom: .5em;
+}
+
 .content label {
     color: var(--primary);
 }

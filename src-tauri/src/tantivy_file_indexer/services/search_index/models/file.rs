@@ -66,12 +66,11 @@ impl tantivy_traits::Model for TantivyFileModel {
     }
 
     fn get_primary_key(&self) -> tantivy::Term{
-        let term = tantivy::Term::from_field_text(
+        tantivy::Term::from_field_text(
             Self::schema()
                 .get_field("path").expect("could not find primary key 'path' field"),
             &self.file_path,
-        );
-        term
+        )
     }
 
     fn get_primary_key_str(&self) -> String {

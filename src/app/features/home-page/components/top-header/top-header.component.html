@@ -1,19 +1,20 @@
-<div class="heading">
-
+<div class="content">
+  <div class="heading">
     <button (click)="onUndoClick()">
-        <mat-icon>keyboard_arrow_left</mat-icon>
+      <mat-icon>keyboard_arrow_left</mat-icon>
     </button>
 
     <button (click)="onRedoClick()">
-        <mat-icon>keyboard_arrow_right</mat-icon>
+      <mat-icon>keyboard_arrow_right</mat-icon>
     </button>
 
     <button (click)="onNavigateBackDirectoryClick()">
-        <mat-icon>keyboard_arrow_up</mat-icon>
+      <mat-icon>keyboard_arrow_up</mat-icon>
     </button>
 
     <app-current-directory-bar />
 
     <app-searchbar />
-
+  </div>
+  <app-pinned-files-header />
 </div>

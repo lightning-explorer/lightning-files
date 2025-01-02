@@ -1,7 +1,7 @@
 <div *ngIf="file" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
   <button
     class="content"
-    [ngClass]="{ selected: selected, grow: shouldGrow, hide: state.hide }"
+    [ngClass]="{ selected: selected, grow: shouldGrow, hide: state.hide, altcolor:altColor && ! selected }"
   >
     <div class="content-left">
       <div *ngIf="isPinned">
@@ -24,6 +24,6 @@
         />
       </div>
     </div>
-    <p class="metadata" *ngIf="displayPath">{{ file.FilePath }}</p>
+    <p class="metadata" *ngIf="displayPath">score: {{ file.Score }}</p>
   </button>
 </div>
