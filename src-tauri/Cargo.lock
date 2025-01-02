@@ -1038,6 +1038,7 @@ dependencies = [
  "serde_json",
  "sqlx",
  "tantivy",
+ "tantivy_ext",
  "tauri",
  "tauri-build",
  "tauri-plugin-drag",
@@ -1289,6 +1290,16 @@ dependencies = [
  "rayon-core",
  "smallvec",
  "zune-inflate",
+]
+
+[[package]]
+name = "ext-index-macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.90",
+ "tantivy",
 ]
 
 [[package]]
@@ -5678,6 +5689,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2a0dcade25819a89cfe6f17d932c9cedff11989936bf6dd4f336d50392053b04"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "tantivy_ext"
+version = "0.1.0"
+dependencies = [
+ "ext-index-macro",
+ "rand 0.8.5",
+ "rand_chacha 0.3.1",
+ "tantivy",
+ "tokio",
 ]
 
 [[package]]
