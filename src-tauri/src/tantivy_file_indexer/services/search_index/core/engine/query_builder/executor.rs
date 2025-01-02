@@ -4,7 +4,7 @@ use tantivy::{collector::TopDocs, query::Query, Searcher};
 pub fn execute_query<Q>(
     searcher: &Searcher,
     num_results: usize,
-    query: &Q,
+    query: &Q, 
 ) -> tantivy::Result<Vec<(f64, tantivy::DocAddress)>>
 where
     Q: Query + Sized,

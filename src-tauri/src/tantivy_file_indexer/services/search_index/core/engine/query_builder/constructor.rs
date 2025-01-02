@@ -105,6 +105,7 @@ impl QueryConstructor {
         let mut query_parser = QueryParser::for_index(self.reader.searcher().index(), vec![field]);
         query_parser.set_conjunction_by_default();
         let query = query_parser.parse_query(query)?;
+        
         Ok((occur, Box::new(query)))
     }
 
