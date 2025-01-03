@@ -3,9 +3,12 @@ use tauri::{AppHandle, Emitter, State};
 
 use crate::{
     shared::models::sys_file_model::SystemFileModel,
-    tantivy_file_indexer::{dtos::{
-        search_params_dto::SearchParamsDTO, streaming_search_dto::StreamingSearchParamsDTO,
-    }, models::emit_metadata_model::EmitMetadataModel},
+    tantivy_file_indexer::{
+        dtos::{
+            search_params_dto::SearchParamsDTO, streaming_search_dto::StreamingSearchParamsDTO,
+        },
+        models::emit_metadata_model::EmitMetadataModel,
+    },
 };
 
 use super::{service::SearchIndexService, services::task_manager::TaskManagerService};
@@ -54,15 +57,16 @@ pub async fn search_index_query_streaming(
     task_manager
         .task
         .run(search_service_clone.streaming_query(params, move |files| {
-
-            let model_output= EmitMetadataModel::new(files,&emit_metadata);
+            let sys_models: Vec<SystemFileModel> = files.into_iter().map(|x| x.into()).collect();
+            let model_output = EmitMetadataModel::new(sys_models, &emit_metadata);
 
             match app_handle.emit(&event_name, model_output) {
                 Ok(_) => {}
                 Err(err) => println!("{}", err),
             }
         }))
-        .await?;
+        .await? // Because the task could fail due to being cancelled
+        .map_err(|err| err.to_string())?; // Because the actual function running returns a Result
 
     Ok(())
 }
@@ -83,16 +87,17 @@ pub async fn search_index_query_streaming_organized(
 
     task_manager
         .task
-        .run(search_service_clone.streaming_query_organized(params, move |files| {
+        .run(
+            search_service_clone.streaming_query_organized(params, move |files| {
+                // The frontend expects the payload to be wrapped in a EmitMetadataModel
+                let model_output = EmitMetadataModel::new(files, &emit_metadata);
 
-            // The frontend expects the payload to be wrapped in a EmitMetadataModel
-            let model_output= EmitMetadataModel::new(files,&emit_metadata);
-
-            match app_handle.emit(&event_name, model_output) {
-                Ok(_) => {}
-                Err(err) => println!("{}", err),
-            }
-        }))
+                match app_handle.emit(&event_name, model_output) {
+                    Ok(_) => {}
+                    Err(err) => println!("{}", err),
+                }
+            }),
+        )
         .await?;
 
     Ok(())
@@ -100,11 +105,17 @@ pub async fn search_index_query_streaming_organized(
 
 /// Can be handy for changing the fields of a file, such as the popularity, to some other value
 #[tauri::command]
-pub async fn upsert_file_to_index(file:SystemFileModel, search_service: State<'_, Arc<SearchIndexService>>)->Result<(),String>{
+pub async fn upsert_file_to_index(
+    file: SystemFileModel,
+    search_service: State<'_, Arc<SearchIndexService>>,
+) -> Result<(), String> {
     search_service.upsert_file_to_index(file).await
 }
 
 #[tauri::command]
-pub async fn get_file_from_index(file:SystemFileModel, search_service: State<'_, Arc<SearchIndexService>>)->Result<Option<SystemFileModel>,String>{
+pub async fn get_file_from_index(
+    file: SystemFileModel,
+    search_service: State<'_, Arc<SearchIndexService>>,
+) -> Result<Option<SystemFileModel>, String> {
     Ok(search_service.get_file_from_index(file).await)
 }

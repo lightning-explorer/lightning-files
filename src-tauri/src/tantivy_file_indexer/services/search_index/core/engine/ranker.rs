@@ -1,39 +1,45 @@
-use crate::{shared::models::sys_file_model::SystemFileModel, tantivy_file_indexer::util::string};
+use std::path::Path;
 
-pub fn rank_new_file(file: &SystemFileModel) -> SystemFileModel {
-    SystemFileModel {
-        popularity: heuristic_rank(file),
-        ..file.clone()
-    }
+use tantivy_ext::Field;
+
+use crate::{shared::models::sys_file_model::SystemFileModel, tantivy_file_indexer::{
+    services::search_index::models::file::TantivyFileModel, util::string,
+}};
+
+pub fn rank_new_file(mut file: TantivyFileModel) -> TantivyFileModel {
+    file.popularity = heuristic_rank(&file).into();
+    file
 }
 
 pub fn rank_existing_file(
-    new_file: &SystemFileModel,
+    mut new_file: TantivyFileModel,
     old_file: &SystemFileModel,
-) -> SystemFileModel {
+) -> TantivyFileModel {
     // TODO: possible factor in the old file
-    SystemFileModel {
-        popularity: heuristic_rank(new_file),
-        ..new_file.clone()
-    }
+    new_file.popularity = heuristic_rank(&new_file).into();
+    new_file
 }
 
 /// Business logic
-fn heuristic_rank(file: &SystemFileModel) -> f64 {
+fn heuristic_rank(file: &TantivyFileModel) -> f64 {
     adjust_rank(1.0, file, 0.1, 0.2, 7)
 }
 
 /// Modular and adjustable ranking
 fn adjust_rank(
     initial_rank: f64,
-    file: &SystemFileModel,
+    file: &TantivyFileModel,
     base_penalty_length: f64,
     base_penalty_unreadable: f64,
     avg_name_length: usize,
 ) -> f64 {
-    let file_name = &file.name;
-    let length_penalty = calculate_penalty_length(file_name, base_penalty_length, avg_name_length);
-    let unreadable_penalty = calculate_penalty_unreadable(file_name, base_penalty_unreadable);
+    let file_name = Path::new(&file.file_path.tantivy_val())
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .into_owned();
+    let length_penalty = calculate_penalty_length(&file_name, base_penalty_length, avg_name_length);
+    let unreadable_penalty = calculate_penalty_unreadable(&file_name, base_penalty_unreadable);
 
     let adjusted_rank = initial_rank * (1.0 - length_penalty) * (1.0 - unreadable_penalty);
     adjusted_rank.max(0.0) // Ensure rank doesn't go negative
@@ -69,7 +75,7 @@ mod tests {
     }
 
     fn print_rank(path: &str) {
-        let file = SystemFileModel::new_shallow(path.to_string());
-        println!("File rank: {}", rank_new_file(&file).popularity);
+        //let file = TantivyFileModel::new_shallow(path.to_string());
+        //println!("File rank: {}", rank_new_file(&file).popularity);
     }
 }

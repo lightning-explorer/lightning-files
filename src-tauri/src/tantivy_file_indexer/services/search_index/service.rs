@@ -9,7 +9,7 @@ use crate::{
 };
 
 use super::{
-    core::engine::{querier::Querier, query_builder::constructor::QueryConstructor, tantivy_setup},
+    core::engine::{querier::Querier, query_builder::constructor::QueryConstructor},
     models::file::TantivyFileModel,
     pipelines::tantivy_pipeline::TantivyPipeline,
     services::task_manager::TaskManagerService,
@@ -20,6 +20,7 @@ use tantivy::{
     indexer::{LogMergePolicy, MergePolicy},
     IndexWriter, SegmentId, SegmentMeta,
 };
+use tantivy_ext::SearchIndex;
 use tauri::{AppHandle, Manager};
 use tokio::{sync::Mutex, task::JoinHandle};
 
@@ -27,31 +28,33 @@ pub struct SearchIndexService {
     /// Dictates how crawlers store documents
     pub pipeline: Arc<TantivyPipeline>,
     querier: Arc<Querier>,
-    index: tantivy::Index,
-    index_writer: Arc<Mutex<IndexWriter>>,
+    index: SearchIndex<TantivyFileModel>,
 }
 
 impl SearchIndexService {
     pub fn new(buffer_size: usize, app_path: PathBuf, handle: &AppHandle) -> Self {
         let index_path = app_path.join("TantivyOut");
 
-        let (index, schema, index_reader, index_writer) =
-            tantivy_setup::initialize_tantity(buffer_size, index_path);
+        let index = SearchIndex::new(50_000_000, index_path);
+        let backend = index.get_tantivy_backend();
 
-        let index_writer = Arc::new(Mutex::new(index_writer));
-
-        let constructor = Arc::new(QueryConstructor::new(schema.clone(), index_reader.clone()));
+        let constructor = Arc::new(QueryConstructor::new(
+            backend.schema,
+            backend.reader.clone(),
+        ));
 
         handle.manage(Arc::new(TaskManagerService::new()));
 
         // Create the commit pipeline
-        let pipeline = TantivyPipeline::new(Arc::clone(&index_writer), index_reader.clone());
+        let pipeline = TantivyPipeline::new(index.clone());
 
         Self {
             pipeline: Arc::new(pipeline),
-            querier: Arc::new(Querier::new(index_reader, Arc::clone(&constructor))),
+            querier: Arc::new(Querier::new(
+                backend.reader.clone(),
+                Arc::clone(&constructor),
+            )),
             index,
-            index_writer,
         }
     }
 
@@ -60,7 +63,7 @@ impl SearchIndexService {
         &self,
         params: StreamingSearchParamsDTO,
         emit: EmitFn,
-    ) -> JoinHandle<()>
+    ) -> JoinHandle<tantivy::Result<()>>
     where
         EmitFn: Fn(Vec<TantivyFileModel>) + Send + 'static,
     {
@@ -120,18 +123,31 @@ impl SearchIndexService {
 
     /// If the number of `Segments` in the Tantivy Index is greater than `limit`,
     /// then half of all the segments will get merged
-    pub async fn merge_segments(&self, limit:usize) -> Result<(), tantivy::TantivyError> {
+    pub async fn merge_segments(&self, limit: usize) -> Result<(), tantivy::TantivyError> {
         let ids = self.get_mergeable_segment_ids(limit)?;
         println!("Search Service: found {} segment ids to merge", ids.len());
         if !ids.is_empty() {
-            self.index_writer.lock().await.merge(&ids).await?;
+            self.index
+                .get_tantivy_backend()
+                .writer
+                .lock()
+                .await
+                .merge(&ids)
+                .await?;
         }
         Ok(())
     }
 
-    fn get_mergeable_segment_ids(&self, limit:usize) -> Result<Vec<SegmentId>, tantivy::TantivyError> {
+    fn get_mergeable_segment_ids(
+        &self,
+        limit: usize,
+    ) -> Result<Vec<SegmentId>, tantivy::TantivyError> {
         let mut ids: Vec<SegmentId> = Vec::new();
-        let segments = self.index.searchable_segments()?;
+        let segments = self
+            .index
+            .get_tantivy_backend()
+            .index
+            .searchable_segments()?;
         if segments.len() > limit {
             for (i, segment) in segments.iter().enumerate() {
                 if i % 2 == 0 {

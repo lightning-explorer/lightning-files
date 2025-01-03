@@ -36,7 +36,7 @@ export class HomePageSearchService implements OnDestroy {
 
     let searchParams: SearchParamsDTO = {
       NumResults: 500,
-      QueryType: "Term",
+      QueryType: "Hybrid",
       ...params,
     };
 

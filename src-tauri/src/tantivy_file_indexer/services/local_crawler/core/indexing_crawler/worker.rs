@@ -1,7 +1,4 @@
-use std::{
-    sync::Arc,
-    time::{Duration, Instant},
-};
+use std::{sync::Arc, time::Duration};
 
 use rand::{Rng, SeedableRng};
 use tokio::sync::Notify;
@@ -125,9 +122,9 @@ where
     }
 
     async fn handle_index(&self, dir: &CrawlerFile, files: Vec<SystemFileModel>) {
-        let parent = SystemFileModel::new_shallow(dir.path.to_string_lossy().to_string());
+        let parent_path = dir.path.to_string_lossy().to_string();
         match async_retry::retry_with_backoff(
-            |_| self.pipeline.upsert_many(&files, &parent),
+            |_| self.pipeline.upsert_many(files.clone(), parent_path.clone()),
             5,
             Duration::from_millis(1000),
         )

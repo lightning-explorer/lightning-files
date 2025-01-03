@@ -5,4 +5,4 @@ pub mod query_builder {
 }
 pub mod ranker;
 pub mod querier;
-pub mod tantivy_setup;
+// pub mod tantivy_setup;
