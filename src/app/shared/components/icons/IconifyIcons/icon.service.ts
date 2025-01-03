@@ -42,7 +42,8 @@ export class IconService {
       return this.icons["default"];
     }
 
-    const noPlaceholderColors = iconSvg.includes("currentColor");
+    //const noPlaceholderColors = iconSvg.includes("currentColor");
+    const noPlaceholderColors = true; // Re-enable if needed
     if (color) {
       const hexTokens = this.extractHexColorsFromColorString(color);
       if (hexTokens.length == 2 && noPlaceholderColors) {

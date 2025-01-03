@@ -4,7 +4,7 @@ use tantivy::{collector::TopDocs, query::Query, Searcher};
 pub fn execute_query<Q>(
     searcher: &Searcher,
     num_results: usize,
-    query: &Q, 
+    query: &Q,
 ) -> tantivy::Result<Vec<(f64, tantivy::DocAddress)>>
 where
     Q: Query + Sized,
@@ -26,12 +26,6 @@ where
 }
 
 fn apply_popularity(existing_score: f32, popularity_score: f64) -> f64 {
-    // Ensure the popularity_score is positive before taking the log
-    if popularity_score > 0.0 {
-        (existing_score as f64) + popularity_score.log(10.0)
-    } else {
-        // Handle zero or negative popularity scores
-        println!("Warning: Query Executor found invalid popularity: {}",popularity_score);
-        existing_score as f64 // Default to the existing score if popularity_score is invalid
-    }
+    // No log base 10 anymore
+    (existing_score as f64) + popularity_score
 }

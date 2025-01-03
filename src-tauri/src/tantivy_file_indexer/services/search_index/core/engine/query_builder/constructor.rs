@@ -7,6 +7,7 @@ use tantivy::{
 use crate::tantivy_file_indexer::{
     dtos::search_params_dto::{DateRange, SearchParamsDTO},
     enums::search_query_type::SearchQueryType,
+    services::search_index::models::file::TantivyFileModel,
 };
 
 pub struct QueryConstructor {
@@ -48,27 +49,30 @@ impl QueryConstructor {
         let mut queries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
 
         if let Some(file_path) = &search_params.file_path {
-            let query = self.create_standard_query("path", file_path, Occur::Should)?;
+            let field_name: String = TantivyFileModel::file_path_field().into();
+            let query = self.create_standard_query(&field_name, file_path, Occur::Should)?;
             queries.push(query);
         }
 
-        if let Some(query_str) = &search_params.name {
-            let query = self.create_standard_query("name", query_str, Occur::Should)?;
-            queries.push(query);
-        }
+        // if let Some(query_str) = &search_params.name {
+        //     let query = self.create_standard_query("name", query_str, Occur::Should)?;
+        //     queries.push(query);
+        // }
 
         if let Some(date_range) = &search_params.date_modified_range {
-            queries.push(self.create_date_query("date_modified", date_range, Occur::Must));
+            let field_name: String = TantivyFileModel::date_modified_field().into();
+            queries.push(self.create_date_query(&field_name, date_range, Occur::Must));
         }
 
         if let Some(date_range) = &search_params.date_created_range {
-            queries.push(self.create_date_query("date_created", date_range, Occur::Must));
+            let field_name: String = TantivyFileModel::date_created_field().into();
+            queries.push(self.create_date_query(&field_name, date_range, Occur::Must));
         }
 
-        if let Some(metadata) = &search_params.metadata {
-            let query = self.create_term_query("metadata", metadata, Occur::Must)?;
-            queries.push(query);
-        }
+        // if let Some(metadata) = &search_params.metadata {
+        //     let query = self.create_term_query("metadata", metadata, Occur::Must)?;
+        //     queries.push(query);
+        // }
 
         Ok(queries)
     }
@@ -78,16 +82,13 @@ impl QueryConstructor {
         search_params: &SearchParamsDTO,
     ) -> tantivy::Result<FuzzyTermQuery> {
         let term = if let Some(file_path) = &search_params.file_path {
-            let field = self.schema.get_field("path")?;
+            let field_name: String = TantivyFileModel::file_path_field().into();
+            let field = self.schema.get_field(&field_name)?;
             let term = Term::from_field_text(field, file_path);
-            Ok(term)
-        } else if let Some(name) = &search_params.name {
-            let field = self.schema.get_field("name")?;
-            let term = Term::from_field_text(field, name);
             Ok(term)
         } else {
             Err(TantivyError::InvalidArgument(
-                "Fuzzy query only works on file_path or name fields".to_string(),
+                "Fuzzy query only works on file_path field".to_string(),
             ))
         }?;
         // Distance must be less than 3 or else Tantivy throws an error
@@ -105,7 +106,7 @@ impl QueryConstructor {
         let mut query_parser = QueryParser::for_index(self.reader.searcher().index(), vec![field]);
         query_parser.set_conjunction_by_default();
         let query = query_parser.parse_query(query)?;
-        
+
         Ok((occur, Box::new(query)))
     }
 

@@ -2,11 +2,11 @@ use super::query_builder::{constructor::QueryConstructor, executor, organizer};
 use std::{collections::HashSet, sync::Arc};
 
 use tantivy::{IndexReader, TantivyDocument};
+use tantivy_ext::{Field, Index};
 
 use crate::tantivy_file_indexer::{
     dtos::search_params_dto::SearchParamsDTO,
     services::search_index::models::file::TantivyFileModel,
-    shared::search_index::tantivy_traits::{FromDocument, Model},
 };
 
 pub struct Querier {
@@ -30,14 +30,13 @@ impl Querier {
         emit: EmitFn,
         step_size: usize,
         min_results: usize,
-    ) where
+    ) -> tantivy::Result<()> where
         EmitFn: Fn(Vec<TantivyFileModel>),
     {
         let searcher = self.reader.searcher();
         let query = self
             .constructor
-            .construct_query(&search_params)
-            .expect("Query could not be constructed");
+            .construct_query(&search_params)?;
 
         let max_results = search_params.num_results as usize;
 
@@ -51,12 +50,14 @@ impl Querier {
                     let mut output_docs: Vec<TantivyFileModel> = Vec::new();
                     for (_score, address) in top_docs {
                         if let Ok(doc) = searcher.doc(address) {
-                            let tantivy_doc = TantivyFileModel::from_doc(doc, _score);
+                            let tantivy_doc = TantivyFileModel::from_document(doc, _score as f32);
 
-                            if prev_ids.insert(tantivy_doc.get_primary_key_str()) {
+                            // TODO: there should be a function to get the primary key as a string
+                            // Since the file path is the primary key, we directly get it here
+                            if prev_ids.insert(tantivy_doc.file_path.tantivy_val()) {
                                 output_docs.push(tantivy_doc);
                             }
-                        } else {
+                        } else { 
                             println!("Failed to retrieve document for address {:?}", address);
                         }
                     }
@@ -69,6 +70,7 @@ impl Querier {
                 }
             }
         }
+        Ok(())
     }
 
     /// Whereas the other query functions just return the items however they were presented in the index, this function adds an extra post-processing
@@ -114,10 +116,10 @@ impl Querier {
                 Ok(top_docs) => {
                     for (_score, address) in top_docs {
                         if let Ok(doc) = searcher.doc(address) {
-                            let model = TantivyFileModel::from_doc(doc, _score);
+                            let model = TantivyFileModel::from_document(doc, _score as f32);
 
                             // Deduplicate documents
-                            if seen_keys.insert(model.get_primary_key_str()) {
+                            if seen_keys.insert(model.file_path.tantivy_val()) {
                                 accumulated_docs.push(model);
                             }
                         } else {
@@ -164,7 +166,7 @@ impl Querier {
             .into_iter()
             .map(|(_score, doc_address)| {
                 let doc: TantivyDocument = searcher.doc(doc_address).unwrap();
-                TantivyFileModel::from_doc(doc, _score)
+                TantivyFileModel::from_document(doc, _score as f32)
             })
             .collect();
 

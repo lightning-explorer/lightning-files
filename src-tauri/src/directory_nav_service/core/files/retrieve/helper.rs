@@ -19,9 +19,8 @@ pub fn create_file_model_from_path(file_path: PathBuf) -> Option<SystemFileModel
                 file_path: file_path.to_string_lossy().to_string(),
                 date_modified,
                 date_created,
-                metadata: "".to_string(),
                 size,
-                popularity: 0.0, // The popularity here should not be 0
+                score: 0.0, 
                 is_directory,
             })
         }

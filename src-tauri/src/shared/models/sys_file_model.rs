@@ -11,12 +11,11 @@ use crate::shared::converters::system_time_to_chrono_datetime;
 pub struct SystemFileModel {
     pub name: String,
     pub file_path: String,
-    pub metadata: String,
     pub date_modified: DateTime<Utc>,
     pub date_created: DateTime<Utc>,
     /// The size of the file, in bytes
     pub size: u64,
-    pub popularity: f64, // Consider making popularity more elaborate
+    pub score: f32, // Consider making popularity more elaborate
     pub is_directory: bool,
 }
 
@@ -55,11 +54,10 @@ impl SystemFileModel {
         let model = SystemFileModel {
             name,
             file_path: path.to_string_lossy().to_string(),
-            metadata: "test metadata".to_string(),
             date_modified,
             date_created,
             size,
-            popularity: 1.0,
+            score: 1.0, // Assuming score doesn't matter here
             is_directory: path.is_dir(),
         };
         Ok(model)

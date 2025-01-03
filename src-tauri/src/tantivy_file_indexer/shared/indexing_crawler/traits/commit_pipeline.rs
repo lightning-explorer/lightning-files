@@ -7,22 +7,22 @@ use crate::tantivy_file_indexer::shared::search_index::tantivy_traits::{self};
 
 /// A service that is able to take in documents and commit them to the Tantivy index and/or the database
 pub trait CrawlerCommitPipeline: Send + Sync + 'static {
-    type IndexedModel: tantivy_traits::Model;
+    type IndexedModel: tantivy_ext::Index;
     type InputModel: Into<Self::IndexedModel>;
     type Error: Display + Debug + Send;
 
     /**
     Get all of the paths that exist inside the specified directory
      */
-    fn get_children_keys(
+    fn get_children(
         &self,
-        parent: &Self::InputModel,
-    ) -> impl Future<Output = Result<Vec<String>, Self::Error>> + Send;
+        parent_key: String,
+    ) -> impl Future<Output = Result<Vec<Self::InputModel>, Self::Error>> + Send;
 
     fn upsert_many(
         &self,
-        models: &[Self::InputModel],
-        parent: &Self::InputModel,
+        models: Vec<Self::InputModel>,
+        parent_key: String,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
     fn upsert_one(
@@ -38,6 +38,6 @@ pub trait CrawlerCommitPipeline: Send + Sync + 'static {
 
     fn remove_many(
         &self,
-        models: &Vec<Self::InputModel>,
+        keys: Vec<String>,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 }
