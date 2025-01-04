@@ -14,7 +14,7 @@ pub async fn build_managed(builder:builder::IndexingCrawlersBuilder<CrawlerQueue
 }
 async fn manage_crawl_tasks(crawl_task_handles:JoinSet<()>){
 
-    tokio::spawn(async move{
-        crawl_task_handles
-    })
+    // tokio::spawn(async move{
+    //     crawl_task_handles
+    // })
 }
