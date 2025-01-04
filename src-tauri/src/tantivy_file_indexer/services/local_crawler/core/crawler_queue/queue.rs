@@ -1,10 +1,4 @@
-use std::{
-    path::PathBuf,
-    sync::{
-        atomic::{AtomicI64, Ordering},
-        Arc,
-    },
-};
+use std::{path::PathBuf, sync::Arc};
 
 use chrono::Utc;
 use sea_orm::DbErr;
@@ -27,8 +21,6 @@ pub const DEFAULT_PRIORITY: Priority = 5;
 pub struct CrawlerQueue {
     db: Arc<LocalDbService>,
     notify: Arc<Notify>,
-    /// The UNIX timestamp representing when the database was last vacuumed
-    last_vacuum: Arc<AtomicI64>,
 }
 
 // Rather than locally writing to JSON, write to the database.
@@ -38,7 +30,6 @@ impl CrawlerQueue {
         Self {
             db,
             notify: Arc::new(Notify::new()),
-            last_vacuum: Arc::new(AtomicI64::new(0)),
         }
     }
 
@@ -64,17 +55,17 @@ impl CrawlerQueue {
             })
     }
 
-    pub async fn take_many(&self, amount: u64) -> Result<Vec<(PathBuf, Priority)>, DbErr> {
-        self.get_crawler_queue_table()
-            .take_many(amount)
-            .await
-            .map(|models| {
-                models
-                    .into_iter()
-                    .map(|model| (PathBuf::from(model.path), model.priority))
-                    .collect()
-            })
-    }
+    // pub async fn take_many(&self, amount: u64) -> Result<Vec<(PathBuf, Priority)>, DbErr> {
+    //     self.get_crawler_queue_table()
+    //         .take_many(amount)
+    //         .await
+    //         .map(|models| {
+    //             models
+    //                 .into_iter()
+    //                 .map(|model| (PathBuf::from(model.path), model.priority))
+    //                 .collect()
+    //         })
+    // }
 
     pub async fn delete_many(&self, models: Vec<indexed_dir::Model>) -> Result<(), DbErr> {
         self.get_crawler_queue_table()
@@ -87,31 +78,31 @@ impl CrawlerQueue {
         self.get_crawler_queue_table().mark_all_as_not_taken().await
     }
 
-    pub async fn pop(&self) -> Result<Option<(PathBuf, Priority)>, DbErr> {
-        #[cfg(feature = "file_crawler_logs")]
-        println!("Length of queue: {}", self.get_len().await);
+    // pub async fn pop(&self) -> Result<Option<(PathBuf, Priority)>, DbErr> {
+    //     #[cfg(feature = "file_crawler_logs")]
+    //     println!("Length of queue: {}", self.get_len().await);
 
-        match self.get_crawler_queue_table().pop().await {
-            Ok(model) => Ok(model.map(|x| {
-                if x.priority > 1 {
-                    #[cfg(feature = "file_crawler_logs")]
-                    println!(
-                        "Took item {} from queue with priority {}",
-                        x.path, x.priority
-                    );
-                }
-                (PathBuf::from(&x.path), x.priority)
-            })),
-            Err(err) => Err(err),
-        }
-    }
+    //     match self.get_crawler_queue_table().pop().await {
+    //         Ok(model) => Ok(model.map(|x| {
+    //             if x.priority > 1 {
+    //                 #[cfg(feature = "file_crawler_logs")]
+    //                 println!(
+    //                     "Took item {} from queue with priority {}",
+    //                     x.path, x.priority
+    //                 );
+    //             }
+    //             (PathBuf::from(&x.path), x.priority)
+    //         })),
+    //         Err(err) => Err(err),
+    //     }
+    // }
 
-    pub async fn get_len(&self) -> u64 {
-        self.get_crawler_queue_table()
-            .count_dirs()
-            .await
-            .unwrap_or_default()
-    }
+    // pub async fn get_len(&self) -> u64 {
+    //     self.get_crawler_queue_table()
+    //         .count_dirs()
+    //         .await
+    //         .unwrap_or_default()
+    // }
 
     /// This function automatically gates off files that have been indexed recently, meaning that the fetch functions do not need to worry
     /// about grabbing entries that just got indexed.
@@ -121,11 +112,11 @@ impl CrawlerQueue {
 
         // Common error: This table often fails to refresh
         match &self.get_recently_indexed_dirs_table().refresh(5).await {
-            Ok(val) => {
-                if val > &0 {
-                    #[cfg(feature = "file_crawler_logs")]
-                    println!("Found {} old directories in recently indexed and removed them to allow re-indexing", val);
-                }
+            Ok(_val) => {
+                // if val > &0 {
+                //     #[cfg(feature = "file_crawler_logs")]
+                //     println!("Found {} old directories in recently indexed and removed them to allow re-indexing", val);
+                // }
             }
             Err(err) => println!(
                 "Failed to refresh recently indexed directories table: {}",
@@ -137,10 +128,10 @@ impl CrawlerQueue {
         let entries = self.filter_out_recent_directories(entries).await?;
 
         // Optional logging:
-        if entries.is_empty() {
-            #[cfg(feature = "file_crawler_logs")]
-            println!("Crawler Queue: All directories that were attempted to be added have already been indexed recently");
-        }
+        // if entries.is_empty() {
+        //     #[cfg(feature = "file_crawler_logs")]
+        //     println!("Crawler Queue: All directories that were attempted to be added have already been indexed recently");
+        // }
 
         let indexed_dir_models = self.entries_to_indexed_dir_model(&entries);
 
@@ -188,19 +179,6 @@ impl CrawlerQueue {
             }
         }
         Ok(res)
-    }
-
-    pub async fn vacuum_db(&self) -> Result<(), DbErr> {
-        let now = Utc::now().timestamp();
-        let last_vacuum_timestamp = self.last_vacuum.load(Ordering::SeqCst);
-        let diff = (now - last_vacuum_timestamp).abs();
-        // Check if the difference exceeds 10 minutes (600 seconds)
-        // This helps avoid too many consecutive vacuum calls
-        if diff > 600 {
-            self.last_vacuum.store(now, Ordering::SeqCst);
-            self.db.vacuum_database().await?;
-        } // else, ignore vacuuming the db for now
-        Ok(())
     }
 
     /**

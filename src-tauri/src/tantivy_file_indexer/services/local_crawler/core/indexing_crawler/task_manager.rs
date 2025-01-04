@@ -1,4 +1,4 @@
-use tokio::{sync::Mutex, task::{JoinHandle, JoinSet}};
+use tokio::task::JoinSet;
 
 use crate::tantivy_file_indexer::services::{local_crawler::core::crawler_queue::queue::CrawlerQueue, search_index::pipelines::tantivy_pipeline::TantivyPipeline};
 

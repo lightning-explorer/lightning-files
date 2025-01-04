@@ -7,9 +7,6 @@ mod dtos {
     pub mod search_params_dto;
     pub mod streaming_search_dto;
 }
-mod converters {
-    pub mod date_converter;
-}
 pub mod services {
     pub mod app_save;
     pub mod local_crawler;

@@ -6,7 +6,7 @@ use crate::tantivy_file_indexer::{
     shared::indexing_crawler::traits::commit_pipeline::CrawlerCommitPipeline,
 };
 use std::collections::HashMap;
-use tantivy_ext::{Field, SearchIndex};
+use tantivy_ext::SearchIndex;
 
 /// Pipeline where Tantivy is used as the main database. SQLite is used as a queue
 pub struct TantivyPipeline {
@@ -111,7 +111,7 @@ fn rank_files(
     tantivy_models.extend(
         brand_new
             .into_iter()
-            .map(|file| ranker::rank_new_file(file)),
+            .map(ranker::rank_new_file),
     );
     tantivy_models
 }

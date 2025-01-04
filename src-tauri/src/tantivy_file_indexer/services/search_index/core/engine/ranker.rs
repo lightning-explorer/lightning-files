@@ -63,19 +63,19 @@ fn calculate_penalty_unreadable(name: &str, base_penalty: f64) -> f64 {
 /*
 cargo test test_rank -- --show-output
 */
-#[cfg(test)]
-mod tests {
-    use super::*;
+// #[cfg(test)]
+// mod tests {
+    
 
-    #[test]
-    fn test_rank() {
-        print_rank("C:/some_file");
-        print_rank("C:/errereerer");
-        print_rank("C:/$B9D075E1EB7D4CED964EF9FC24A7FD75");
-    }
+//     #[test]
+//     fn test_rank() {
+//         print_rank("C:/some_file");
+//         print_rank("C:/errereerer");
+//         print_rank("C:/$B9D075E1EB7D4CED964EF9FC24A7FD75");
+//     }
 
-    fn print_rank(path: &str) {
-        //let file = TantivyFileModel::new_shallow(path.to_string());
-        //println!("File rank: {}", rank_new_file(&file).popularity);
-    }
-}
+//     fn print_rank(path: &str) {
+//         //let file = TantivyFileModel::new_shallow(path.to_string());
+//         //println!("File rank: {}", rank_new_file(&file).popularity);
+//     }
+// }

@@ -15,8 +15,8 @@ impl<T> EmitMetadataModel<T>{
         Self { data, metadata:metadata.to_string(), metadata_array: Vec::new() }
     }
 
-    /// Create a new EmitMetadataModel with the 'metadata_array' property
-    pub fn new_array(data:T,metadata:&str, metadata_array:Vec<&str>)->Self{
-        Self { data, metadata:metadata.to_string(), metadata_array: metadata_array.into_iter().map(|x|x.to_string()).collect() }
-    }
+    // Create a new EmitMetadataModel with the 'metadata_array' property
+    // pub fn new_array(data:T,metadata:&str, metadata_array:Vec<&str>)->Self{
+    //     Self { data, metadata:metadata.to_string(), metadata_array: metadata_array.into_iter().map(|x|x.to_string()).collect() }
+    // }
 }

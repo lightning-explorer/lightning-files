@@ -1,11 +1,11 @@
-use std::{collections::HashMap, sync::Arc};
+use super::entities::indexed_dir;
+use crate::tantivy_file_indexer::services::local_db::table_creator::generate_table_lenient;
 use sea_orm::{
-    prelude::Expr, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
-    QueryOrder, QuerySelect,
+    prelude::Expr, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder,
+    QuerySelect,
 };
 use sqlx::{Sqlite, Transaction};
-use crate::tantivy_file_indexer::services::local_db::table_creator::generate_table_lenient;
-use super::entities::indexed_dir;
+use std::{collections::HashMap, sync::Arc};
 
 #[derive(Clone)]
 pub struct CrawlerQueueTable {
@@ -49,10 +49,10 @@ impl CrawlerQueueTable {
         Ok(())
     }
 
-    pub async fn pop(&self) -> Result<Option<indexed_dir::Model>, sea_orm::DbErr> {
-        let mut items = self.take_many(1).await?;
-        Ok(items.pop())
-    }
+    // pub async fn pop(&self) -> Result<Option<indexed_dir::Model>, sea_orm::DbErr> {
+    //     let mut items = self.take_many(1).await?;
+    //     Ok(items.pop())
+    // }
 
     /// Completely removes the given models from the database
     ///
@@ -68,15 +68,15 @@ impl CrawlerQueueTable {
         Ok(result.rows_affected)
     }
 
-    /// Retrieves the next most popular directories in the collection and removes them
-    pub async fn take_many(&self, amount: u64) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
-        // Fetch the entry with the highest priority (biggest number)
-        let next_entries = self.get_next_entries(amount).await?;
-        // Collect the paths of the fetched entries
-        self.delete_many(&next_entries).await?;
-        // Return the fetched entries
-        Ok(next_entries)
-    }
+    // Retrieves the next most popular directories in the collection and removes them
+    // pub async fn take_many(&self, amount: u64) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
+    //     // Fetch the entry with the highest priority (biggest number)
+    //     let next_entries = self.get_next_entries(amount).await?;
+    //     // Collect the paths of the fetched entries
+    //     self.delete_many(&next_entries).await?;
+    //     // Return the fetched entries
+    //     Ok(next_entries)
+    // }
 
     /// Retrieves the next most popular directories in the collection without removing them
     pub async fn get_many(&self, amount: u64) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
@@ -86,10 +86,10 @@ impl CrawlerQueueTable {
         Ok(next_entries)
     }
 
-    pub async fn count_dirs(&self) -> Result<u64, sea_orm::DbErr> {
-        let count = indexed_dir::Entity::find().count(&*self.db).await?;
-        Ok(count)
-    }
+    // pub async fn count_dirs(&self) -> Result<u64, sea_orm::DbErr> {
+    //     let count = indexed_dir::Entity::find().count(&*self.db).await?;
+    //     Ok(count)
+    // }
 
     /**
     Retrieve the top n entries from the database

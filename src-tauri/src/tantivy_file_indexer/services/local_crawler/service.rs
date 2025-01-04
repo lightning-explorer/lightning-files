@@ -68,6 +68,8 @@ impl FileCrawlerService {
     }
 
     pub async fn push_dirs_default(&self, paths: Vec<PathBuf>) {
-        self.queue.push_defaults(&paths).await;
+        if let Err(err) = self.queue.push_defaults(&paths).await{
+            println!("Error pushing directories as default to queue: {}",err);
+        }
     }
 }

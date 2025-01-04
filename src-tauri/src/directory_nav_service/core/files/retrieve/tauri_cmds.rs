@@ -2,11 +2,9 @@ use super::super::super::super::app_state::files_display::FilesDisplayState;
 use super::file_retriever;
 use super::file_sorter;
 use crate::directory_nav_service::dtos::get_files_dtos::GetFilesParamsDTO;
-use crate::directory_nav_service::util::metadata_inspector::is_hidden;
 use crate::shared::models::sys_file_model::SystemFileModel;
 
 use super::helper;
-use std::fs;
 use std::path::Path;
 use std::sync::Arc;
 use tauri::AppHandle;

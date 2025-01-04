@@ -19,7 +19,7 @@ mod core {
         pub mod task_manager;
     }
 }
-pub mod analyzer {
-    pub mod service;
-}
+// pub mod analyzer {
+//     pub mod service;
+// }
 pub mod tauri_exports;

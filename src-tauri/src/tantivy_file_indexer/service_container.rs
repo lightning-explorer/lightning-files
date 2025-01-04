@@ -2,7 +2,7 @@ use crate::directory_nav_service;
 
 use super::services::{
     app_save::service::{AppSavePath, AppSaveService},
-    local_crawler::{analyzer::service::FileCrawlerAnalyzerService, service::FileCrawlerService},
+    local_crawler::service::FileCrawlerService,
     local_db::service::LocalDbService,
     search_index::service::SearchIndexService,
 };
@@ -10,10 +10,10 @@ use std::{path::PathBuf, sync::Arc};
 
 use tauri::{AppHandle, Manager};
 pub struct AppServiceContainer {
-    pub search_service: Arc<SearchIndexService>,
-    pub local_db_service: Arc<LocalDbService>,
+    //pub search_service: Arc<SearchIndexService>,
+    //pub local_db_service: Arc<LocalDbService>,
     pub crawler_service: Arc<FileCrawlerService>,
-    pub crawler_analyzer_service: Arc<FileCrawlerAnalyzerService>,
+    //pub crawler_analyzer_service: Arc<FileCrawlerAnalyzerService>,
 }
 
 impl AppServiceContainer {
@@ -31,9 +31,6 @@ impl AppServiceContainer {
 
         let local_db_service = Self::initialize_sqlx_service(&app_save_service).await;
 
-        // TODO: Attach the analyzer to the crawling operation
-        let crawler_analyzer_service = Self::initialize_crawler_analyzer_service(15);
-
         let crawler_service = Self::initialize_crawler_service(
             Arc::clone(&local_db_service),
             Arc::clone(&search_service),
@@ -44,16 +41,16 @@ impl AppServiceContainer {
         handle.manage(Arc::clone(&search_service));
         handle.manage(Arc::clone(&local_db_service));
         handle.manage(Arc::clone(&crawler_service));
-        handle.manage(Arc::clone(&crawler_analyzer_service));
+        //handle.manage(Arc::clone(&crawler_analyzer_service));
         //handle.manage(Arc::clone(&vector_db_service));
 
         handle.manage(Arc::clone(&app_save_service));
 
         Self {
-            search_service,
-            local_db_service,
+            //search_service,
+            //local_db_service,
             crawler_service,
-            crawler_analyzer_service,
+            //crawler_analyzer_service,
         }
     }
 
@@ -80,9 +77,5 @@ impl AppServiceContainer {
         app_save_service: Arc<AppSaveService>,
     ) -> Arc<FileCrawlerService> {
         Arc::new(FileCrawlerService::new_async(db_service, search_service, app_save_service).await)
-    }
-
-    fn initialize_crawler_analyzer_service(analyze_every: u64) -> Arc<FileCrawlerAnalyzerService> {
-        Arc::new(FileCrawlerAnalyzerService::new(analyze_every))
     }
 }

@@ -4,7 +4,7 @@ use dirs::data_dir;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::tantivy_file_indexer::services::app_save::core::helper::{
-    create_file, get_file_path, load, save,
+    create_file, load, save,
 };
 
 pub enum AppSavePath {
@@ -24,9 +24,6 @@ impl AppSaveService {
         Self {
             save_dir: save_path,
         }
-    }
-    pub fn get_path(&self, path: &str) -> PathBuf {
-        get_file_path(&self.save_dir, path)
     }
     pub fn create_path(&self, path: &str) -> PathBuf {
         create_file(&self.save_dir, path)

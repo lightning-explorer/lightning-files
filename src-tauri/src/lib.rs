@@ -37,7 +37,7 @@ pub fn run() {
             add_dirs_to_crawler_queue,
             view_crawler_queue,
             view_crawler_priority_counts,
-            get_crawler_analyzer_data,
+            //get_crawler_analyzer_data,
             app_init::is_running,
             is_directory_accessible,
             get_file_from_index,
