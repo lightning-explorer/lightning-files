@@ -1,23 +1,10 @@
-/*
-Right now, the file crawler queue stores itself to local JSON, which works for now, but ideally it should grab its information from the
-SQLite database and store stuff there.
-*/
-
-/*
- * Note that the crawler queue contains the stuff TO be indexed while the recently indexed directories table contains all of the folders
- * that have ALREADY been indexed
- */
-
 use std::{collections::HashMap, sync::Arc};
-
 use sea_orm::{
     prelude::Expr, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
     QueryOrder, QuerySelect,
 };
 use sqlx::{Sqlite, Transaction};
-
 use crate::tantivy_file_indexer::services::local_db::table_creator::generate_table_lenient;
-
 use super::entities::indexed_dir;
 
 #[derive(Clone)]

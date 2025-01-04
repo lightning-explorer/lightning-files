@@ -33,4 +33,10 @@ pub mod tables {
             pub mod recently_indexed_dir;
         }
     }
+    pub mod app_kv_store{
+        pub mod api;
+        pub mod entities{
+            pub mod kv_pair;
+        }
+    }
 }

@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use std::{collections::HashMap, path::Path, sync::Arc};
 use tauri::State;
 use crate::tantivy_file_indexer::dtos::add_to_crawler_queue::AddToCrawlerQueueDTO;
@@ -10,8 +9,6 @@ pub async fn add_dirs_to_crawler_queue(
     directories: Vec<AddToCrawlerQueueDTO>,
     service: State<'_, Arc<FileCrawlerService>>,
 ) -> Result<(), ()> {
-    let len = directories.len();
-
     let directories = filter::filter_out_directories_to_add(directories);
 
     service
@@ -22,8 +19,6 @@ pub async fn add_dirs_to_crawler_queue(
                 .collect(),
         )
         .await;
-    #[cfg(feature = "file_crawler_logs")]
-    println!("Added {} directories to the crawler queue", len);
     Ok(())
 }
 

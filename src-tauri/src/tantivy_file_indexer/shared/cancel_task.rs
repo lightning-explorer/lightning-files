@@ -14,10 +14,30 @@ impl CancellableTask {
         }
     }
 
-    /// Runs a new task, canceling any previously running task.
     pub async fn run<T>(&self, task: JoinHandle<T>) -> Result<T, String>
     where
         T: Send + 'static,
+    {
+        self.run_internal(task, || {}).await
+    }
+ 
+    pub async fn run_with_cleanup<T, F>(
+        &self,
+        task: JoinHandle<T>,
+        on_cancel: F,
+    ) -> Result<T, String>
+    where
+        T: Send + 'static,
+        F: Fn() + Send + 'static,
+    {
+        self.run_internal(task, on_cancel).await
+    }
+
+    /// Runs a new task, canceling any previously running task.
+    async fn run_internal<T, F>(&self, task: JoinHandle<T>, on_cancel: F) -> Result<T, String>
+    where
+        T: Send + 'static,
+        F: Fn() + Send + 'static,
     {
         self.cancel_existing_task().await;
 
@@ -26,7 +46,10 @@ impl CancellableTask {
 
         let handle = tokio::spawn(async move {
             let result = tokio::select! {
-                _ = cancel_rx.changed() => Err("Task was canceled."),
+                _ = cancel_rx.changed() => {
+                    on_cancel();
+                    Err("Task was canceled.")
+                },
                 res = task => Ok(res),
             };
             let _ = result_tx.send(result);

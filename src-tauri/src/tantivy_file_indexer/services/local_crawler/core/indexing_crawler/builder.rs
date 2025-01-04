@@ -1,7 +1,7 @@
 use super::worker;
 use std::sync::Arc;
 use tokio::{sync::Notify, task::JoinSet};
-use super::garbage_collector::CrawlerGarbageCollector;
+use super::plugins::garbage_collector::CrawlerGarbageCollector;
 
 use crate::{
     shared::models::sys_file_model::SystemFileModel,

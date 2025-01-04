@@ -37,18 +37,11 @@ pub async fn initialize_app_async(handle: AppHandle) {
     println!("All services managed");
 
     if index_files {
-        let handles = crawler_service
-            .crawlers_builder()
-            .batch_size(512)
-            .max_num_workers(4)
-            .build_async()
-            .await;
+        crawler_service.dispatch_crawlers().await;
 
         crawler_service
             .push_dirs_default(vec![Path::new("C:\\").to_path_buf()])
             .await;
-
-        handles.join_all().await;
     } else {
         println!("index_files in initialize_app_async is set to false. No files will be indexed and no file crawlers will be spawned.")
     }

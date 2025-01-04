@@ -16,7 +16,7 @@ use crate::{
 
 use super::{
     crawler::{self, CrawlerError},
-    garbage_collector::CrawlerGarbageCollector,
+    plugins::garbage_collector::CrawlerGarbageCollector,
 };
 
 pub struct IndexingCrawlerWorker<C, P>

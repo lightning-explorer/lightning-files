@@ -1,8 +1,5 @@
-use tokio::task::JoinSet;
-
 use crate::tantivy_file_indexer::services::app_save::service::AppSaveService;
 use crate::tantivy_file_indexer::services::local_db::service::LocalDbService;
-use crate::tantivy_file_indexer::services::search_index::pipelines::tantivy_pipeline::TantivyPipeline;
 use crate::tantivy_file_indexer::services::search_index::service::SearchIndexService;
 use crate::tantivy_file_indexer::shared::async_retry;
 use std::path::PathBuf;
@@ -10,8 +7,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use super::core::crawler_queue::queue::{CrawlerQueue, Priority};
-use super::core::indexing_crawler::builder::IndexingCrawlersBuilder;
-use super::core::indexing_crawler::{self, builder, garbage_collector};
+use super::core::indexing_crawler::task_manager;
+use super::core::indexing_crawler::{builder, plugins::garbage_collector};
 
 pub struct FileCrawlerService {
     queue: Arc<CrawlerQueue>,
@@ -36,9 +33,7 @@ impl FileCrawlerService {
     }
 
     /// Once built, the crawlers will get dispatched and start working
-    pub fn crawlers_builder(
-        &self,
-    ) -> builder::IndexingCrawlersBuilder<CrawlerQueue, TantivyPipeline> {
+    pub async fn dispatch_crawlers(&self) {
         let pipeline = self.search_index.get_pipeline();
         let crawler_queue = Arc::clone(&self.queue);
         let notify = self.queue.get_notifier();
@@ -47,11 +42,14 @@ impl FileCrawlerService {
         let collector = Arc::new(garbage_collector::CrawlerGarbageCollector::new(
             Arc::clone(&self.local_db_service),
             Arc::clone(&self.save_service),
-            Arc::clone(&self.search_index)
+            Arc::clone(&self.search_index),
         ));
 
-        builder::IndexingCrawlersBuilder::new(crawler_queue, pipeline, notify)
-            .with_garbage_collector(collector)
+        let builder = builder::IndexingCrawlersBuilder::new(crawler_queue, pipeline, notify)
+            .with_garbage_collector(collector);
+
+        // Hand off the rest of the building to the task manager
+        task_manager::build_managed(builder).await;
     }
 
     pub async fn push_dirs(&self, paths: Vec<(PathBuf, Priority)>) {
