@@ -10,7 +10,6 @@ mod services {
 }
 mod core {
     pub mod engine;
-    pub mod indexer;
 }
 pub mod service;
 pub mod tauri_exports;

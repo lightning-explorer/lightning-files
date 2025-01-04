@@ -27,7 +27,7 @@ pub async fn search_index_query(
         match service.query(&params) {
             Ok(result) => Ok(result
                 .into_iter()
-                .flat_map(|x| x.try_into()) // Ignore conversion errors
+                .map(|x| x.into())
                 .collect::<Vec<SystemFileModel>>()),
             Err(err) => Err(err.to_string()),
         }

@@ -16,13 +16,10 @@ use super::{
 };
 use std::{path::PathBuf, sync::Arc};
 
-use tantivy::{
-    indexer::{LogMergePolicy, MergePolicy},
-    IndexWriter, SegmentId, SegmentMeta,
-};
+use tantivy::SegmentId;
 use tantivy_ext::SearchIndex;
 use tauri::{AppHandle, Manager};
-use tokio::{sync::Mutex, task::JoinHandle};
+use tokio::task::JoinHandle;
 
 pub struct SearchIndexService {
     /// Dictates how crawlers store documents
@@ -32,7 +29,7 @@ pub struct SearchIndexService {
 }
 
 impl SearchIndexService {
-    pub fn new(buffer_size: usize, app_path: PathBuf, handle: &AppHandle) -> Self {
+    pub fn new(app_path: PathBuf, handle: &AppHandle) -> Self {
         let index_path = app_path.join("TantivyOut");
 
         let index = SearchIndex::new(50_000_000, index_path);

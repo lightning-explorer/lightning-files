@@ -27,7 +27,7 @@ impl AppServiceContainer {
         directory_nav_service::state::manager::manage_state(handle);
 
         //let vector_db_service = Self::initialize_vector_service();
-        let search_service = Self::initialize_search_service(50_000_000, app_path, handle);
+        let search_service = Self::initialize_search_service(app_path, handle);
 
         let local_db_service = Self::initialize_sqlx_service(&app_save_service).await;
 
@@ -58,11 +58,10 @@ impl AppServiceContainer {
     }
 
     fn initialize_search_service(
-        buffer_size: usize,
         app_path: PathBuf,
         app_handle: &AppHandle,
     ) -> Arc<SearchIndexService> {
-        Arc::new(SearchIndexService::new(buffer_size, app_path, app_handle))
+        Arc::new(SearchIndexService::new(app_path, app_handle))
     }
 
     fn initialize_app_save_service(save_dir: AppSavePath, app_name: &str) -> Arc<AppSaveService> {

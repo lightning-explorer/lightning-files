@@ -4,5 +4,4 @@ pub mod traits {
 }
 pub mod models {
     pub mod crawler_file;
-    pub mod system_directory_model;
 }

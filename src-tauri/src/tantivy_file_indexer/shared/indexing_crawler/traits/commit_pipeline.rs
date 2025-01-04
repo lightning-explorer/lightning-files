@@ -3,7 +3,7 @@ use std::{
     future::Future,
 };
 
-use crate::tantivy_file_indexer::shared::search_index::tantivy_traits::{self};
+
 
 /// A service that is able to take in documents and commit them to the Tantivy index and/or the database
 pub trait CrawlerCommitPipeline: Send + Sync + 'static {
