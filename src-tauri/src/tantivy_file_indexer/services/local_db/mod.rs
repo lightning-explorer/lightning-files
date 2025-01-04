@@ -38,5 +38,10 @@ pub mod tables {
         pub mod entities{
             pub mod kv_pair;
         }
+        mod subscription{
+            pub mod backend;
+            pub mod tauri_subscription_list;
+        }
+        pub mod tauri_exports;
     }
 }
