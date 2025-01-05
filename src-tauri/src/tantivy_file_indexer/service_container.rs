@@ -29,7 +29,7 @@ impl AppServiceContainer {
         //let vector_db_service = Self::initialize_vector_service();
         let search_service = Self::initialize_search_service(app_path, handle);
 
-        let local_db_service = Self::initialize_sqlx_service(&app_save_service).await;
+        let local_db_service = Self::initialize_local_db_service(&app_save_service, handle.clone()).await;
 
         let crawler_service = Self::initialize_crawler_service(
             Arc::clone(&local_db_service),
@@ -65,10 +65,10 @@ impl AppServiceContainer {
         Arc::new(AppSaveService::new(save_dir, app_name))
     }
 
-    async fn initialize_sqlx_service(
-        app_save_service: &Arc<AppSaveService>,
+    async fn initialize_local_db_service(
+        app_save_service: &Arc<AppSaveService>, handle:AppHandle
     ) -> Arc<LocalDbService> {
-        Arc::new(LocalDbService::new_async(app_save_service).await)
+        Arc::new(LocalDbService::new_async(app_save_service, handle).await)
     }
 
     async fn initialize_crawler_service(

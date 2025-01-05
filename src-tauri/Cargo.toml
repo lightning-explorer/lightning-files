@@ -42,9 +42,7 @@ sqlx = { version = "0.8.2", features = ["sqlite"] }
 tantivy_ext = "0.1.0"
 trash = "3.0" # for moving files to the recycle bin
 tauri-plugin-drag = "2.0.0"
-
-[package.metadata.tauri.windows]
-requiresAdmin = true
+uuid = { version = "1", features = ["v4"] }
 
 [build]
 rustflags = ["-C", "link-arg=-fuse-ld=lld", "-Z", "threads=14"]

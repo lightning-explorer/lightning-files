@@ -3,13 +3,14 @@ use tantivy_file_indexer::{
     services::app_save::tauri_exports::*,
     services::local_crawler::tauri_exports::*, /*services::local_db::tables::files::tauri_exports::*,*/
     services::local_db::tauri_exports::*, services::search_index::tauri_exports::*,
+    services::local_db::tables::app_kv_store::tauri_exports::*
 };
 mod app_init;
 mod directory_nav_service;
 mod shared;
 mod tantivy_file_indexer;
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_drag::init())
@@ -46,7 +47,11 @@ pub fn run() {
             // Common commands:
             move_path_into_directory,
             delete_file,
-            open_in_explorer
+            open_in_explorer,
+            // Key value JSON storage:
+            kv_store_set,
+            kv_store_get,
+            kv_store_subscribe_to_key
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();
