@@ -27,15 +27,15 @@ export class MoveItemsPopupComponent implements OnInit, OnDestroy {
 
   constructor(
     private config: PersistentConfigService,
-    private directoryNavService:DirectoryNavigatorService,
+    private directoryNavService: DirectoryNavigatorService,
     private selectService: SelectService,
     private dragDropService: DragDropService
   ) {}
 
-  private get dontAskAgain(): boolean {
-    return this.config.readOrElse("moveItemsDontAskAgain", false);
+  private async getDontAskAgain() {
+    return await this.config.readOrSet("moveItemsDontAskAgain", false);
   }
-  private set dontAskAgain(val: boolean) {
+  private async setDontAskAgain(val: boolean) {
     this.config.update("moveItemsDontAskAgain", val);
   }
 
@@ -44,23 +44,23 @@ export class MoveItemsPopupComponent implements OnInit, OnDestroy {
   dontAskAgainRadioButton: RadioButtonProps = {
     text: "Don't ask again",
     onToggle: (val: boolean) => val,
-    isChecked: this.dontAskAgain, // This now dynamically reflects the state of dontAskAgain
+    isChecked: false /*this.getDontAskAgain*/, // This now dynamically reflects the state of dontAskAgain
   };
 
   /** Returns `false` if the config has disabled this popup */
-  attemptOpen():boolean{
-    if(!this.dontAskAgain){
+  async attemptOpen() {
+    if (!this.getDontAskAgain) {
       this._isVisible = true;
       return true;
     }
     return false;
   }
 
-  async onYesClicked(){
+  async onYesClicked() {
     await this.dragDropService.moveDraggedItemsAsync();
   }
 
-  onDestroy(){
+  onDestroy() {
     this.dragDropService.unhideAllDraggingItems();
   }
 

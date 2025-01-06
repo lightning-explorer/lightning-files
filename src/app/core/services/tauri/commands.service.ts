@@ -398,6 +398,8 @@ export class TauriCommandsService {
       key,
       value,
     });
+    console.log(`KV Store - Set key: ${key} value:`);
+    console.log(value);
   }
 
   async kvStoreGet<T>(key: string): Promise<T | undefined> {

@@ -14,11 +14,11 @@ export class TauriLifecycleService {
   constructor(private configService: PersistentConfigService) {}
 
   async isFirstUse():Promise<boolean> {
-    return await this.configService.read("isFirstUse");
+    return await this.configService.readOrSet("isFirstUse", false);
   }
 
   async onShutdown() {
     this.configService.update("isFirstUse", false);
-    await this.configService.save();
+    //await this.configService.save();
   }
 }

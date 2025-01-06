@@ -18,7 +18,6 @@ export class DirectoryHistoryService implements OnDestroy {
 
   constructor(
     private directoryNavService: DirectoryNavigatorService,
-    private configService: PersistentConfigService
   ) {
     this.subscription.add(
       this.directoryNavService.currentDir$.subscribe((dir) => {
@@ -28,8 +27,6 @@ export class DirectoryHistoryService implements OnDestroy {
   }
 
   updateNavigate(newDirectory: string) {
-    this.configService.update('lastDirectoryAt', newDirectory);
-
     const oldDir = this.currentDir;
     this.currentDir = newDirectory;
     if (this.selfUpdated) {

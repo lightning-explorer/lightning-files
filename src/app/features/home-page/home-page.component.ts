@@ -24,7 +24,6 @@ import { PersistentConfigService } from "@core/services/persistence/config.servi
     CommonModule,
     SidebarComponent,
     MatIconModule,
-    PinnedFilesHeaderComponent,
     TopHeaderComponent,
   ],
   templateUrl: "./home-page.component.html",
@@ -57,7 +56,8 @@ export class HomePageComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    const lastDirAt = await this.configService.read("lastDirectoryAt");
+    const lastDirAt = await this.configService.readOrSet("lastDirectoryAt", "C:\\");
+    console.log("Here is the last directory at:");
     console.log(lastDirAt);
     const dir = lastDirAt ?? "C:\\";
     this.directoryNavService.setCurrentDir(dir);

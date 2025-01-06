@@ -1,90 +1,52 @@
 import { Injectable } from "@angular/core";
-import { BehaviorSubject, distinctUntilChanged, map, Observable } from "rxjs";
-import { ConfigKeys, getDefaultConfig } from "./config-keys";
-import { TauriCommandsService } from "../tauri/commands.service";
+import { Observable } from "rxjs";
+import { ConfigKeys } from "./config-keys";
+import { KvStorageService } from "../tauri/kv-store.service";
 
 @Injectable({ providedIn: "root" })
 export class PersistentConfigService {
-  private configLoaded = false;
-  private configFileName = "appconfig";
-
-  private configSubject = new BehaviorSubject<ConfigKeys>(getDefaultConfig());
-  private config$ = this.configSubject.asObservable();
-
-  private configLoadedPromise: Promise<void>;
-
-  constructor(private commandsService: TauriCommandsService) {
-    this.configLoadedPromise = this.loadConfig();
-  }
-
-  private async loadConfig(): Promise<void> {
-    console.log("Attempting to load JSON config from disk");
-    const config = await this.commandsService
-      .loadJsonLocal<ConfigKeys>(this.configFileName)
-      .catch((err) => {
-        console.log(`Error loading config: ${err}`);
-        return undefined;
-      });
-
-    this.configLoaded = true;
-    if (config) {
-      this.configSubject.next(config);
-    }
-  }
-
-  /** Save the config to disk */
-  async save(): Promise<boolean> {
-    const result = await this.commandsService.saveJsonLocal(
-      this.configSubject.getValue(),
-      this.configFileName
-    );
-    return result;
-  }
-
-  /** Ensure the config is loaded before accessing */
-  private ensureLoaded(): Promise<void> {
-    if (this.configLoaded) {
-      return Promise.resolve();
-    }
-    return this.configLoadedPromise;
-  }
+  constructor(private kvStoreService: KvStorageService) {}
 
   /** Subscribe to changes for one certain field in the config */
   observeKey<K extends keyof ConfigKeys>(key: K): Observable<ConfigKeys[K]> {
-    return this.config$.pipe(
-      map((config) => config[key]),
-      distinctUntilChanged()
-    );
+    const observable = this.kvStoreService.subscribe<ConfigKeys[K]>(key);
+    return observable;
   }
 
   /** Update a specific key in the config */
-  async update<K extends keyof ConfigKeys>(key: K, value: ConfigKeys[K]): Promise<void> {
-    const currentConfig = this.configSubject.value;
-    this.configSubject.next({
-      ...currentConfig,
-      [key]: value,
-    });
+  async update<K extends keyof ConfigKeys>(
+    key: K,
+    value: ConfigKeys[K]
+  ): Promise<void> {
     // TODO: debounce the save operation if needed
-    await this.save();
+    await this.kvStoreService.set(key, value);
   }
- 
-  /** Waits until the config is fully loaded, then returns the value */
-  async read<K extends keyof ConfigKeys>(key: K): Promise<ConfigKeys[K]> {
-    await this.ensureLoaded();
-    const config = this.configSubject.getValue();
-    return config[key];
+
+  async read<K extends keyof ConfigKeys>(
+    key: K
+  ): Promise<ConfigKeys[K] | undefined> {
+    const value = await this.kvStoreService.get<ConfigKeys[K]>(key);
+    return value;
   }
 
   /** Attempts to read an item from the config.
    *
-   * Returns the fallback value if the config hasn't been loaded from disk yet.
+   * If the value hasn't been set in the config, the fallback will be returned and
+   * it will be added to the config.
    */
-  readOrElse<K extends keyof ConfigKeys>(
+  async readOrSet<K extends keyof ConfigKeys>(
     key: K,
     fallback: ConfigKeys[K]
-  ): ConfigKeys[K] {
-    if (!this.configLoaded) return fallback;
-    const config = this.configSubject.getValue();
-    return config[key];
+  ): Promise<ConfigKeys[K]> {
+    const value = await this.read(key);
+    if (value) {
+      return value;
+    } else {
+      console.warn(`ConfigService - readOrSet notice:
+      The provided key was not present in the database:${key}
+      Assigning the fallback value`);
+      await this.update(key, fallback);
+      return fallback;
+    }
   }
 }

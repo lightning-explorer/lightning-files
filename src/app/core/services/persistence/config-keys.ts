@@ -7,15 +7,5 @@ export interface ConfigKeys {
   pinnedFiles: FileModel[];
   /** A list of file paths that should be easy for the user to access. (example: Downloads, Desktop, etc) */
   quickAccessFiles: string[];
-  lastDirectoryAt: string|undefined;
-}
-
-export function getDefaultConfig(): ConfigKeys {
-  return {
-    isFirstUse: true,
-    moveItemsDontAskAgain: false,
-    pinnedFiles: [],
-    quickAccessFiles: [],
-    lastDirectoryAt:undefined,
-  };
+  lastDirectoryAt: string;
 }
