@@ -1,6 +1,4 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { Observable } from 'rxjs';
-import { RadioButtonProps } from './RadioButtonProps';
 
 @Component({
   selector: 'app-radio-button',
@@ -10,15 +8,12 @@ import { RadioButtonProps } from './RadioButtonProps';
   styleUrl: './radio-button.component.css'
 })
 export class RadioButtonComponent {
-  @Input() props: RadioButtonProps = {
-    text:"", onToggle:()=>{}, isChecked:false
-  };
+  @Input() text = "";
   @Output() onToggle = new EventEmitter<boolean>();
+  @Input() isChecked = false;
 
   toggleRadio() {
-    this.props.isChecked = !this.props.isChecked; // Toggle the checked state
-    this.props.onToggle(this.props.isChecked);
-    this.onToggle.emit(this.props.isChecked)
+    this.isChecked = !this.isChecked; // Toggle the checked state
+    this.onToggle.emit(this.isChecked);
   }
-
 }

@@ -1,36 +1,25 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ButtonModel } from './models/ButtonModel';
+import { animate, style, transition, trigger } from '@angular/animations';
+import { smoothEnterAnimation } from '@shared/animations/smooth-enter.animation';
 
 @Component({
   selector: 'app-modal-popup',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './modal-popup.component.html',
-  styleUrl: './modal-popup.component.css'
+  styleUrl: './modal-popup.component.css',
+  animations:[
+    smoothEnterAnimation
+  ]
 })
 export class ModalPopupComponent {
   @Input() title: string = 'Modal Title';
   @Input() isVisible: boolean = false;
-  @Input() buttons: ButtonModel[] = [];
-  @Input() onClose:(()=>void)|undefined;
-  @Output() isVisibleChange = new EventEmitter<boolean>();
+  @Output() closeRequested = new EventEmitter<void>();
 
-  close() {
-    this.isVisible = false;
-    this.isVisibleChange.emit(this.isVisible);
-    if(this.onClose){
-      this.onClose();
-    }
-  }
-
-  open() {
-    this.isVisible = true;
-    this.isVisibleChange.emit(this.isVisible);
-  }
-
-  onButtonClick(action: () => void) {
-    action();
-    this.close();
+  requestClose() {
+    this.closeRequested.emit();
   }
 }

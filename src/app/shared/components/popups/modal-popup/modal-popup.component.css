@@ -8,6 +8,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 1000;
 }
 
 .modal {
@@ -15,6 +16,7 @@
     color: var(--text-primary);
     flex-direction: column;
     background-color: var(--bg-primary);
+    border: 1px solid var(--bg-light);
     padding: 20px;
     border-radius: 8px;
     width: 400px;
@@ -31,7 +33,7 @@
 }
 
 .modal-header label {
-    color: var(--primary);
+    color: var(--text-primary);
     font-weight: 600;
     font-size: 1.2em;
 }

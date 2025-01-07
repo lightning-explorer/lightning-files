@@ -4,6 +4,9 @@ import { RouterOutlet } from "@angular/router";
 import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.module";
 import { ColorThemeService } from "@core/services/customization/color-theme.service";
 import { WindowsWindowChromeComponent } from "./layout/windows-window-chrome/windows-window-chrome.component";
+import { TauriCommandsService } from "@core/services/tauri/commands.service";
+import { PersistentConfigService } from "@core/services/persistence/config.service";
+import { AddToCrawlerQueueDTO } from "@core/dtos/add-to-crawler-queue-dto";
 
 @Component({
   selector: "app-root",
@@ -19,10 +22,21 @@ import { WindowsWindowChromeComponent } from "./layout/windows-window-chrome/win
 })
 export class AppComponent implements OnInit {
   constructor(
+    private commandsService: TauriCommandsService,
+    private configService: PersistentConfigService,
     private themeService: ColorThemeService
   ) {}
 
   async ngOnInit() {
     //this.themeService.setTheme("light-theme");
+    await this.configService.update("crawlerWhitelistedExtensions", ["docx"]);
+    await this.configService.update("crawlerDirectoryNamesExclude", [
+      "node_modules",
+      "Program Files",
+    ]);
+
+    const d: AddToCrawlerQueueDTO = { DirPath: "C:\\", Priority: 5 };
+    await this.commandsService.addDirsToCrawlerQueue([d]);
+    await this.commandsService.dispatchCrawlers();
   }
 }

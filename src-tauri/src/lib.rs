@@ -51,7 +51,8 @@ pub fn run() {
             // Key value JSON storage:
             kv_store_set,
             kv_store_get,
-            kv_store_subscribe_to_key
+            kv_store_subscribe_to_key,
+            dispatch_crawlers
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();

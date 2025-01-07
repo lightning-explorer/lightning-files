@@ -12,7 +12,7 @@ use tauri::{AppHandle, Manager};
 pub struct AppServiceContainer {
     //pub search_service: Arc<SearchIndexService>,
     //pub local_db_service: Arc<LocalDbService>,
-    pub crawler_service: Arc<FileCrawlerService>,
+    //pub crawler_service: Arc<FileCrawlerService>,
     //pub crawler_analyzer_service: Arc<FileCrawlerAnalyzerService>,
 }
 
@@ -49,7 +49,7 @@ impl AppServiceContainer {
         Self {
             //search_service,
             //local_db_service,
-            crawler_service,
+            //crawler_service,
             //crawler_analyzer_service,
         }
     }

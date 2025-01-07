@@ -1,7 +1,9 @@
 use std::{
     fmt::{Debug, Display},
-    future::Future,
+    future::Future, sync::Arc,
 };
+
+use tokio::sync::Notify;
 
 use super::super::models::crawler_file::CrawlerFile;
 
@@ -28,4 +30,7 @@ pub trait CrawlerQueueApi: Clone + Send + Sync + 'static {
 
     /// Set the `taken` status of every item in the database to `false`
     fn set_taken_to_false_all(&self) -> impl Future<Output = Result<(), Self::Error>> + Send;
+
+    /// Get the queue Notifier, which gets triggered each time an item gets added to the queue
+    fn get_notifier(&self) -> Arc<Notify>;
 }

@@ -7,7 +7,7 @@ import { FileModel } from "@core/models/file-model";
 import { HighlightableLabelComponent } from "@shared/components/highlightable-label/highlightable-label.component";
 import { PinService } from "src/app/features/home-page/services/pin.service";
 import { defaultFileState, FileState } from "./file-state";
-import { fadeInAnimation } from "@shared/animations/fade-in-animation";
+import { fadeInAnimation } from "@shared/animations/fade-in.animation";
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
 

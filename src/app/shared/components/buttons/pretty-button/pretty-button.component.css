@@ -1,13 +1,4 @@
-.content{
-    display: flex;
-    width: 100%;
-}
-
-.content p{
-    line-height: 1rem;
-}
-
-.content button{
+button{
     display: flex;
     width: 100%;
     align-items: center;
@@ -19,12 +10,12 @@
     color: var(--text-primary);
 }
 
-.content button:hover {
+button:hover {
     background: var(--primary-light);
     box-shadow: 7px 5px 56px -14px var(--primary-light);
 }
 
-.content button:active {
+button:active {
     transform: scale(1);
     box-shadow: 7px 5px 56px -10px var(--primary-light);
 }

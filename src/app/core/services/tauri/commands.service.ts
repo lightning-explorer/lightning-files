@@ -418,4 +418,11 @@ export class TauriCommandsService {
       { key }
     );
   }
+
+  /** Dispatch the file crawlers if they are not already running */
+  async dispatchCrawlers(){
+    await this.invokeSafe<void>(
+      "dispatch_crawlers"
+    );
+  }
 }

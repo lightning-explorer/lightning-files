@@ -4,13 +4,16 @@ use super::{
         backend::BackendSubscriptionList, tauri_subscription_list::TauriSubscriptionList,
     },
 };
-use crate::tantivy_file_indexer::services::local_db::table_creator::generate_table_lenient;
+use crate::tantivy_file_indexer::{models::auto_serializing_value::AutoSerializingValue, services::local_db::table_creator::generate_table_lenient};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
 use tauri::AppHandle;
 
 #[derive(Clone)]
+/// Local KV storage thanks to SQLite
+/// 
+/// All of the keys should be camelCase
 pub struct AppKvStoreTable {
     db: Arc<DatabaseConnection>,
 
@@ -73,7 +76,7 @@ impl AppKvStoreTable {
 
     /// Retrieve the value with the certain key in the store, given that it exists and it is in the format you want it in
     /// 
-    /// Not necessarily an expensive operation, as results just get cached for future requests.
+    /// Not necessarily an expensive operation, as results just get cached for future requests. Though, the underlying JSON has to be deserialized every time.
     pub async fn get<T>(&self, key: &str) -> Result<Option<T>, String>
     where
         T: DeserializeOwned,
@@ -107,6 +110,34 @@ impl AppKvStoreTable {
             }
             None => Ok(None),
         }
+    }
+
+    /// Where `key` is the key you want to check and `value` is the current JSON data that the caller has.
+    /// 
+    /// Note if the caller's data was pulled from a different key, the results will be inaccurate.
+    /// 
+    /// If the value in the KV store differs from what the caller's value is, then the caller's value will get updated.
+    /// 
+    /// Returns `true` if the value was updated
+    pub async fn update_value<T>(&self, key:&str, callers_value:&AutoSerializingValue<T>) -> Result<bool,String> where T: Serialize + Clone + DeserializeOwned{
+        let caller_val_lock = callers_value.get_json().await;
+        if self.has_value_changed(key, &caller_val_lock).await{
+            if let Some(value) = self.get(key).await?{
+                callers_value.set(value).await;
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
+    /// Check if the value currently stored for a key differs from the value that the caller currently has.
+    /// 
+    /// Returns `true` if the old and new data differ
+    async fn has_value_changed(&self, key: &str, old_value:&serde_json::Value)->bool{
+        if let Some(value) = self.subscriptions.get_key_status(key).await{
+            return *old_value != *value;
+        }
+        false
     }
 
     /// Returns the event identifier

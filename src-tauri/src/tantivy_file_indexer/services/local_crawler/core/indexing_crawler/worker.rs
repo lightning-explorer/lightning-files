@@ -1,7 +1,6 @@
-use std::{sync::Arc, time::Duration};
-
 use rand::{Rng, SeedableRng};
-use tokio::sync::Notify;
+use std::{sync::Arc, time::Duration};
+use tokio::sync::mpsc::error::TryRecvError;
 
 use crate::{
     shared::models::sys_file_model::SystemFileModel,
@@ -16,7 +15,8 @@ use crate::{
 
 use super::{
     crawler::{self, CrawlerError},
-    plugins::garbage_collector::CrawlerGarbageCollector,
+    plugins::{filterer::CrawlerFilterer, garbage_collector::CrawlerGarbageCollector},
+    task_manager::{CrawlerManagerMessageReceiver, CrawlerMessage},
 };
 
 pub struct IndexingCrawlerWorker<C, P>
@@ -26,9 +26,12 @@ where
 {
     crawler_queue: Arc<C>,
     pipeline: Arc<P>,
-    notify: Arc<Notify>,
     batch_size: usize,
+    /// Message channel to receive orders from the task manager
+    receiver: CrawlerManagerMessageReceiver,
+
     garbage_collector: Option<Arc<CrawlerGarbageCollector>>,
+    filterer: Option<Arc<CrawlerFilterer>>,
 }
 
 impl<C, P> IndexingCrawlerWorker<C, P>
@@ -42,15 +45,17 @@ where
     pub fn new(
         crawler_queue: Arc<C>,
         pipeline: Arc<P>,
-        notify: Arc<Notify>,
         batch_size: usize,
+        receiver: CrawlerManagerMessageReceiver,
     ) -> Self {
         Self {
             crawler_queue,
             pipeline,
-            notify,
             batch_size,
+            receiver,
+
             garbage_collector: None,
+            filterer: None,
         }
     }
 
@@ -58,8 +63,12 @@ where
         self.garbage_collector = Some(c);
     }
 
-    pub async fn worker_task(&self) {
-        let mut dtos_bank: Vec<(CrawlerFile, Vec<SystemFileModel>)> = Vec::new();
+    pub fn inject_filterer(&mut self, f: Arc<CrawlerFilterer>) {
+        self.filterer = Some(f);
+    }
+
+    pub async fn worker_task(&mut self) {
+        let mut files_bank: Vec<(CrawlerFile, Vec<SystemFileModel>)> = Vec::new();
         let mut num_files_processed = 0;
 
         self.random_wait().await;
@@ -68,12 +77,17 @@ where
             match self.staggered_fetch_next().await {
                 Ok(file_option) => match file_option {
                     Some(file) => {
-                        // not needed if the log isn't there
-                        // let file_clone = file.clone();
-                        // let time = Instant::now();
+                        if let Some(filterer) = &self.filterer {
+                            if !filterer.should_crawl_directory(&file.path).await {
+                                println!("File Crawler - Filterer recommends not crawling directory: {}. Skipping it.",file.path.to_string_lossy());
+                                // Fetched a directory that shouldn't be crawled:
+                                // Example: 'node_modules'
+                                continue;
+                            }
+                        }
 
-                        let dtos = self.handle_crawl(&file).await;
-                        let len = dtos.len();
+                        let inner_files = self.handle_crawl(&file).await;
+                        let len = inner_files.len();
                         num_files_processed += len;
                         // Register this number of files to the garbage collector, if there is one
                         if let Some(collector) = &self.garbage_collector {
@@ -82,31 +96,23 @@ where
                             }
                         }
 
-                        dtos_bank.push((file, dtos));
-
-                        // // optional log
-                        // println!(
-                        //     "Crawler worker finished processing {}. Priority: {}. Num files processed: {}. Time: {:?}",
-                        //     file_clone.path.to_string_lossy(),
-                        //     file_clone.priority,
-                        //     num_files_processed,
-                        //     time.elapsed()
-                        // );
+                        files_bank.push((file, inner_files));
 
                         if num_files_processed >= self.batch_size {
                             // Commit all and drain the bank of files
                             num_files_processed = 0;
-                            dtos_bank = self.commit_dtos_bank(dtos_bank).await;
+                            files_bank = self.commit_files_bank(files_bank).await;
                         }
                     }
-                    None if !dtos_bank.is_empty() => {
-                        // There isn't another item in the queue, but the crawler is still hanging on to DTOs
+                    None if !files_bank.is_empty() => {
+                        // There isn't another item in the queue, but the crawler is still hanging on to files
                         num_files_processed = 0;
-                        dtos_bank = self.commit_dtos_bank(dtos_bank).await;
+                        files_bank = self.commit_files_bank(files_bank).await;
                     }
                     None => {
                         println!("No tasks available. Waiting for notification...");
-                        self.notify.notified().await;
+                        let queue_notifier = self.crawler_queue.get_notifier();
+                        queue_notifier.notified().await;
                         self.random_wait().await;
                     }
                 },
@@ -118,13 +124,40 @@ where
                     self.random_wait().await;
                 }
             }
+            // Handle messages from the task manager:
+            if let Some(message) = self.get_next_receiver_msg(){
+                match message{
+                    CrawlerMessage::Kill => break,
+                    CrawlerMessage::Throttle(_) => todo!(),
+                }
+            }
         }
+        println!("Crawler worker has been killed due to task manager saying so");
+    }
+
+    fn get_next_receiver_msg(&mut self) -> Option<CrawlerMessage> {
+        match self.receiver.try_recv() {
+            Ok(message) => return Some(message),
+            Err(err) => {
+                if let TryRecvError::Disconnected = err {
+                    println!(
+                        "WARNING: Disconnection between crawler and its task manager communication channel: {}",
+                        err
+                    )
+                }
+                // Otherwise, it'll be an `Empty` error, which we don't care about
+            }
+        }
+        None
     }
 
     async fn handle_index(&self, dir: &CrawlerFile, files: Vec<SystemFileModel>) {
         let parent_path = dir.path.to_string_lossy().to_string();
         match async_retry::retry_with_backoff(
-            |_| self.pipeline.upsert_many(files.clone(), parent_path.clone()),
+            |_| {
+                self.pipeline
+                    .upsert_many(files.clone(), parent_path.clone())
+            },
             5,
             Duration::from_millis(1000),
         )
@@ -152,7 +185,8 @@ where
     where
         C: CrawlerQueueApi,
     {
-        match crawler::crawl(directory, Arc::clone(&self.crawler_queue)).await {
+        let filterer_clone = self.filterer.clone();
+        match crawler::crawl(directory, Arc::clone(&self.crawler_queue), filterer_clone).await {
             Ok(dtos) => {
                 return dtos;
             }
@@ -182,16 +216,16 @@ where
         Vec::new()
     }
 
-    async fn commit_dtos_bank(
+    async fn commit_files_bank(
         &self,
-        mut dtos: Vec<(CrawlerFile, Vec<SystemFileModel>)>,
+        mut files: Vec<(CrawlerFile, Vec<SystemFileModel>)>,
     ) -> Vec<(CrawlerFile, Vec<SystemFileModel>)> {
-        //println!("Crawler is committing dtos bank");
-        for (dir, files) in dtos.drain(..) {
+        //println!("Crawler is committing files bank");
+        for (dir, inner_files) in files.drain(..) {
             //println!("Draining {}", dir.path.to_string_lossy());
-            self.handle_index(&dir, files).await;
+            self.handle_index(&dir, inner_files).await;
         }
-        dtos
+        files
     }
 
     async fn remove_from_crawler_queue(&self, directory: &CrawlerFile) -> Result<(), String> {

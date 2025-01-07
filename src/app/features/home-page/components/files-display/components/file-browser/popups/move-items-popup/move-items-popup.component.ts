@@ -4,69 +4,45 @@ import { ModalPopupComponent } from "@shared/components/popups/modal-popup/modal
 import { ButtonModel } from "@shared/components/popups/modal-popup/models/ButtonModel";
 import { RadioButtonComponent } from "@shared/components/buttons/radio-button/radio-button.component";
 import { PersistentConfigService } from "@core/services/persistence/config.service";
-import { RadioButtonProps } from "@shared/components/buttons/radio-button/RadioButtonProps";
 import { SelectService } from "../../services/interaction/select.service";
 import { DragDropService } from "../../services/interaction/dragdrop.service";
 import { Subscription } from "rxjs";
 import { DirectoryNavigatorService } from "src/app/features/home-page/services/directory-navigator.service";
+import { MoveItemsPopupStateService } from "./move-items-popup-state.service";
+import { PrettyButtonComponent } from "../../../../../../../../shared/components/buttons/pretty-button/pretty-button.component";
 
 @Component({
   selector: "app-move-items-popup",
   standalone: true,
-  imports: [CommonModule, ModalPopupComponent, RadioButtonComponent],
+  imports: [CommonModule, ModalPopupComponent, RadioButtonComponent, PrettyButtonComponent],
   templateUrl: "./move-items-popup.component.html",
   styleUrl: "./move-items-popup.component.css",
 })
-export class MoveItemsPopupComponent implements OnInit, OnDestroy {
-  private subscription = new Subscription();
-
+export class MoveItemsPopupComponent {
   currentDir$ = this.directoryNavService.currentDir$;
   itemsAdding$ = this.selectService.selectedIndices$;
   dest$ = this.dragDropService.draggingItemsTo$;
-  _isVisible = false;
+  isVisible$ = this.stateService.isVisible$;
 
   constructor(
-    private config: PersistentConfigService,
     private directoryNavService: DirectoryNavigatorService,
     private selectService: SelectService,
-    private dragDropService: DragDropService
+    private dragDropService: DragDropService,
+
+    private stateService: MoveItemsPopupStateService
   ) {}
 
-  private async getDontAskAgain() {
-    return await this.config.readOrSet("moveItemsDontAskAgain", false);
-  }
-  private async setDontAskAgain(val: boolean) {
-    this.config.update("moveItemsDontAskAgain", val);
-  }
-
-  buttons: ButtonModel[] = [{ text: "Yes", action: () => this.onYesClicked() }];
-
-  dontAskAgainRadioButton: RadioButtonProps = {
-    text: "Don't ask again",
-    onToggle: (val: boolean) => val,
-    isChecked: false /*this.getDontAskAgain*/, // This now dynamically reflects the state of dontAskAgain
-  };
-
-  /** Returns `false` if the config has disabled this popup */
-  async attemptOpen() {
-    if (!this.getDontAskAgain) {
-      this._isVisible = true;
-      return true;
-    }
-    return false;
+  async onDontAskAgainToggled(newVal:boolean){
+    this.stateService.setDontAskAgain(newVal);
   }
 
   async onYesClicked() {
     await this.dragDropService.moveDraggedItemsAsync();
   }
 
-  onDestroy() {
+  onCloseRequested(){
     this.dragDropService.unhideAllDraggingItems();
+    this.stateService.closePopup();
   }
 
-  ngOnInit(): void {}
-
-  ngOnDestroy(): void {
-    this.subscription.unsubscribe();
-  }
 }

@@ -14,6 +14,7 @@ pub mod services {
     pub mod search_index;
 }
 mod models {
+    pub mod auto_serializing_value;
     pub mod vector_search_params_model;
     pub mod emit_metadata_model;
 }

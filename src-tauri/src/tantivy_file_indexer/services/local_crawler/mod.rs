@@ -11,11 +11,12 @@ mod core {
     pub mod indexing_crawler {
         pub mod plugins{
             pub mod garbage_collector;
+            pub mod filterer;
         }
         mod crawler;
         mod worker;
+        mod worker_task_handle;
         pub mod builder;
-        pub mod reviewer;
         pub mod task_manager;
     }
 }

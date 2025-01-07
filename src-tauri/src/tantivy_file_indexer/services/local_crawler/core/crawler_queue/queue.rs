@@ -15,12 +15,11 @@ use crate::tantivy_file_indexer::services::local_db::{
 };
 
 pub type Priority = u32;
-pub const DEFAULT_PRIORITY: Priority = 5;
 
 #[derive(Clone)]
 pub struct CrawlerQueue {
     db: Arc<LocalDbService>,
-    notify: Arc<Notify>,
+    pub notify: Arc<Notify>,
 }
 
 // Rather than locally writing to JSON, write to the database.
@@ -31,16 +30,6 @@ impl CrawlerQueue {
             db,
             notify: Arc::new(Notify::new()),
         }
-    }
-
-    pub async fn push_defaults(&self, paths: &[PathBuf]) -> Result<(), DbErr> {
-        let files: Vec<(PathBuf, u32)> = paths
-            .iter()
-            .map(|path| (path.clone(), DEFAULT_PRIORITY))
-            .collect();
-
-        self.push_many(&files).await?;
-        Ok(())
     }
 
     pub async fn fetch_many(&self, amount: u64) -> Result<Vec<(PathBuf, Priority)>, DbErr> {
@@ -55,18 +44,6 @@ impl CrawlerQueue {
             })
     }
 
-    // pub async fn take_many(&self, amount: u64) -> Result<Vec<(PathBuf, Priority)>, DbErr> {
-    //     self.get_crawler_queue_table()
-    //         .take_many(amount)
-    //         .await
-    //         .map(|models| {
-    //             models
-    //                 .into_iter()
-    //                 .map(|model| (PathBuf::from(model.path), model.priority))
-    //                 .collect()
-    //         })
-    // }
-
     pub async fn delete_many(&self, models: Vec<indexed_dir::Model>) -> Result<(), DbErr> {
         self.get_crawler_queue_table()
             .delete_many(&models)
@@ -77,32 +54,6 @@ impl CrawlerQueue {
     pub async fn set_taken_to_false_all(&self) -> Result<(), DbErr> {
         self.get_crawler_queue_table().mark_all_as_not_taken().await
     }
-
-    // pub async fn pop(&self) -> Result<Option<(PathBuf, Priority)>, DbErr> {
-    //     #[cfg(feature = "file_crawler_logs")]
-    //     println!("Length of queue: {}", self.get_len().await);
-
-    //     match self.get_crawler_queue_table().pop().await {
-    //         Ok(model) => Ok(model.map(|x| {
-    //             if x.priority > 1 {
-    //                 #[cfg(feature = "file_crawler_logs")]
-    //                 println!(
-    //                     "Took item {} from queue with priority {}",
-    //                     x.path, x.priority
-    //                 );
-    //             }
-    //             (PathBuf::from(&x.path), x.priority)
-    //         })),
-    //         Err(err) => Err(err),
-    //     }
-    // }
-
-    // pub async fn get_len(&self) -> u64 {
-    //     self.get_crawler_queue_table()
-    //         .count_dirs()
-    //         .await
-    //         .unwrap_or_default()
-    // }
 
     /// This function automatically gates off files that have been indexed recently, meaning that the fetch functions do not need to worry
     /// about grabbing entries that just got indexed.
@@ -209,10 +160,6 @@ impl CrawlerQueue {
                 time: Utc::now().timestamp(),
             })
             .collect()
-    }
-
-    pub fn get_notifier(&self) -> Arc<Notify> {
-        Arc::clone(&self.notify)
     }
 
     fn get_crawler_queue_table(&self) -> &CrawlerQueueTable {

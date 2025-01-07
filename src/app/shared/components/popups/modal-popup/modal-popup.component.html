@@ -1,25 +1,12 @@
-<div class="modal-backdrop" *ngIf="isVisible">
-
-    <div class="modal">
-
-        <div class="modal-header">
-            <label>{{ title }}</label>
-            <button class="close-btn" (click)="close()">×</button>
-        </div>
-
-        <div class="modal-body">
-            <ng-content></ng-content>
-        </div>
-
-        <div class="modal-footer">
-            <div *ngFor="let button of buttons">
-                <button (click)="onButtonClick(button.action)">{{button.text}}</button>
-            </div>
-
-        </div>
-
-        
-
+<div class="modal-backdrop" *ngIf="isVisible" (click)="requestClose()">
+  <div class="modal" (click)="$event.stopPropagation()" @smoothEnter>
+    <div class="modal-header">
+      <label>{{ title }}</label>
+      <button class="close-btn" (click)="requestClose()">×</button>
     </div>
 
+    <div class="modal-body">
+      <ng-content></ng-content>
+    </div>
+  </div>
 </div>

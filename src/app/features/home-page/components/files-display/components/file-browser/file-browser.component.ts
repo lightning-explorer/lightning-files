@@ -38,6 +38,7 @@ import { InlineSearchService } from "./services/inline-search.service";
 import { FailedToMoveItemsPopupComponent } from "./popups/generic-err-popup/generic-err-popup.component";
 import { FilesListService } from "../../services/files-list.service";
 import { FileState } from "../../../file-result/file-state";
+import { MoveItemsPopupStateService } from "./popups/move-items-popup/move-items-popup-state.service";
 
 @Component({
   selector: "app-file-browser",
@@ -56,6 +57,7 @@ import { FileState } from "../../../file-result/file-state";
     DragDropService,
     InlineSearchService,
     FileContextMenuService,
+    MoveItemsPopupStateService
   ],
   templateUrl: "./file-browser.component.html",
   styleUrl: "./file-browser.component.css",
@@ -77,7 +79,6 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   files: FileModel[] = [];
   states: FileState[] = [];
 
-  @ViewChild("moveItemsPopup") moveItemsPopup!: MoveItemsPopupComponent;
   @ViewChild("contextMenu") contextMenu!: ContextMenuComponent;
 
   @Input() showFullFilePaths = false;
@@ -99,6 +100,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     private dragService: DragDropService,
     private selectService: SelectService,
     private contextMenuService: FileContextMenuService,
+    private moveItemsPopupState: MoveItemsPopupStateService,
     private ngZone: NgZone
   ) {}
 
@@ -215,7 +217,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     if(this.dragService.draggingItemsToADirectory){
       if (this.dragService.numberOfItemsBeingDragged > 0) {
         // If the popup doesn't get opened, it means the user disabled it
-        if(!this.moveItemsPopup.attemptOpen()){
+        if(!this.moveItemsPopupState.attemptOpen()){
           await this.dragService.moveDraggedItemsAsync();
         }
       }

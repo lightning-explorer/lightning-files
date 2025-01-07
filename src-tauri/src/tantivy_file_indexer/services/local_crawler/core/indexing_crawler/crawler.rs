@@ -1,5 +1,7 @@
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
+use tokio::fs::ReadDir;
+
 use crate::{
     shared::models::sys_file_model::SystemFileModel,
     tantivy_file_indexer::shared::{
@@ -10,7 +12,8 @@ use crate::{
     },
 };
 
-use super::reviewer;
+use super::plugins::filterer::{CrawlerFilterer, ShouldIndexResult};
+
 pub enum CrawlerError {
     ReadDirError(String),
     PushToQueueError(String),
@@ -23,6 +26,7 @@ pub enum CrawlerError {
 pub async fn crawl<C>(
     file: &CrawlerFile,
     queue: Arc<C>,
+    filterer: Option<Arc<CrawlerFilterer>>,
 ) -> Result<Vec<SystemFileModel>, CrawlerError>
 where
     C: CrawlerQueueApi,
@@ -34,36 +38,44 @@ where
     let mut dtos = Vec::new();
     let mut dir_paths_found: Vec<CrawlerFile> = Vec::new();
 
-    process_files(&file.path, |entry_path| {
+    let mut dir = read_dir(&file.path).await?;
+
+    while let Ok(Some(entry)) = dir.next_entry().await {
+        let entry_path = entry.path();
         if let Ok(metadata) = entry_path.metadata() {
-            if reviewer::path_warrants_processing(&entry_path) {
-                match SystemFileModel::try_new_from_meta(entry_path.clone(), &metadata) {
-                    Ok(dto) => {
-                        dtos.push(dto);
-                        // If it is a directory, push it to the queue so that it can get processed
-                        if metadata.is_dir() {
-                            dir_paths_found.push(CrawlerFile {
-                                path: entry_path,
-                                priority: file.priority + 1,
-                                taken: false,
-                            });
-                        }
-                    }
-                    Err(err) => {
-                        println!(
-                            "Crawler failed to generate model for file: {}. Error: {}",
-                            entry_path.to_string_lossy(),
-                            err
-                        );
+            // First, see if the path can be filtered
+            if let Some(filterer) = &filterer {
+                if let ShouldIndexResult::ShouldNotIndex(_reason) =
+                    filterer.should_index(&entry_path).await
+                {
+                    // Optional log:
+                    //println!("Crawler Filterer - found path that shouldn't be indexed: {}. Reason: {}",entry_path.to_string_lossy(),reason);
+                    continue;
+                }
+            }
+
+            match SystemFileModel::try_new_from_meta(entry_path.clone(), &metadata) {
+                Ok(dto) => {
+                    dtos.push(dto);
+                    // If it is a directory, push it to the queue so that it can get processed
+                    if metadata.is_dir() {
+                        dir_paths_found.push(CrawlerFile {
+                            path: entry_path,
+                            priority: file.priority + 1,
+                            taken: false,
+                        });
                     }
                 }
-            } else {
-                // Optional log:
-                //println!("Crawler found file/directory not worth processing: {}", entry_path.to_string_lossy());
+                Err(err) => {
+                    println!(
+                        "Crawler failed to generate model for file: {}. Error: {}",
+                        entry_path.to_string_lossy(),
+                        err
+                    );
+                }
             }
         }
-    })
-    .await?;
+    }
 
     // Push the entries in bulk
     async_retry::retry_with_backoff(
@@ -77,17 +89,9 @@ where
     Ok(dtos)
 }
 
-async fn process_files<F>(dir_path: &PathBuf, mut process_fn: F) -> Result<(), CrawlerError>
-where
-    F: FnMut(PathBuf),
-{
-    let mut dir = tokio::fs::read_dir(&dir_path)
+async fn read_dir(dir_path: &PathBuf) -> Result<ReadDir, CrawlerError> {
+    let dir = tokio::fs::read_dir(&dir_path)
         .await
         .map_err(|err| CrawlerError::ReadDirError(err.to_string()))?;
-
-    while let Ok(Some(entry)) = dir.next_entry().await {
-        process_fn(entry.path());
-    }
-
-    Ok(())
+    Ok(dir)
 }
