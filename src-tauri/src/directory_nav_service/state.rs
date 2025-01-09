@@ -1,3 +1,9 @@
-pub use super::app_state::manager;
+use tauri::{AppHandle, Manager};
+use std::sync::Arc;
 
-// Reexport for the manager struct
+use super::services::watcher::service::DirectoryWatcherService;
+
+
+pub fn manage_state(handle:&AppHandle){
+    handle.manage(Arc::new(DirectoryWatcherService::new()));
+}

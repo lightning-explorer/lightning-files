@@ -39,7 +39,7 @@ impl CancellableTask {
         T: Send + 'static,
         F: Fn() + Send + 'static,
     {
-        self.cancel_existing_task().await;
+        self.cancel().await;
 
         let (cancel_tx, mut cancel_rx) = watch::channel(());
         let (result_tx, result_rx) = oneshot::channel();
@@ -65,7 +65,7 @@ impl CancellableTask {
     }
 
     /// Cancels any currently running task.
-    async fn cancel_existing_task(&self) {
+    pub async fn cancel(&self) {
         if let Some((cancel_tx, handle)) = self.current_task.write().await.take() {
             let _ = cancel_tx.send(()); // Signal cancellation
             let _ = handle.await; // Wait for the task to finish

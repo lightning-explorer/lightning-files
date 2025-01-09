@@ -1,4 +1,3 @@
-use super::super::super::super::app_state::files_display::FilesDisplayState;
 use super::file_retriever;
 use super::file_sorter;
 use crate::directory_nav_service::dtos::get_files_dtos::GetFilesParamsDTO;
@@ -6,21 +5,15 @@ use crate::shared::models::sys_file_model::SystemFileModel;
 
 use super::helper;
 use std::path::Path;
-use std::sync::Arc;
 use tauri::AppHandle;
 use tauri::Emitter;
-use tauri::State;
 
 #[tauri::command]
 pub async fn get_files_as_models(
     directory: String,
     params: GetFilesParamsDTO,
     app_handle: AppHandle,
-    state_files_display: State<'_, Arc<FilesDisplayState>>,
 ) -> Result<(), String> {
-    // Erase the file models in the Tauri state:
-    state_files_display.clear_files().await;
-
     let path = Path::new(&directory);
 
     match params.sort_by {
@@ -37,7 +30,6 @@ pub async fn get_files_as_models(
             for model in filtered.iter() {
                 emit_file(&app_handle, model);
             }
-            state_files_display.add_files(&mut filtered).await;
         }
         None => {
             // Output files as we get to them
@@ -51,7 +43,6 @@ pub async fn get_files_as_models(
                 }
             })
             .map_err(|err| err.to_string())?;
-            state_files_display.add_files(&mut files_to_add).await;
         }
     }
 

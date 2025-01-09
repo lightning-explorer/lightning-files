@@ -7,7 +7,6 @@ import { FilesDisplayComponent } from "./components/files-display/files-display.
 import { MatIconModule } from "@angular/material/icon";
 
 import { TopHeaderComponent } from "./components/top-header/top-header.component";
-import { PinnedFilesHeaderComponent } from "./components/top-header/pinned-files-header/pinned-files-header.component";
 import { HomePageService, SubPage } from "./services/home-page.service";
 import { ExtendedSearchComponent } from "./pages/extended-search/extended-search.component";
 import { DirectoryNavigatorService } from "./services/directory-navigator.service";
@@ -16,6 +15,8 @@ import { PinService } from "./services/pin.service";
 import { FileOperationsService } from "./services/file-operations.service";
 import { HomePageSearchService } from "./services/home-page-search.service";
 import { PersistentConfigService } from "@core/services/persistence/config.service";
+import { SettingsComponent } from "./pages/settings/settings.component";
+import { DirectoryWatcherService } from "./services/directory-watcher.service";
 
 @Component({
   selector: "app-home-page",
@@ -33,6 +34,7 @@ import { PersistentConfigService } from "@core/services/persistence/config.servi
     HomePageSearchService,
     DirectoryNavigatorService,
     DirectoryHistoryService,
+    DirectoryWatcherService,
     PinService,
     FileOperationsService,
   ],
@@ -42,6 +44,7 @@ export class HomePageComponent implements OnInit {
   pages = {
     main: FilesDisplayComponent,
     extendedSearch: ExtendedSearchComponent,
+    settings: SettingsComponent,
   };
   get currentPage() {
     return this.pages[this.page] || null;

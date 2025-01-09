@@ -1,4 +1,6 @@
 export interface DriveModel{
     Name:string,
-    Label:string
+    Label:string,
+    TotalSpace:number,
+    AvailableSpace:number,
 }

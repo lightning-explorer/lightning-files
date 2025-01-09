@@ -21,7 +21,6 @@ import {
 import { MoveItemsPopupComponent } from "./popups/move-items-popup/move-items-popup.component";
 import { InlineSearchBarComponent } from "./inline-search-bar/inline-search-bar.component";
 import { ContextMenuComponent } from "@shared/components/popups/context-menu/context-menu.component";
-import { FolderLoaderComponent } from "@shared/components/loaders/folder-loader/folder-loader.component";
 import { FileContextMenuService } from "./services/interaction/context-menu.service";
 import { DragDropService } from "./services/interaction/dragdrop.service";
 import { SelectService } from "./services/interaction/select.service";

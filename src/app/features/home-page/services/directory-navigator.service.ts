@@ -31,7 +31,7 @@ export class DirectoryNavigatorService {
 
   constructor(
     private commandsService: TauriCommandsService,
-    private configService: PersistentConfigService
+    private configService: PersistentConfigService,
   ) {}
 
   async setCurrentDir(dir: string, params?: GetFilesParamsDTO) {
@@ -49,13 +49,15 @@ export class DirectoryNavigatorService {
       this.currentDirSubject.next(formattedDir);
       this.isLoadingSubject.next(true);
 
-      await this.setDriveFiles(params);
+      await this.setFiles(params);
 
       this.isLoadingSubject.next(false);
     }
   }
 
-  async setDriveFiles(params?: GetFilesParamsDTO) {
+  /** Load in the files associated with the current directory */
+  async setFiles(params?: GetFilesParamsDTO) {
+    console.log("called set files");
     const directory = this.currentDirSubject.getValue();
 
     if (!params) params = getFilesParams_DefaultParams(); // No sorting logic or anything fancy

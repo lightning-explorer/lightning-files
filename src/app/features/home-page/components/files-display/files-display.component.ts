@@ -7,6 +7,7 @@ import { Observable, Subscription } from "rxjs";
 import { FilesListService } from "./services/files-list.service";
 import { CommonModule } from "@angular/common";
 import { DirectoryNavigatorService } from "../../services/directory-navigator.service";
+import { DirectoryWatcherService } from "../../services/directory-watcher.service";
 
 @Component({
   selector: "app-files-display",
@@ -28,25 +29,32 @@ export class FilesDisplayComponent implements OnInit, OnDestroy {
 
   constructor(
     private filesListService: FilesListService,
-    private directoryService: DirectoryNavigatorService
+    private directoryService: DirectoryNavigatorService,
+    // Is this the correct place to put this service?
+    private watcherService: DirectoryWatcherService
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit() {
     this.subscription.add(
-      this.directoryService.currentFiles$.subscribe((x) =>
-        this.filesListService.setFiles(x)
+      this.directoryService.currentFiles$.subscribe((files) =>
+        this.filesListService.setFiles(files)
       )
     );
     this.subscription.add(
       this.directoryService.isLoading$.subscribe((x) => (this.isLoading = x))
     );
     this.subscription.add(
-      this.directoryService.currentDir$.subscribe(x=>
-        this.noFilesMsg = x
-      )
+      this.directoryService.currentDir$.subscribe(async (dir) => {
+        this.noFilesMsg = dir;
+        this.watcherService.watchDirectory(dir);
+      })
     );
-
-    this.directoryService.setDriveFiles();
+    this.subscription.add(
+      this.watcherService.directoryChanges$.subscribe(() => {
+        this.directoryService.setFiles();
+      })
+    );
+    this.directoryService.setFiles();
   }
 
   ngOnDestroy(): void {

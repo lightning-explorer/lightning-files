@@ -52,7 +52,9 @@ pub fn run() {
             kv_store_set,
             kv_store_get,
             kv_store_subscribe_to_key,
-            dispatch_crawlers
+            dispatch_crawlers,
+            watch_directory,
+            stop_watching_directory,
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();

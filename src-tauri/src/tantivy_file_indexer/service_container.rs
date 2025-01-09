@@ -24,7 +24,7 @@ impl AppServiceContainer {
         let app_save_service = Self::initialize_app_save_service(AppSavePath::AppData, app_name);
         let app_path = app_save_service.save_dir.clone();
 
-        directory_nav_service::state::manager::manage_state(handle);
+        directory_nav_service::state::manage_state(handle);
 
         //let vector_db_service = Self::initialize_vector_service();
         let search_service = Self::initialize_search_service(app_path, handle);

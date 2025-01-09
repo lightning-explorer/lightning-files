@@ -425,4 +425,16 @@ export class TauriCommandsService {
       "dispatch_crawlers"
     );
   }
+
+  /** Tell the directory watcher to stop watching whatever directory it is watching */
+  async watchDirectory(path:string):Promise<string>{
+    return await this.invokeSafe<string>("watch_directory",
+      {path}
+    );
+  }
+
+  /**  The directory watcher can currently only watch one directory at a time, so this function will make it stop watching whatever it is currently watching. */
+  async stopWatchingDirectory(){
+    await this.invokeSafe<void>("stop_watching_directory");
+  }
 }
