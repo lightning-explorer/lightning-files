@@ -1,7 +1,7 @@
 import { Component } from "@angular/core";
 import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-directory-bar.component";
 import { MatIconModule } from "@angular/material/icon";
-import { SearchbarComponent } from "./searchbar/searchbar.component";
+import { SearchbarComponent } from "../searchbar/searchbar.component";
 import { DirectoryHistoryService } from "src/app/features/home-page/services/directory-history.service";
 import { DirectoryNavigatorService } from "../../services/directory-navigator.service";
 import { PinnedFilesHeaderComponent } from "./pinned-files-header/pinned-files-header.component";
@@ -15,8 +15,8 @@ import { TabsHolderComponent } from "./tabs-holder/tabs-holder.component";
     SearchbarComponent,
     MatIconModule,
     PinnedFilesHeaderComponent,
-    TabsHolderComponent
-],
+    TabsHolderComponent,
+  ],
   templateUrl: "./top-header.component.html",
   styleUrl: "./top-header.component.css",
 })

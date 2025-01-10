@@ -3,11 +3,11 @@ import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { debounceTime, Subscription } from "rxjs";
 import { SearchParamsDTO } from "@core/dtos/search-params-dto";
 import { CommonModule } from "@angular/common";
-import { FileResultComponent } from "../../file-result/file-result.component";
+import { FileResultComponent } from "../file-result/file-result.component";
 import { FileModel, newDefaultFileModel } from "@core/models/file-model";
-import { HomePageService, SubPage } from "../../../services/home-page.service";
-import { FileOperationsService } from "../../../services/file-operations.service";
-import { HomePageSearchService } from "../../../services/home-page-search.service";
+import { HomePageService, SubPage } from "../../services/home-page.service";
+import { FileOperationsService } from "../../services/file-operations.service";
+import { HomePageSearchService } from "../../services/home-page-search.service";
 
 @Component({
   selector: "app-searchbar",
@@ -34,7 +34,6 @@ export class SearchbarComponent implements OnInit, OnDestroy {
     private homePageService: HomePageService,
     private searchEngineService: HomePageSearchService,
     private fileOperationsService: FileOperationsService,
-    private zone: NgZone // Allows forced change detection
   ) {}
 
   ngOnInit(): void {

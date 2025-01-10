@@ -32,9 +32,9 @@ interface Alignment {
  */
 @Component({
   selector: "iconify-icon",
-  template: `<div [innerHTML]="svgIcon | safeHtml" class="content"></div>`,
+  template: `<div [innerHTML]="svgIcon | safeHtml" class="content" ></div>`,
   styles: [],
-  //styleUrl: "./iconify-icon.component.css",
+  styleUrl: "./iconify-icon.component.css",
   providers: [],
 })
 export class IconifyIconComponent implements OnInit, OnChanges, OnDestroy {
