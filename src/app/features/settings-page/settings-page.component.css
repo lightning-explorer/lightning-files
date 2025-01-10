@@ -28,7 +28,6 @@
 
 .crawler-queue label {
     color: var(--third-color);
-    font-family: "Fredoka";
     font-size: 1em;
     font-weight: 600;
     margin: .1em;
@@ -47,7 +46,6 @@
 
 .queue-item label {
     color: var(--background-color);
-    font-family: "Fredoka";
     font-size: 0.9em;
     font-weight: 400;
 }

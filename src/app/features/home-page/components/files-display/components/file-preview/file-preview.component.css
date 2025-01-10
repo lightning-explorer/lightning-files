@@ -19,7 +19,6 @@
     white-space: pre-wrap;
     word-wrap: break-word;
     overflow-wrap: anywhere;
-    font-family: "Poppins";
     overflow-y: auto;
     color: var(--contrast-color);
     height: 60vh;

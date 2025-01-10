@@ -8,11 +8,12 @@ import { FilesListService } from "./services/files-list.service";
 import { CommonModule } from "@angular/common";
 import { DirectoryNavigatorService } from "../../services/directory-navigator.service";
 import { DirectoryWatcherService } from "../../services/directory-watcher.service";
+import { FilesDisplayFooterComponent } from "./components/files-display-footer/files-display-footer.component";
 
 @Component({
   selector: "app-files-display",
   standalone: true,
-  imports: [FileBrowserComponent, CommonModule],
+  imports: [FileBrowserComponent, CommonModule, FilesDisplayFooterComponent],
   providers: [FilesListService],
   templateUrl: "./files-display.component.html",
   styleUrl: "./files-display.component.scss",
@@ -30,7 +31,6 @@ export class FilesDisplayComponent implements OnInit, OnDestroy {
   constructor(
     private filesListService: FilesListService,
     private directoryService: DirectoryNavigatorService,
-    // Is this the correct place to put this service?
     private watcherService: DirectoryWatcherService
   ) {}
 

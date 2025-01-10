@@ -6,7 +6,6 @@
 }
 
 .app-name {
-  font-family: "Jaro";
   color: var(--primary);
   font-size: 1.4em;
   text-wrap: nowrap;
@@ -16,12 +15,12 @@
   display: flex;
   position: relative;
   flex-direction: column;
-  border-top-right-radius: 10px;
   width: 200px;
-  background-color: var(--bg-dark);
+  background-color: transparent;
   padding: 1em;
   box-sizing: border-box;
   overflow-x: hidden;
+  background-color: var(--bg-primary);
 }
 
 .top {

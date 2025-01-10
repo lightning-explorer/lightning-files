@@ -33,18 +33,18 @@
 
 :root {
   margin: 0px;
-  --bg-light: #332f4d;
-  --bg-primary: #1d1a2f;
-  --bg-dark: #0f0d0f;
-  --bg-transparent: #1d1a2f89;
+  --bg-light: #000000b7;
+  --bg-primary: #000000a4;
+  --bg-dark: #000000c7;
+  --bg-transparent: #0000009d;
 
-  --input: #2d2c31;
+  --input: #2d2c3186;
 
   --bg-grad1: #1e1b20;
   --bg-grad2: #1b1b1bfb;
-  --alt: #27262c;
+  --alt: #0000003d;
 
-  --primary: #ff20b5;
+  --primary: #e60690;
   --primary-light: #ff5096;
 
   --text-primary: #ffffff;
@@ -79,14 +79,15 @@
 }
 
 html {
-  background: radial-gradient(
-    circle at 100% 107%,
-    var(--bg-primary) 0%,
-    var(--bg-grad1) 30%,
-    var(--bg-grad2) 60%,
-    var(--bg-primary) 100%
-  );
+  // background: radial-gradient(
+  //   circle at 100% 107%,
+  //   var(--bg-primary) 0%,
+  //   var(--bg-grad1) 30%,
+  //   var(--bg-grad2) 60%,
+  //   var(--bg-primary) 100%
+  // );
   backdrop-filter: blur(10px);
+
   width: 100%;
   height: 100%;
   margin: 0px;
@@ -101,14 +102,14 @@ h2,
 h3,
 h4,
 label,
-button {
-  line-height: 1;
+button,
+input {
+  line-height: normal;
   margin: 0px;
-  font-weight: 300;
-  font-family: "Poppins", sans-serif;
+  font-weight: 400;
   color: var(--font-color);
-  font-size: 0.9em;
-
+  font-size: 0.8rem;
+  font-family: 'Segoe UI';
   min-width: 0px;
 }
 

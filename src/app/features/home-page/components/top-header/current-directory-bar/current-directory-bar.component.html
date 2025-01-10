@@ -1,11 +1,13 @@
 <div class="InputContainer" #textInput>
-
-    <!-- <input class="input" name="text" type="text" autocomplete="off" [(ngModel)]="truncatedDirectory" (click)="selectText()"
+  <!-- <input class="input" name="text" type="text" autocomplete="off" [(ngModel)]="truncatedDirectory" (click)="selectText()"
         #textInput [formControl]="inputControl" (ngModelChange)="onInputChange()" (blur)="onBlur()"
         (keydown.enter)="onEnterPressed()" /> -->
 
-    <div *ngFor="let block of visibleDirectories" class="block">
-        <div class="breadcrumb" (click)="onBreadcrumbClicked(block)">{{block.section}}</div>
+  <div *ngFor="let block of visibleDirectories" class="block">
+    <div (click)="onBreadcrumbClicked(block)" class="breadcrumb">
+      <label>
+        {{ block.section }}
+      </label>
     </div>
-
+  </div>
 </div>

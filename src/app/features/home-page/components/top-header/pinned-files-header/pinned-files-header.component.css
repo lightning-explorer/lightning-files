@@ -17,7 +17,6 @@
 
 .file {
     display: flex;
-    font-family: "Fredoka";
     font-size: 1em;
     background-color: var(--bg-primary);
     border: 0px;

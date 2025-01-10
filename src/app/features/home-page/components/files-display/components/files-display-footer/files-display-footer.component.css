@@ -1,0 +1,39 @@
+.content {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+  padding: 0.6em;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-transparent);
+  gap: 1rem;
+}
+
+.content button {
+  border-radius: 20px;
+  justify-content: center;
+  min-width: 7rem;
+  box-sizing: border-box;
+  padding: 0.3rem;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  display: flex;
+  height: 100%;
+  border: 0px;
+  align-items: center;
+  background-color: var(--input);
+  color: var(--text-primary);
+}
+
+label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: red;
+}
+
+iconify-icon {
+    background-color: red;
+  padding-right: 0.5em;
+}

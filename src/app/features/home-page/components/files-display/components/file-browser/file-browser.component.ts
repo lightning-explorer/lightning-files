@@ -38,6 +38,7 @@ import { FailedToMoveItemsPopupComponent } from "./popups/generic-err-popup/gene
 import { FilesListService } from "../../services/files-list.service";
 import { FileState } from "../../../file-result/file-state";
 import { MoveItemsPopupStateService } from "./popups/move-items-popup/move-items-popup-state.service";
+import { HomePageService } from "src/app/features/home-page/services/home-page.service";
 
 @Component({
   selector: "app-file-browser",

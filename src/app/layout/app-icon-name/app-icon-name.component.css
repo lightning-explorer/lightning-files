@@ -7,7 +7,9 @@
 }
 
 .name{
+    padding-top: .5em;
     margin-left: .4em;
+    line-height: 1em;
 }
 
 .name .version{

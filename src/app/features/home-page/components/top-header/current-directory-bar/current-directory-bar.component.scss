@@ -1,49 +1,53 @@
 :host {
-    flex: 1;
-    min-width: 0px;
+  flex: 1;
+  min-width: 0px;
 }
 
 .InputContainer {
-    height: 100%;
-    padding: 0.1em;
-    display: flex;
-    align-items: center;
-    justify-content: left;
-    background-color: var(--input);
-    border-radius: 10px;
-    overflow: hidden;
-    cursor: pointer;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.075);
+  height: 100%;
+  padding: 0.1em;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  background-color: var(--input);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.075);
 }
 
 .input {
-    color: var(--text-primary);
-    background-color: transparent;
-    font-family: "Poppins";
-    font-size: 1.1em;
-    height: 100%;
-    border: none;
-    outline: none;
-    text-overflow: ellipsis;
-    caret-color: var(--secondary-color);
-    flex-grow: 1;
+  color: var(--text-primary);
+  background-color: transparent;
+  font-size: 1.1em;
+  height: 100%;
+  border: none;
+  outline: none;
+  text-overflow: ellipsis;
+  caret-color: var(--secondary-color);
+  flex-grow: 1;
 }
 
 input:hover {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .block {
-    font-family: "Poppins";
-    font-size: 0.9em;
-    padding: 0.2em;
-    padding-right: 0.4em;
-    padding-left: 0.4em;
-    border-radius: 10px;
-    color: var(--text-primary);
-    text-wrap: nowrap;
+  font-size: 0.9em;
+  border-radius: 5px;
+  color: var(--text-primary);
+  text-wrap: nowrap;
 }
 
 .block:hover {
-    background-color: var(--select-primary);
+  background-color: var(--select-primary);
+}
+
+.breadcrumb {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  padding: .2em;
+  padding-right: 0.4em;
+  padding-left: 0.4em;
 }

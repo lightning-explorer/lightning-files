@@ -3,6 +3,7 @@ import { FileModel } from "@core/models/file-model";
 import { BehaviorSubject } from "rxjs";
 import { DirectoryNavigatorService } from "src/app/features/home-page/services/directory-navigator.service";
 import { FileOperationsService } from "src/app/features/home-page/services/file-operations.service";
+import { HomePageService } from "src/app/features/home-page/services/home-page.service";
 
 /**
  * Handles both single click select and multiselect
@@ -18,6 +19,7 @@ export class SelectService {
   lastSelectedIndex: number | null = null;
 
   constructor(
+    private homePageService:HomePageService,
     private fileOperationsService:FileOperationsService
   ) {}
 
@@ -43,6 +45,8 @@ export class SelectService {
   async onFileDoubleClick(file: FileModel) {
     this.clearSelection();
     await this.fileOperationsService.openOrNavigateToFile(file);
+    // Navigate back to the file list view:
+    this.homePageService.setPage("main");
   }
 
   selectRange(start: number, end: number) {

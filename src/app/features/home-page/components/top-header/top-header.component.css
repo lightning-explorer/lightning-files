@@ -1,6 +1,4 @@
-:host {
-    margin-right: 1.2em;
-}
+
 
 .content{
     display: flex;
@@ -15,6 +13,12 @@
     width: 100%;
     flex-direction: row;
     color: var(--primary);
+}
+
+.body{
+    padding-top: .5em;
+    padding-right: 1.2em;
+    background-color: var(--bg-dark);
 }
 
 .heading button {

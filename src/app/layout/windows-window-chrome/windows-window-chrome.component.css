@@ -2,9 +2,10 @@
     display: flex;
     align-items: center;
     position:absolute;
-    height: 30px;
+    height: 40px;
     width: 100vw;
 
+    box-sizing: border-box;
     -webkit-app-region: drag;
     margin: 0px;
     justify-content: space-between;
@@ -18,7 +19,6 @@
     display: flex;
     margin: 0px;
     display: flex;
-    height: 30px;
     color: var(--text-primary);
 }
 
@@ -26,6 +26,7 @@
     display: flex;
     font-size: 1.6em;
     width: 48px;
+    height: 40px;
     border: none;
     cursor: pointer;
     -webkit-app-region: no-drag;
@@ -34,15 +35,11 @@
     transition: all .1s ease;
 }
 
-.maximize{
-    padding-bottom: 7px;
-}
-
 .maximize:hover, .minimize:hover{
     background-color: var(--select-primary);
 }
 
 .close:hover{
     color: white;
-    background-color: var(--primary);
+    background-color: rgb(224, 0, 0);
 }

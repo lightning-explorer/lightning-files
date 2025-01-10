@@ -5,6 +5,7 @@ import { SearchbarComponent } from "./searchbar/searchbar.component";
 import { DirectoryHistoryService } from "src/app/features/home-page/services/directory-history.service";
 import { DirectoryNavigatorService } from "../../services/directory-navigator.service";
 import { PinnedFilesHeaderComponent } from "./pinned-files-header/pinned-files-header.component";
+import { TabsHolderComponent } from "./tabs-holder/tabs-holder.component";
 
 @Component({
   selector: "app-top-header",
@@ -14,7 +15,8 @@ import { PinnedFilesHeaderComponent } from "./pinned-files-header/pinned-files-h
     SearchbarComponent,
     MatIconModule,
     PinnedFilesHeaderComponent,
-  ],
+    TabsHolderComponent
+],
   templateUrl: "./top-header.component.html",
   styleUrl: "./top-header.component.css",
 })

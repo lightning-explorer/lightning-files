@@ -20,7 +20,6 @@
 
 .content label {
     color: var(--text-primary);
-    font-family: 'REM';
     font-size: .9em;
 }
 
@@ -35,7 +34,6 @@
     font-size: 1em;
     transition: .1s ease all;
     pointer-events: none;
-    padding: .2em;
     padding-right: .8em;
     padding-left: .8em;
     border-radius: 20px;
@@ -57,6 +55,7 @@
 }
 
 .dropdown-button {
+    padding-top: .4rem;
     align-items: center;
     border: 0px;
     border-radius: 20px;
