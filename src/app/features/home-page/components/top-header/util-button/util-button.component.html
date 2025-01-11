@@ -1,0 +1,14 @@
+<div>
+  <app-dropdown-button-modal *ngIf="_isDropdownType; else iconButton" class="content">
+    <div name class="icon">
+      <iconify-icon [icon]="type" />
+      <label>New</label>
+    </div>
+  </app-dropdown-button-modal>
+
+  <ng-template #iconButton>
+    <button class="content">
+      <iconify-icon [icon]="type" size="1.2rem" />
+    </button>
+  </ng-template>
+</div>

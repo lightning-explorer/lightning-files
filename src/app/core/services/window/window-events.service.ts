@@ -1,44 +1,27 @@
-import { Injectable, NgZone } from "@angular/core";
-import { Subject } from "rxjs";
+import { HostListener, Injectable, NgZone } from "@angular/core";
+import { BehaviorSubject } from "rxjs";
+
+interface Dimensions{
+  width:number,
+  height:number
+}
 
 @Injectable({ providedIn: "root" })
 export class WindowEventsService {
-  private mouseEnterSubject = new Subject<void>();
-  /** Emits whenever the user's mouse enters the app window */
-  mouseEnter$ = this.mouseEnterSubject.asObservable();
+  private windowDimensionsSubject = new BehaviorSubject<Dimensions>({width:window.innerWidth,height:window.innerHeight});
+  windowDimensions$ = this.windowDimensionsSubject.asObservable();
 
-  private mouseLeaveSubject = new Subject<void>();
-  /** Emits whenever the user's mouse leaves the app window */
-  mouseLeave$ = this.mouseLeaveSubject.asObservable();
-
-  private isMouseInside = false;
-
-  constructor(private zone: NgZone) {
-    // Use NgZone to avoid Angular's change detection triggering for every mousemove
+  constructor(private zone:NgZone){
     this.zone.runOutsideAngular(() => {
-      //window.addEventListener("mousemove", this.onMouseMove.bind(this));
-      window.addEventListener("dragleave", this.onMouseMove.bind(this));
+      window.addEventListener("resize", this.onResize.bind(this));
     });
   }
 
-  private onMouseMove(event: MouseEvent | DragEvent) {
-    console.log('dragin');
-    const { clientX, clientY } = event;
-    const isInside =
-      clientX >= 0 &&
-      clientY >= 0 &&
-      clientX <= window.innerWidth &&
-      clientY <= window.innerHeight;
+  private onResize(event: Event): void {
+    this.updateWindowSize();
+  }
 
-
-    if (isInside && !this.isMouseInside) {
-      this.isMouseInside = true;
-      this.zone.run(() => this.mouseEnterSubject.next());
-      console.log('m enter');
-    } else if (!isInside && this.isMouseInside) {
-      this.isMouseInside = false;
-      this.zone.run(() => this.mouseLeaveSubject.next());
-      console.log('m leave');
-    }
+  private updateWindowSize(): void {
+    this.windowDimensionsSubject.next({width: window.innerWidth, height: window.innerHeight});
   }
 }

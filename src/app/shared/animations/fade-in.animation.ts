@@ -1,5 +1,6 @@
 import { animate, state, style, transition, trigger } from "@angular/animations";
 
+/** States: `hidden`, `visible` */
 export const fadeInAnimation = trigger("fadeIn", [
     state("hidden", style({ opacity: 0 })),
     state("visible", style({ opacity: 1 })),

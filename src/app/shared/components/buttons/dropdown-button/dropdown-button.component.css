@@ -21,6 +21,7 @@
 .content label {
     color: var(--text-primary);
     font-size: .9em;
+    text-wrap: nowrap;
 }
 
 .content-button {

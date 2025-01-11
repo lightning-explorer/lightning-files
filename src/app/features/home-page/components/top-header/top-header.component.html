@@ -14,9 +14,17 @@
         <mat-icon>keyboard_arrow_up</mat-icon>
       </button>
 
-      <app-current-directory-bar />
+      <div *ngFor="let button of visibleUtilButtons">
+        <app-util-button [type]="button"/>
+      </div>
 
-      <app-searchbar />
+      <button>
+        <iconify-icon icon="dots" size="1.2rem"/>
+      </button>
+
+      <!-- <app-current-directory-bar />
+
+      <app-searchbar /> -->
     </div>
     <app-pinned-files-header />
   </div>

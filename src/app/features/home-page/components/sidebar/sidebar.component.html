@@ -1,14 +1,13 @@
-<div class="content">
+<div class="content" [ngStyle]="{ width: previewWidth + 'px' }">
   <div class="top">
     <div class="scroll-region">
-      
-      <app-app-icon-name/>
+      <app-app-icon-name />
 
       <app-dropdown-button text="Quick Access" [expanded]="true">
         <div *ngIf="quickAccessPaths$ | async as paths">
           <div *ngFor="let path of paths">
             <app-quick-access-shortcut
-              [path]="path" 
+              [path]="path"
               (click)="quickAccessShortcutClicked(path)"
             />
           </div>
@@ -27,10 +26,9 @@
             <app-drive-result [drive]="drive" (click)="driveClicked(drive)" />
           </div>
         </div>
-      </app-dropdown-button>  
-
+      </app-dropdown-button>
     </div>
   </div>
 
-  <!-- <app-toolbar class="toolbar" /> -->
+  <app-extend-bar-vertical [minWidth]="30" [startingWidth]="200" />
 </div>

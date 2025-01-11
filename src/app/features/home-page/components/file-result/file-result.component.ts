@@ -1,4 +1,8 @@
-import { Component, HostBinding, Input, OnChanges, OnInit, SimpleChanges } from "@angular/core";
+import {
+  Component,
+  Input,
+  OnInit,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.module";
@@ -19,11 +23,12 @@ import { fadeInAnimation } from "@shared/animations/fade-in.animation";
     MatIconModule,
     IconifyIconModule,
     HighlightableLabelComponent,
-],
+  ],
   templateUrl: "./file-result.component.html",
   styleUrl: "./file-result.component.scss",
+  animations: [],
 })
-export class FileResultComponent{
+export class FileResultComponent {
   mouseOver = false;
 
   get shouldGrow() {
@@ -36,15 +41,13 @@ export class FileResultComponent{
   @Input() displayPath = false;
   @Input() altColor = false;
 
-  constructor(
-    private pinService: PinService,
-  ) {}
+  constructor(private pinService: PinService) {}
 
   get isPinned(): boolean {
     if (!this.file) return false;
     return this.pinService.isFilePinned(this.file);
   }
- 
+
   get icon(): string {
     return getIconFromPath(this.file ? this.file.FilePath : "");
   }
@@ -56,5 +59,4 @@ export class FileResultComponent{
   onMouseLeave() {
     this.mouseOver = false;
   }
-
 }

@@ -14,13 +14,15 @@
 .content {
   display: flex;
   position: relative;
-  flex-direction: column;
+  flex-direction: row;
   width: 200px;
   background-color: transparent;
   padding: 1em;
+  padding-right: .4rem;
   box-sizing: border-box;
   overflow-x: hidden;
   background-color: var(--bg-primary);
+  justify-content: space-between;
 }
 
 .top {
