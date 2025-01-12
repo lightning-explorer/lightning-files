@@ -85,11 +85,26 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnDestroy {
   private updateVisibleDirectories() {
     const parts = this.directory.split("\\");
     let dirBuilder: string = "";
+    let i = 0;
     this.visibleDirectories.length = 0;
     parts.forEach((x) => {
       if (x != "") {
+        // Add a normal section
         dirBuilder += `${x}\\`;
-        this.visibleDirectories.push({ fullPath: dirBuilder, section: x });
+        this.visibleDirectories.push({
+          fullPath: dirBuilder,
+          section: x,
+          prevPaths: [],
+        });
+        i++;
+        // Add a '>' block
+        if (i != parts.length) {
+          this.visibleDirectories.push({
+            fullPath: "",
+            section: ">",
+            prevPaths: ["C:\\"],
+          });
+        }
       }
     });
 

@@ -9,11 +9,14 @@ import { SelectService } from "../../files-display/components/file-browser/servi
 import { ContextMenuComponent } from "@shared/components/popups/context-menu/context-menu.component";
 import { FileContextMenuService } from "../../files-display/components/file-browser/services/interaction/context-menu.service";
 import { Subscription } from "rxjs";
+import { ToolbarComponent } from "../../sidebar/toolbar/toolbar.component";
+import { TooltipComponent } from "../../../../../shared/components/popups/tooltip/tooltip.component";
+import { TooltipDirective } from "@shared/components/popups/tooltip/tooltip.directive";
 
 @Component({
   selector: "app-pinned-files-header",
   standalone: true,
-  imports: [CommonModule, IconifyIconModule, ContextMenuComponent],
+  imports: [CommonModule, IconifyIconModule, ContextMenuComponent, TooltipDirective],
   providers: [SelectService, FileContextMenuService],
   templateUrl: "./pinned-files-header.component.html",
   styleUrl: "./pinned-files-header.component.css",
@@ -46,7 +49,7 @@ export class PinnedFilesHeaderComponent implements OnDestroy {
   }
 
   processFilename(name: string) {
-    return truncateText(name, 14);
+    return truncateText(name, 20);
   }
 
   getIcon(file: FileModel): string {

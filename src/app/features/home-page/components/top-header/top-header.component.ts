@@ -17,6 +17,7 @@ import {
   UtilButtonType,
   UtilButtonComponent,
 } from "./util-button/util-button.component";
+import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-directory-bar.component";
 
 @Component({
   selector: "app-top-header",
@@ -28,18 +29,19 @@ import {
     TabsHolderComponent,
     IconifyIconModule,
     UtilButtonComponent,
-  ],
+    CurrentDirectoryBarComponent
+],
   templateUrl: "./top-header.component.html",
   styleUrl: "./top-header.component.css",
 })
 export class TopHeaderComponent implements AfterViewInit, OnDestroy {
   utilButtons: UtilButtonType[] = [
-    "new",
-    "copy",
-    "paste",
-    "cut",
-    "rename",
-    "trash",
+    // "new",
+    // "copy",
+    // "paste",
+    // "cut",
+    // "rename",
+    // "trash",
   ];
 
   visibleUtilButtons: UtilButtonType[] = [];

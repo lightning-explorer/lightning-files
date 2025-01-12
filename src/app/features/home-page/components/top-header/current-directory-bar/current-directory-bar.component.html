@@ -4,10 +4,12 @@
         (keydown.enter)="onEnterPressed()" /> -->
 
   <div *ngFor="let block of visibleDirectories" class="block">
-    <div (click)="onBreadcrumbClicked(block)" class="breadcrumb">
+
+    <li (click)="onBreadcrumbClicked(block)" class="breadcrumb">
       <label>
-        {{ block.section }}
+        {{block.section}}
       </label>
-    </div>
+    </li>
+
   </div>
 </div>

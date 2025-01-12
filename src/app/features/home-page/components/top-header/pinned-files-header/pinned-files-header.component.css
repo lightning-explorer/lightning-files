@@ -5,7 +5,7 @@
     padding: .2em;
     padding-left: 1em;
     gap: .3em;
-    margin: .2em;
+
     align-items: center;
 }
 
@@ -41,7 +41,7 @@ button {
 }
 
 button:hover {
-    background-color: var(--select-transparent);
+    background-color: var(--select-primary);
 }
 
 .file-container {
@@ -50,36 +50,7 @@ button:hover {
 
 }
 
-.tooltiptext {
-    position: absolute;
-    z-index: 3222;
-    top: 120%;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 0.3em 0.6em;
-    opacity: 0;
-    pointer-events: none;
-    background: var(--bg-primary);
-    border-radius: 8px;
-    color: var(--primary);
-    font-weight: 400;
-    font-size: .8em;
-    box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;
-}
-
-.tooltiptext::after {
-    position: absolute;
-    content: "";
-    height: 0.6em;
-    width: 0.6em;
-    top: -0.2em;
-    left: 50%;
-    transform: translate(-50%) rotate(45deg);
-    background: var(--background-color);
-}
-
-
-.file-container:hover .tooltiptext {
+.file-container:hover {
     visibility: visible;
     opacity: 1;
 }

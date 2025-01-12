@@ -17,6 +17,7 @@ import { HomePageSearchService } from "./services/home-page-search.service";
 import { PersistentConfigService } from "@core/services/persistence/config.service";
 import { SettingsComponent } from "./pages/settings/settings.component";
 import { DirectoryWatcherService } from "./services/directory-watcher.service";
+import { TabsService } from "./services/tabs.service";
 
 @Component({
   selector: "app-home-page",
@@ -37,6 +38,7 @@ import { DirectoryWatcherService } from "./services/directory-watcher.service";
     DirectoryWatcherService,
     PinService,
     FileOperationsService,
+    TabsService,
   ],
 })
 export class HomePageComponent implements OnInit {
