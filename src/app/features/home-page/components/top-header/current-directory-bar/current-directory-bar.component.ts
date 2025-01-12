@@ -6,6 +6,7 @@ import {
   ElementRef,
   HostListener,
   Input,
+  NgZone,
   OnDestroy,
   OnInit,
   ViewChild,
@@ -33,10 +34,12 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnDestroy {
 
   hasChanged = false;
   inputControl = new FormControl();
+  private resizeObserver!: ResizeObserver;
 
   constructor(
     private directoryService: DirectoryNavigatorService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private ngZone:NgZone
   ) {}
 
   ngAfterViewInit(): void {
@@ -47,15 +50,18 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnDestroy {
         this.updateVisibleDirectories();
       })
     );
-  }
-
-  @HostListener("window:resize")
-  onResize() {
-    this.updateVisibleDirectories();
+    this.resizeObserver = new ResizeObserver(() => {
+      this.ngZone.run(() => {
+        this.updateVisibleDirectories();
+      });
+    });
+    this.resizeObserver.observe(this.textInput.nativeElement);
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+    this.cdr.detach();
+    this.resizeObserver.disconnect();
   }
 
   onInputChange() {
@@ -114,7 +120,7 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnDestroy {
     const breadcrumbElements = Array.from(
       this.textInput.nativeElement.querySelectorAll(".breadcrumb")
     ) as HTMLElement[];
-    const padding = 1.2; // Arbitrary padding
+    const padding = 1; // Arbitrary padding
     const elementWidths = breadcrumbElements.map(
       (element) => element.offsetWidth * padding
     );

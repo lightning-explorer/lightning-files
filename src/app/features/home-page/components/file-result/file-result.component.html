@@ -1,20 +1,15 @@
 <div *ngIf="file" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
   <button
-    class="content"
+    [class]="getCssClass()"
     [ngClass]="{ selected: selected, grow: shouldGrow, hide: state.hide, altcolor:altColor && ! selected }"
   >
-    <div class="content-left">
+    <div [class]="getBodyCssClass()">
       <div *ngIf="isPinned">
         <iconify-icon icon="pin" size="1em" color="--icon" />
       </div>
 
       <div>
-        <div *ngIf="file.IsDirectory; else elseBlock">
-          <iconify-icon icon="folder" size="1.7em" />
-        </div>
-        <ng-template #elseBlock class="icon">
-          <iconify-icon [icon]="icon" color="--icon" size="1.7em" />
-        </ng-template>
+          <iconify-icon [icon]="getIcon()" color="--icon"  [size]="getIconSize()" />
       </div>
 
       <div class="name" [ngClass]="{ hide: state.hide }">

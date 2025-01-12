@@ -1,17 +1,13 @@
-import {
-  Component,
-  Input,
-  OnInit,
-} from "@angular/core";
+import { Component, Input, OnInit } from "@angular/core";
+import { FileViewType } from "./enums/view-type";
 import { CommonModule } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.module";
-import { getIconFromPath } from "@core/util/get-icon-from-path";
 import { FileModel } from "@core/models/file-model";
 import { HighlightableLabelComponent } from "@shared/components/highlightable-label/highlightable-label.component";
 import { PinService } from "src/app/features/home-page/services/pin.service";
 import { defaultFileState, FileState } from "./file-state";
-import { fadeInAnimation } from "@shared/animations/fade-in.animation";
+import { FileResultPresentationService } from "./file-presentation.service";
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
 
@@ -37,19 +33,38 @@ export class FileResultComponent {
 
   @Input() file: FileModel | undefined;
   @Input() state: FileState = defaultFileState();
+
   @Input() selected = false;
   @Input() displayPath = false;
   @Input() altColor = false;
+  @Input() viewType: FileViewType = FileViewType.Detail;
 
-  constructor(private pinService: PinService) {}
+  constructor(
+    private pinService: PinService,
+    private presentionService: FileResultPresentationService
+  ) {}
 
   get isPinned(): boolean {
     if (!this.file) return false;
     return this.pinService.isFilePinned(this.file);
   }
 
-  get icon(): string {
-    return getIconFromPath(this.file ? this.file.FilePath : "");
+  getIcon():string{
+    if(this.file)
+      return this.presentionService.getIcon(this.file);
+    return "";
+  }
+
+  getIconSize():string{
+    return this.presentionService.getIconSize(this.viewType);
+  }
+
+  getCssClass() {
+    return this.presentionService.getCssClass(this.viewType);
+  }
+
+  getBodyCssClass() {
+    return this.presentionService.getBodyCssClass(this.viewType);
   }
 
   onMouseEnter() {

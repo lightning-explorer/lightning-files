@@ -14,8 +14,10 @@
       <mat-icon>keyboard_arrow_up</mat-icon>
     </button>
 
-    <div *ngFor="let button of visibleUtilButtons">
-      <app-util-button [type]="button" />
+    <div #toolbarButtonContainer class="toolbar-buttons">
+      <div *ngFor="let button of visibleUtilButtons">
+        <app-util-button [type]="button" class="toolbar-button" />
+      </div>
     </div>
 
     <!-- <button>

@@ -36,10 +36,10 @@
   --bg-light: #000000b7;
   --bg-primary: #000000a4;
   --bg-solid: #242424;
-  --bg-dark: #000000c7;
+  --bg-dark: #000000c9;
   --bg-transparent: #0000009d;
 
-  --input: #2d2c3186;
+  --input: #302f338f;
 
   --bg-grad1: #1e1b20;
   --bg-grad2: #1b1b1bfb;
@@ -110,7 +110,7 @@ input {
   font-weight: 400;
   color: var(--font-color);
   font-size: 0.8rem;
-  font-family: 'Segoe UI';
+  font-family: 'Poppins';
   min-width: 0px;
 }
 
@@ -145,5 +145,4 @@ body {
 
 body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
 }
