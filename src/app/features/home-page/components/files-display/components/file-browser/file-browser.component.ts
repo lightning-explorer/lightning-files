@@ -39,6 +39,7 @@ import { FilesListService } from "../../services/files-list.service";
 import { FileState } from "../../../file-result/file-state";
 import { MoveItemsPopupStateService } from "./popups/move-items-popup/move-items-popup-state.service";
 import { HomePageService } from "src/app/features/home-page/services/home-page.service";
+import { FileViewType } from "../../../file-result/enums/view-type";
 
 @Component({
   selector: "app-file-browser",
@@ -84,6 +85,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   @Input() showFullFilePaths = false;
   @Input() allowFadeIn:boolean = true;
   @Input() isLoading: boolean = false;
+  @Input() viewType: FileViewType = FileViewType.MediumIcon;
 
   @Output() fileClickedOn = new EventEmitter<FileModel>();
 
@@ -145,6 +147,12 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+  }
+
+  arrangeFilesAsGrid():boolean{
+    if(this.viewType==FileViewType.Detail)
+      return false;
+    return true;
   }
 
   hideAndFadeIn() {
