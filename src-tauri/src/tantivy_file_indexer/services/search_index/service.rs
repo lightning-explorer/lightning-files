@@ -16,7 +16,7 @@ use super::{
 };
 use std::{path::PathBuf, sync::Arc};
 
-use tantivy::{directory::GarbageCollectionResult, SegmentId};
+use tantivy::directory::GarbageCollectionResult;
 use tantivy_ext::SearchIndex;
 use tauri::{AppHandle, Manager};
 use tokio::task::JoinHandle;

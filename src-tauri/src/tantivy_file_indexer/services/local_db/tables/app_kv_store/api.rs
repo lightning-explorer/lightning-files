@@ -8,6 +8,7 @@ use crate::tantivy_file_indexer::{
     models::auto_serializing_value::AutoSerializingValue,
     services::local_db::table_creator::generate_table_lenient,
 };
+use print_err::print_err;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
@@ -139,7 +140,7 @@ impl AppKvStoreTable {
                     }
                     None => {
                         // The key does not exist in the database or the temporary storage
-                        self.set(key.to_string(), default.clone()).await;
+                        print_err("AppKvStore:GetOrCreate", self.set(key.to_string(), default.clone()).await);
                         serde_json::to_value(default)
                             .expect("Could not convert default value to JSON")
                     }

@@ -6,7 +6,7 @@ use crate::tantivy_file_indexer::{
     shared::indexing_crawler::traits::commit_pipeline::CrawlerCommitPipeline,
 };
 use std::collections::HashMap;
-use tantivy_ext::{Field, Index, SearchIndex};
+use tantivy_ext::SearchIndex;
 
 /// Pipeline where Tantivy is used as the main database. SQLite is used as a queue
 pub struct TantivyPipeline {
@@ -24,14 +24,8 @@ impl CrawlerCommitPipeline for TantivyPipeline {
     type InputModel = SystemFileModel;
     type Error = String;
 
-    async fn get_children(
-        &self,
-        parent_key: String,
-    ) -> Result<Vec<SystemFileModel>, Self::Error> {
-        let files = util::map_err(util::search_by_directory(
-            &self.index,
-            parent_key,
-        ))?;
+    async fn get_children(&self, parent_key: String) -> Result<Vec<SystemFileModel>, Self::Error> {
+        let files = util::map_err(util::search_by_directory(&self.index, parent_key))?;
         Ok(files.into_iter().map(|x| x.into()).collect())
     }
 
@@ -66,10 +60,7 @@ impl CrawlerCommitPipeline for TantivyPipeline {
 
         // Classify and remove stale files
         let stale_keys = util::classify_stale_models(&children, &tantivy_models);
-        println!("Children: {:#?}",children);
-        for key in stale_keys.iter(){
-            println!("Found stale path: {}", key);
-        }
+
         self.remove_many(stale_keys).await?;
 
         util::map_err(self.index.add(tantivy_models.iter()).await)?;
@@ -91,7 +82,7 @@ impl CrawlerCommitPipeline for TantivyPipeline {
         if !keys.is_empty() {
             let terms = keys
                 .into_iter()
-                .map(|key| TantivyFileModel::file_path_field().term(key))
+                .map(|key| TantivyFileModel::file_path_string_field().term(key))
                 .collect();
             util::map_err(self.index.remove_by_terms(terms).await)?;
         }
@@ -102,7 +93,7 @@ impl CrawlerCommitPipeline for TantivyPipeline {
 /// Returns the files you passed in, aggregated and ranked
 fn rank_files(
     existing: Vec<(TantivyFileModel, &SystemFileModel)>,
-    brand_new:  Vec<TantivyFileModel>,
+    brand_new: Vec<TantivyFileModel>,
 ) -> Vec<TantivyFileModel> {
     let mut tantivy_models: Vec<TantivyFileModel> = Vec::new();
     tantivy_models.extend(
@@ -111,10 +102,6 @@ fn rank_files(
             .map(|(new_file, old_file)| ranker::rank_existing_file(new_file, old_file)),
     );
 
-    tantivy_models.extend(
-        brand_new
-            .into_iter()
-            .map(ranker::rank_new_file),
-    );
+    tantivy_models.extend(brand_new.into_iter().map(ranker::rank_new_file));
     tantivy_models
 }

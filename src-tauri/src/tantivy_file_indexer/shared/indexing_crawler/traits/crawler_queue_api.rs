@@ -1,6 +1,7 @@
 use std::{
     fmt::{Debug, Display},
-    future::Future, sync::Arc,
+    future::Future,
+    sync::Arc,
 };
 
 use tokio::sync::Notify;

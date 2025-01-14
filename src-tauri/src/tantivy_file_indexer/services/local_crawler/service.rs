@@ -9,7 +9,7 @@ use std::time::Duration;
 use super::core::crawler_queue::queue::{CrawlerQueue, Priority};
 use super::core::indexing_crawler::plugins::filterer::CrawlerFilterer;
 use super::core::indexing_crawler::task_manager;
-use super::core::indexing_crawler::{builder, plugins::garbage_collector};
+use super::core::indexing_crawler::{factory, plugins::garbage_collector};
 
 pub struct FileCrawlerService {
     /// True if the file crawlers are already crawling around
@@ -59,12 +59,12 @@ impl FileCrawlerService {
             self.local_db_service.kv_store_table().clone()
         ));
 
-        let builder = builder::IndexingCrawlersBuilder::new(crawler_queue, pipeline)
-            .with_garbage_collector(collector)
-            .with_filterer(filterer);
+        let factory = factory::IndexingCrawlersFactory::new(crawler_queue, pipeline)
+            .set_garbage_collector(collector)
+            .set_filterer(filterer);
 
         // Hand off the rest of the building to the task manager
-        task_manager::build_managed(builder).await;
+        task_manager::build_managed(factory).await;
 
     }
 

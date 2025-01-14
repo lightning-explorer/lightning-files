@@ -69,9 +69,9 @@ export class HomePageComponent implements OnInit {
     const dir = lastDirAt ?? "C:\\";
     this.directoryNavService.setCurrentDir(dir);
 
-    const searchParams: Partial<SearchParamsDTO> = {
-      FilePath: "new file",
-    };
-    this.s.search(searchParams);
+    // const searchParams: Partial<SearchParamsDTO> = {
+    //   FilePath: "new file",
+    // };
+    // this.s.search(searchParams);
   }
 }

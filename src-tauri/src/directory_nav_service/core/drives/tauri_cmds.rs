@@ -1,7 +1,7 @@
-use crate::directory_nav_service::models::drive_model::DriveModel;
-use super::get_sys_drives::get_system_drives;
+
+use system_info::models::drive_model::DriveModel;
 
 #[tauri::command]
 pub fn get_drives() -> Vec<DriveModel> {
-    get_system_drives()
+    system_info::drives::get_system_drives()
 }

@@ -1,5 +1,6 @@
 use super::plugins::filterer::CrawlerFilterer;
 use super::plugins::garbage_collector::CrawlerGarbageCollector;
+use super::plugins::throttle::{CrawlerThrottle, ThrottleAmount};
 use super::{worker, worker_task_handle::CrawlerWorkerTaskHandle};
 use std::sync::Arc;
 use tokio::sync::mpsc;
@@ -11,7 +12,7 @@ use crate::{
     },
 };
 
-pub struct IndexingCrawlersBuilder<C, P>
+pub struct IndexingCrawlersFactory<C, P>
 where
     C: CrawlerQueueApi,
     P: CrawlerCommitPipeline<InputModel = SystemFileModel>,
@@ -19,12 +20,12 @@ where
     crawler_queue: Arc<C>,
     pipeline: Arc<P>,
     worker_batch_size: usize,
-    max_concurrent_tasks: usize,
     garbage_collector: Option<Arc<CrawlerGarbageCollector>>,
     filterer: Option<Arc<CrawlerFilterer>>,
+    throttle: CrawlerThrottle
 }
 
-impl<C, P> IndexingCrawlersBuilder<C, P>
+impl<C, P> IndexingCrawlersFactory<C, P>
 where
     C: CrawlerQueueApi,
     P: CrawlerCommitPipeline<InputModel = SystemFileModel>,
@@ -34,29 +35,33 @@ where
             crawler_queue,
             pipeline,
             worker_batch_size: 512,
-            max_concurrent_tasks: 4,
             garbage_collector: None,
             filterer: None,
+            throttle: CrawlerThrottle::new(),
         }
     }
-    pub fn batch_size(mut self, size: usize) -> Self {
+    pub fn set_batch_size(mut self, size: usize) -> Self {
         self.worker_batch_size = size;
         self
     }
-    pub fn max_num_workers(mut self, num: usize) -> Self {
-        self.max_concurrent_tasks = num;
-        self
-    }
-    pub fn with_garbage_collector(mut self, c: Arc<CrawlerGarbageCollector>) -> Self {
+    pub fn set_garbage_collector(mut self, c: Arc<CrawlerGarbageCollector>) -> Self {
         self.garbage_collector = Some(c);
         self
     }
-    pub fn with_filterer(mut self, f: Arc<CrawlerFilterer>) -> Self {
+    pub fn set_filterer(mut self, f: Arc<CrawlerFilterer>) -> Self {
         self.filterer = Some(f);
         self
     }
+    pub fn set_throttle(&mut self, t:ThrottleAmount) -> &Self {
+        self.throttle.set(t);
+        self
+    }
+    pub fn remove_throttle(&mut self)-> &Self{
+        self.throttle.reset();
+        self
+    }
     /// Returns a handle to the crawler tasks
-    pub async fn build(self) -> Vec<CrawlerWorkerTaskHandle> {
+    pub async fn build(&self,num_workers:u32) -> Vec<CrawlerWorkerTaskHandle> {
         if let Err(err) = self.crawler_queue.set_taken_to_false_all().await {
             println!(
                 "Crawler worker manager: unable to reset taken status of all items: {}",
@@ -64,13 +69,9 @@ where
             );
         }
 
-        println!(
-            "Spawning pool of {} file crawler indexers",
-            self.max_concurrent_tasks
-        );
 
         let mut handles = Vec::new();
-        for _ in 0..self.max_concurrent_tasks {
+        for _ in 0..num_workers {
             let (sender, receiver) = mpsc::channel(10);
 
             let mut worker = worker::IndexingCrawlerWorker::new(
@@ -91,6 +92,9 @@ where
                 worker.inject_filterer(filterer);
             }
 
+            // Inject a throttle
+            worker.set_throttle(self.throttle.clone());
+            
             let task = tokio::spawn(async move {
                 worker.worker_task().await;
             });

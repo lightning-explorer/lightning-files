@@ -6,7 +6,6 @@ use std::{
     time::Duration,
 };
 
-use futures::TryFutureExt;
 use tokio::task::JoinHandle;
 
 use crate::tantivy_file_indexer::{

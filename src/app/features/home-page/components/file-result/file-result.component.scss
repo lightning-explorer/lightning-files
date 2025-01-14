@@ -14,8 +14,8 @@
 }
 
 .content-icon {
-  display: flex;
-  flex-direction: row;
+  display:inline-block;
+  flex-direction: column;
   padding: 0.2em;
   border: 0px;
   border-radius: 10px;
@@ -26,6 +26,8 @@
   transition: all ease 100ms;
 
   align-items: center;
+  justify-content: center;
+  overflow-y: hidden;
 }
 
 .selected {
@@ -58,6 +60,7 @@
   gap: 0.5em;
   font-size: .7rem;
   text-align: center;
+  text-align: center;
 }
 
 .icon {
@@ -89,7 +92,7 @@
   white-space: nowrap;
 }
 
-button:hover,
+.content:hover,
 button.grow {
   color: #ffffff;
   transform: scale(1.01);

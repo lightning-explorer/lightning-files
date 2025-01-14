@@ -44,8 +44,9 @@ tantivy_ext = {path="C:\\Users\\grays\\OneDrive\\Desktop\\Rust\\tantivy-ext"}
 trash = "3.0" # for moving files to the recycle bin
 tauri-plugin-drag = "2.0.0"
 uuid = { version = "1", features = ["v4"] }
-sysinfo = "0.29"
 notify = "6.1.1"
+system_info = {path="./system_info"}
+print_err = {path="./print_err"}
 
 [build]
 rustflags = ["-C", "link-arg=-fuse-ld=lld", "-Z", "threads=14"]
