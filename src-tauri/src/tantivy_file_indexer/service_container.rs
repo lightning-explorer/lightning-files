@@ -29,12 +29,12 @@ impl AppServiceContainer {
         //let vector_db_service = Self::initialize_vector_service();
         let search_service = Self::initialize_search_service(app_path, handle);
 
-        let local_db_service = Self::initialize_local_db_service(&app_save_service, handle.clone()).await;
+        let local_db_service =
+            Self::initialize_local_db_service(&app_save_service, handle.clone()).await;
 
         let crawler_service = Self::initialize_crawler_service(
             Arc::clone(&local_db_service),
             Arc::clone(&search_service),
-            Arc::clone(&app_save_service),
         )
         .await;
 
@@ -66,7 +66,8 @@ impl AppServiceContainer {
     }
 
     async fn initialize_local_db_service(
-        app_save_service: &Arc<AppSaveService>, handle:AppHandle
+        app_save_service: &Arc<AppSaveService>,
+        handle: AppHandle,
     ) -> Arc<LocalDbService> {
         Arc::new(LocalDbService::new_async(app_save_service, handle).await)
     }
@@ -74,8 +75,7 @@ impl AppServiceContainer {
     async fn initialize_crawler_service(
         db_service: Arc<LocalDbService>,
         search_service: Arc<SearchIndexService>,
-        app_save_service: Arc<AppSaveService>,
     ) -> Arc<FileCrawlerService> {
-        Arc::new(FileCrawlerService::new_async(db_service, search_service, app_save_service).await)
+        Arc::new(FileCrawlerService::new_async(db_service, search_service).await)
     }
 }

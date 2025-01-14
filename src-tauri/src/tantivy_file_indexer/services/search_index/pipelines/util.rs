@@ -21,7 +21,7 @@ pub fn classify_stale_models(
     // Build a HashSet of file paths from `models`
     let model_paths: HashSet<String> = models
         .iter()
-        .map(|file| file.file_path.tantivy_val())
+        .map(|file| file.file_path_string.tantivy_val())
         .collect();
 
     // Filter out stale `children` whose file paths are not in `model_paths`
@@ -46,7 +46,7 @@ fn search_by_term(
 /// `model` is expected to be a directory. A search will be made to find all models whose `parent_path` matches the given directory file path
 pub fn search_by_directory(
     index: &SearchIndex<TantivyFileModel>,
-    directory_path:String,
+    directory_path: String,
 ) -> tantivy::Result<Vec<TantivyFileModel>> {
     let term = TantivyFileModel::parent_directory_field().term(directory_path);
     search_by_term(index, term)
@@ -56,7 +56,7 @@ pub fn search_by_path(
     index: &SearchIndex<TantivyFileModel>,
     file_path: String,
 ) -> tantivy::Result<Option<TantivyFileModel>> {
-    let term = TantivyFileModel::file_path_field().term(file_path);
+    let term = TantivyFileModel::file_path_string_field().term(file_path);
     let mut results = search_by_term(index, term)?;
     match results.len() {
         0 => Ok(None),

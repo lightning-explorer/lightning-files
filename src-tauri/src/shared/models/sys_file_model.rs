@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::shared::converters::system_time_to_chrono_datetime;
 
 // TODO: move this to the models folder
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, Debug)]
 #[serde(rename_all = "PascalCase")]
 pub struct SystemFileModel {
     pub name: String,

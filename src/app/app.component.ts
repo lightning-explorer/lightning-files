@@ -35,8 +35,11 @@ export class AppComponent implements OnInit {
       "Program Files",
     ]);
 
-    //const d: AddToCrawlerQueueDTO = { DirPath: "C:\\", Priority: 5 };
-    //await this.commandsService.addDirsToCrawlerQueue([d]);
-    //await this.commandsService.dispatchCrawlers();
+    const d: AddToCrawlerQueueDTO = {
+      DirPath: "C:\\Users\\grays\\OneDrive\\Desktop\\MoveTest",
+      Priority: 5,
+    };
+    await this.commandsService.addDirsToCrawlerQueue([d]);
+    await this.commandsService.dispatchCrawlers();
   }
 }

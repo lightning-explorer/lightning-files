@@ -1,6 +1,5 @@
 use directory_nav_service::tauri_exports::*;
 use tantivy_file_indexer::{
-    services::app_save::tauri_exports::*,
     services::local_crawler::tauri_exports::*, /*services::local_db::tables::files::tauri_exports::*,*/
     services::local_db::tauri_exports::*, services::search_index::tauri_exports::*,
     services::local_db::tables::app_kv_store::tauri_exports::*
@@ -33,8 +32,8 @@ pub fn run() {
             search_index_query_streaming,
             search_index_query_streaming_organized,
             //get_num_stored_files,
-            save_json_local,
-            load_json_local,
+            //save_json_local, REMOVED IN FAVOR OF KV STORAGE
+            //load_json_local, REMOVED IN FAVOR OF KV STORAGE
             //vector_db_query,
             add_dirs_to_crawler_queue,
             view_crawler_queue,

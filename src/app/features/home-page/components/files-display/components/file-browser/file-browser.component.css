@@ -19,6 +19,13 @@
     margin-left: 1em;
 }
 
+.body-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+    padding-right: 1.5rem;
+    box-sizing: border-box;
+}
+
 .drag-preview {
     display: flex;
     flex-direction: column;

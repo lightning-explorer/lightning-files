@@ -18,6 +18,7 @@ import { PersistentConfigService } from "@core/services/persistence/config.servi
 import { SettingsComponent } from "./pages/settings/settings.component";
 import { DirectoryWatcherService } from "./services/directory-watcher.service";
 import { TabsService } from "./services/tabs.service";
+import { SearchParamsDTO } from "@core/dtos/search-params-dto";
 
 @Component({
   selector: "app-home-page",
@@ -55,7 +56,8 @@ export class HomePageComponent implements OnInit {
   constructor(
     private directoryNavService: DirectoryNavigatorService,
     private homePageService: HomePageService,
-    private configService: PersistentConfigService
+    private configService: PersistentConfigService,
+    private s:HomePageSearchService
   ) {
     this.homePageService.page$.subscribe((page) => (this.page = page));
   }
@@ -66,5 +68,10 @@ export class HomePageComponent implements OnInit {
     console.log(lastDirAt);
     const dir = lastDirAt ?? "C:\\";
     this.directoryNavService.setCurrentDir(dir);
+
+    // const searchParams: Partial<SearchParamsDTO> = {
+    //   FilePath: "new file",
+    // };
+    // this.s.search(searchParams);
   }
 }

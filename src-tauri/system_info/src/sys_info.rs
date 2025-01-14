@@ -1,4 +1,6 @@
-use crate::directory_nav_service::models::system_info_model::SystemInfoModel;
+use crate::models::system_info_model::SystemInfoModel;
+
+
 
 pub fn get_sys_info()->SystemInfoModel{
     // TODO: this may need to be conditional

@@ -1,6 +1,4 @@
 use tokio::sync::RwLock;
-
-use crate::tantivy_file_indexer::services::app_save::service::AppSaveService;
 use crate::tantivy_file_indexer::services::local_db::service::LocalDbService;
 use crate::tantivy_file_indexer::services::search_index::service::SearchIndexService;
 use crate::tantivy_file_indexer::shared::async_retry;
@@ -11,7 +9,7 @@ use std::time::Duration;
 use super::core::crawler_queue::queue::{CrawlerQueue, Priority};
 use super::core::indexing_crawler::plugins::filterer::CrawlerFilterer;
 use super::core::indexing_crawler::task_manager;
-use super::core::indexing_crawler::{builder, plugins::garbage_collector};
+use super::core::indexing_crawler::{factory, plugins::garbage_collector};
 
 pub struct FileCrawlerService {
     /// True if the file crawlers are already crawling around
@@ -20,14 +18,12 @@ pub struct FileCrawlerService {
     queue: Arc<CrawlerQueue>,
     search_index: Arc<SearchIndexService>,
     local_db_service: Arc<LocalDbService>,
-    save_service: Arc<AppSaveService>,
 }
 
 impl FileCrawlerService {
     pub async fn new_async(
         local_db_service: Arc<LocalDbService>,
         search_index: Arc<SearchIndexService>,
-        save_service: Arc<AppSaveService>,
     ) -> Self {
         let queue = Arc::new(CrawlerQueue::new(Arc::clone(&local_db_service)));
         Self {
@@ -36,7 +32,6 @@ impl FileCrawlerService {
             queue,
             search_index: Arc::clone(&search_index),
             local_db_service,
-            save_service,
         }
     }
 
@@ -56,7 +51,7 @@ impl FileCrawlerService {
         // Create the garbage collector and inject it
         let collector = Arc::new(garbage_collector::CrawlerGarbageCollector::new(
             Arc::clone(&self.local_db_service),
-            Arc::clone(&self.save_service),
+            self.local_db_service.kv_store_table().clone(),
             Arc::clone(&self.search_index),
         ));
 
@@ -64,12 +59,12 @@ impl FileCrawlerService {
             self.local_db_service.kv_store_table().clone()
         ));
 
-        let builder = builder::IndexingCrawlersBuilder::new(crawler_queue, pipeline)
-            .with_garbage_collector(collector)
-            .with_filterer(filterer);
+        let factory = factory::IndexingCrawlersFactory::new(crawler_queue, pipeline)
+            .set_garbage_collector(collector)
+            .set_filterer(filterer);
 
         // Hand off the rest of the building to the task manager
-        task_manager::build_managed(builder).await;
+        task_manager::build_managed(factory).await;
 
     }
 

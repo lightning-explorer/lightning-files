@@ -230,28 +230,6 @@ export class TauriCommandsService {
     }
   }
 
-  /** Saves the data locally to disk */
-  async saveJsonLocal(data: object, name: string): Promise<boolean> {
-    await this.invokeSafe<void>("save_json_local", {
-      data,
-      name,
-    }).catch((x) => {
-      console.log(`error saving to JSON: ${x}`);
-      return false;
-    });
-
-    return true;
-  }
-
-  /** Loads the locally saved JSON from disk */
-  async loadJsonLocal<T extends object>(name: string): Promise<T> {
-    return await this.invokeSafe<T>("load_json_local", {
-      name,
-    }).catch((err) => {
-      throw err;
-    });
-  }
-
   async addDirsToCrawlerQueue(directories: AddToCrawlerQueueDTO[]) {
     await this.invokeSafe<void>("add_dirs_to_crawler_queue", { directories })
       .then(() => {})

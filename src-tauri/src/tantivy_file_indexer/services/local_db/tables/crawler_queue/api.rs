@@ -27,7 +27,7 @@ impl CrawlerQueueTable {
         // Raw SQL is needed because SQLite is picky about on conflict operations
         // Prepare raw SQL for upsert
         let query = r#"
-            INSERT INTO indexed (path, priority, taken)
+            INSERT INTO crawler_queue (path, priority, taken)
             VALUES (?, ?, ?)
             ON CONFLICT(path) DO UPDATE SET
                 priority = excluded.priority,

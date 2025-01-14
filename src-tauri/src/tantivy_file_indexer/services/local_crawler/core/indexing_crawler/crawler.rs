@@ -1,18 +1,18 @@
-use std::{path::PathBuf, sync::Arc, time::Duration};
+use std::{path::PathBuf, sync::Arc};
 
 use tokio::fs::ReadDir;
 
 use crate::{
     shared::models::sys_file_model::SystemFileModel,
-    tantivy_file_indexer::shared::{
-        async_retry,
-        indexing_crawler::{
-            models::crawler_file::CrawlerFile, traits::crawler_queue_api::CrawlerQueueApi,
-        },
+    tantivy_file_indexer::shared::indexing_crawler::{
+        models::crawler_file::CrawlerFile, traits::crawler_queue_api::CrawlerQueueApi,
     },
 };
 
-use super::plugins::filterer::{CrawlerFilterer, ShouldIndexResult};
+use super::plugins::{
+    filterer::{CrawlerFilterer, ShouldIndexResult},
+    throttle::CrawlerThrottle,
+};
 
 pub enum CrawlerError {
     ReadDirError(String),
@@ -21,12 +21,12 @@ pub enum CrawlerError {
 
 /// Where `file` should ideally be a directory. If its not, it will get ignored. Note that this is not a recursive crawl.
 /// Returns an `Error` if the found directories failed to get pushed to the crawler queue or there was an error reading the directory.
-///
-/// Note that the write operation to the queue will retry up to 5 times before finally returning an error.
 pub async fn crawl<C>(
     file: &CrawlerFile,
     queue: Arc<C>,
+
     filterer: Option<Arc<CrawlerFilterer>>,
+    throttle: CrawlerThrottle,
 ) -> Result<Vec<SystemFileModel>, CrawlerError>
 where
     C: CrawlerQueueApi,
@@ -50,7 +50,7 @@ where
                 {
                     // Optional log:
                     //println!("Crawler Filterer - found path that shouldn't be indexed: {}. Reason: {}",entry_path.to_string_lossy(),reason);
-                    continue;
+                    return Ok(Vec::new());
                 }
             }
 
@@ -65,6 +65,8 @@ where
                             taken: false,
                         });
                     }
+                    // Attempt to rest if a throttle is applied
+                    throttle.rest_short().await;
                 }
                 Err(err) => {
                     println!(
@@ -76,15 +78,12 @@ where
             }
         }
     }
-
-    // Push the entries in bulk
-    async_retry::retry_with_backoff(
-        |_| queue.push(&dir_paths_found),
-        5,
-        Duration::from_millis(1000),
-    )
-    .await
-    .map_err(CrawlerError::PushToQueueError)?;
+    if !dir_paths_found.is_empty() {
+        queue
+            .push(&dir_paths_found)
+            .await
+            .map_err(|err| CrawlerError::PushToQueueError(err.to_string()))?;
+    }
 
     Ok(dtos)
 }

@@ -1,4 +1,4 @@
-enum FileViewType{
+export enum FileViewType{
     /** The default view */
     Detail,
     LargeIcon,

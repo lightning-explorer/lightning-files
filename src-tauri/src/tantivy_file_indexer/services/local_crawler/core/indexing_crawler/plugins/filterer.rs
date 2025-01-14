@@ -7,10 +7,10 @@ use crate::tantivy_file_indexer::{
     services::local_db::tables::app_kv_store::api::AppKvStoreTable, util::string,
 };
 
-pub enum ShouldIndexResult{
+pub enum ShouldIndexResult {
     ShouldIndex,
     /// The `String` is the reason why it isn't getting indexed
-    ShouldNotIndex(String)
+    ShouldNotIndex(String),
 }
 
 type JsonVal<T> = AutoSerializingValue<T>;
@@ -23,7 +23,9 @@ pub struct CrawlerFilterer {
     /// The extensions should not have a leading dot
     whitelisted_extensions: JsonVal<Vec<String>>,
     blacklisted_extensions: JsonVal<Vec<String>>,
+    /// All directory names should be in lowercase. If the filterer finds an exact match, then the directory will be excluded
     dir_names_exclude: JsonVal<Vec<String>>,
+    exclude_dirs_starting_with_period: JsonVal<bool>,
 }
 
 impl CrawlerFilterer {
@@ -33,19 +35,42 @@ impl CrawlerFilterer {
             whitelisted_extensions: JsonVal::new(Vec::new()),
             blacklisted_extensions: JsonVal::new(Vec::new()),
             dir_names_exclude: JsonVal::new(Vec::new()),
+            exclude_dirs_starting_with_period: JsonVal::new(false),
         }
     }
 
     pub async fn should_crawl_directory(&self, dir_path: &Path) -> bool {
         self.update_json("crawlerDirectoryNamesExclude", &self.dir_names_exclude)
             .await;
+        self.update_json(
+            "crawlerExcludeDirectoriesStartingWithPeriod",
+            &self.exclude_dirs_starting_with_period,
+        )
+        .await;
 
-        let path_str = dir_path.to_string_lossy().to_string();
-        !self
-            .dir_names_exclude
-            .get_data().await
-            .iter()
-            .any(|exclude| path_str.contains(exclude))
+        match dir_path.file_name() {
+            Some(name) => {
+                let path_str = name.to_string_lossy().to_lowercase();
+
+                if self.exclude_dirs_starting_with_period.get_data().await
+                    && path_str.starts_with('.')
+                {
+                    return false;
+                }
+
+                !self
+                    .dir_names_exclude
+                    .get_data()
+                    .await
+                    .iter()
+                    .any(|exclude| path_str.contains(exclude))
+            }
+            None =>
+            // Example: C:// returns `None` here, and you have to crawl this directory, so return true
+            {
+                true
+            }
+        }
     }
 
     pub async fn should_index(&self, path: &Path) -> ShouldIndexResult {
@@ -53,7 +78,6 @@ impl CrawlerFilterer {
             .await;
         self.update_json("crawlerBlacklistedExtensions", &self.blacklisted_extensions)
             .await;
-        let path_str = path.to_string_lossy().to_string();
 
         if let Some(ext) = path.extension() {
             let ext = ext.to_string_lossy().to_string();
@@ -68,7 +92,7 @@ impl CrawlerFilterer {
             }
         }
         // High noise ratio is the final thing to judge by
-        if Self::high_noise_ratio(&path_str){
+        if Self::high_noise_ratio(path) {
             return ShouldIndexResult::ShouldNotIndex("High noise ratio".into());
         }
         ShouldIndexResult::ShouldIndex
@@ -76,9 +100,14 @@ impl CrawlerFilterer {
 
     /// Returns `true` if the alphabetic noise ratio is high
     ///
-    /// Example: a cache directory such as C:\rr432j35k321235j5253325 should return true
-    pub fn high_noise_ratio(path: &str) -> bool {
-        if path.len() > 7 && string::calculate_alphabetic_noise_ratio(path) > 0.41 {
+    /// Example: a cache directory such as C:\\some_directory\\rr432j35k321235j5253325 should return true
+    pub fn high_noise_ratio(path: &Path) -> bool {
+        let path = path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string();
+        if path.len() > 7 && string::calculate_alphabetic_noise_ratio(&path) > 0.41 {
             return true;
         }
         false

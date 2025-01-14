@@ -12,11 +12,13 @@ mod core {
         pub mod plugins{
             pub mod garbage_collector;
             pub mod filterer;
+            pub mod throttle;
         }
+        mod idle;
         mod crawler;
         mod worker;
         mod worker_task_handle;
-        pub mod builder;
+        pub mod factory;
         pub mod task_manager;
     }
 }

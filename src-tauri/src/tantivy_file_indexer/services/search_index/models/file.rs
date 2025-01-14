@@ -6,6 +6,9 @@ use std::path::Path;
 #[serde(rename_all = "PascalCase")]
 pub struct TantivyFileModel {
     #[tantivy_ext("primary_key")]
+    /// This field is the same as the `file_path` field, but not tokenized and just acts as a primary key
+    pub file_path_string: tantivy_ext::FastStr,
+    /// This field is tokenized and used for searches
     pub file_path: tantivy_ext::Tokenized,
     pub parent_directory: tantivy_ext::FastStr,
     pub date_modified: tantivy_ext::Date,
@@ -18,6 +21,7 @@ impl From<SystemFileModel> for TantivyFileModel {
     fn from(value: SystemFileModel) -> TantivyFileModel {
         let parent_directory = get_parent_directory(&value.file_path);
         TantivyFileModel {
+            file_path_string: value.file_path.clone().into(),
             file_path: value.file_path.into(),
             parent_directory: parent_directory.into(),
             date_modified: value.date_modified.into(),

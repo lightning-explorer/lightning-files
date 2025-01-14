@@ -4,18 +4,27 @@ use tokio::sync::mpsc::error::TryRecvError;
 
 use crate::{
     shared::models::sys_file_model::SystemFileModel,
-    tantivy_file_indexer::shared::{
-        async_retry,
-        indexing_crawler::{
-            models::crawler_file::CrawlerFile,
-            traits::{commit_pipeline::CrawlerCommitPipeline, crawler_queue_api::CrawlerQueueApi},
+    tantivy_file_indexer::{
+        services::local_crawler::core::indexing_crawler::idle,
+        shared::{
+            async_retry,
+            indexing_crawler::{
+                models::crawler_file::CrawlerFile,
+                traits::{
+                    commit_pipeline::CrawlerCommitPipeline, crawler_queue_api::CrawlerQueueApi,
+                },
+            },
         },
     },
 };
 
 use super::{
     crawler::{self, CrawlerError},
-    plugins::{filterer::CrawlerFilterer, garbage_collector::CrawlerGarbageCollector},
+    plugins::{
+        filterer::CrawlerFilterer,
+        garbage_collector::CrawlerGarbageCollector,
+        throttle::{CrawlerThrottle, ThrottleAmount},
+    },
     task_manager::{CrawlerManagerMessageReceiver, CrawlerMessage},
 };
 
@@ -32,6 +41,7 @@ where
 
     garbage_collector: Option<Arc<CrawlerGarbageCollector>>,
     filterer: Option<Arc<CrawlerFilterer>>,
+    throttle: CrawlerThrottle,
 }
 
 impl<C, P> IndexingCrawlerWorker<C, P>
@@ -56,6 +66,7 @@ where
 
             garbage_collector: None,
             filterer: None,
+            throttle: CrawlerThrottle::new(),
         }
     }
 
@@ -65,6 +76,13 @@ where
 
     pub fn inject_filterer(&mut self, f: Arc<CrawlerFilterer>) {
         self.filterer = Some(f);
+    }
+
+    pub fn set_throttle<T>(&mut self, t: T)
+    where
+        T: Into<ThrottleAmount>,
+    {
+        self.throttle.set(t);
     }
 
     pub async fn worker_task(&mut self) {
@@ -82,6 +100,7 @@ where
                                 println!("File Crawler - Filterer recommends not crawling directory: {}. Skipping it.",file.path.to_string_lossy());
                                 // Fetched a directory that shouldn't be crawled:
                                 // Example: 'node_modules'
+                                self.remove_from_crawler_queue(&file).await;
                                 continue;
                             }
                         }
@@ -91,7 +110,7 @@ where
                         num_files_processed += len;
                         // Register this number of files to the garbage collector, if there is one
                         if let Some(collector) = &self.garbage_collector {
-                            if let Err(err) = collector.register_num_files_processed(len) {
+                            if let Err(err) = collector.register_num_files_processed(len).await {
                                 println!("Error registering files to gbg collector: {}", err);
                             }
                         }
@@ -110,10 +129,13 @@ where
                         files_bank = self.commit_files_bank(files_bank).await;
                     }
                     None => {
-                        println!("No tasks available. Waiting for notification...");
-                        let queue_notifier = self.crawler_queue.get_notifier();
-                        queue_notifier.notified().await;
+                        println!("No tasks available. Attempting to create busy work");
+                        // stagger the update since multiple crawlers may finish at the same time
                         self.random_wait().await;
+                        let queue_clone = Arc::clone(&self.crawler_queue);
+                        if let Err(err) = idle::create_busy_work(queue_clone).await {
+                            println!("Crawler Worker - Error creating busy work: {}", err);
+                        }
                     }
                 },
                 Err(err) => {
@@ -125,11 +147,21 @@ where
                 }
             }
             // Handle messages from the task manager:
-            if let Some(message) = self.get_next_receiver_msg(){
-                match message{
-                    CrawlerMessage::Kill => break,
-                    CrawlerMessage::Throttle(_) => todo!(),
+            let mut kill = false;
+            // Handle all incoming messages
+            while let Some(message) = self.get_next_receiver_msg() {
+                match message {
+                    CrawlerMessage::Kill => {
+                        kill = true;
+                        break;
+                    }
+                    CrawlerMessage::Throttle => self.throttle.upgrade(),
                 }
+            }
+            // Break the outer loop
+            if kill {
+                self.commit_files_bank(files_bank).await;
+                break;
             }
         }
         println!("Crawler worker has been killed due to task manager saying so");
@@ -151,28 +183,30 @@ where
         None
     }
 
+    /// Indexes the items, but applies a throttle while creating the batches
+    async fn handle_index_batched(&self, dir: &CrawlerFile, files: Vec<SystemFileModel>) {
+        let batch_size = 128;
+        let mut batch = Vec::new();
+        for (i, file) in files.into_iter().enumerate() {
+            batch.push(file);
+            self.throttle.rest_short().await;
+            if i % batch_size == 0 {
+                // Commit the batch
+                self.handle_index(dir, std::mem::take(&mut batch)).await;
+            }
+        }
+        if !batch.is_empty() {
+            self.handle_index(dir, batch).await;
+        }
+    }
+
     async fn handle_index(&self, dir: &CrawlerFile, files: Vec<SystemFileModel>) {
         let parent_path = dir.path.to_string_lossy().to_string();
-        match async_retry::retry_with_backoff(
-            |_| {
-                self.pipeline
-                    .upsert_many(files.clone(), parent_path.clone())
-            },
-            5,
-            Duration::from_millis(1000),
-        )
-        .await
-        {
+
+        match self.pipeline.upsert_many(files, parent_path).await {
             Ok(_) => {
                 // If all goes well, then the directory can be removed from the crawler queue
-                if let Err(err) = self.remove_from_crawler_queue(dir).await {
-                    // If for some reason the directory can't be removed, it is no big deal, it just means
-                    // that it will get indexed again
-                    println!(
-                        "Error trying to remove directory from crawler queue: {}",
-                        err
-                    );
-                }
+                self.remove_from_crawler_queue(dir).await;
             }
             Err(err) => {
                 println!("Error indexing files: {}", err);
@@ -186,7 +220,15 @@ where
         C: CrawlerQueueApi,
     {
         let filterer_clone = self.filterer.clone();
-        match crawler::crawl(directory, Arc::clone(&self.crawler_queue), filterer_clone).await {
+        let throttle_clone = self.throttle.clone();
+        match crawler::crawl(
+            directory,
+            Arc::clone(&self.crawler_queue),
+            filterer_clone,
+            throttle_clone,
+        )
+        .await
+        {
             Ok(dtos) => {
                 return dtos;
             }
@@ -204,12 +246,7 @@ where
                         err
                     );
                     // Something must be wrong with the directory, so go ahead and remove it from the queue early
-                    if let Err(err) = self.remove_from_crawler_queue(directory).await {
-                        println!(
-                            "Error trying to remove directory from crawler queue: {}",
-                            err
-                        );
-                    }
+                    self.remove_from_crawler_queue(directory).await
                 }
             },
         }
@@ -221,20 +258,29 @@ where
         mut files: Vec<(CrawlerFile, Vec<SystemFileModel>)>,
     ) -> Vec<(CrawlerFile, Vec<SystemFileModel>)> {
         //println!("Crawler is committing files bank");
+        if files.is_empty(){
+            return files;
+        }
         for (dir, inner_files) in files.drain(..) {
             //println!("Draining {}", dir.path.to_string_lossy());
-            self.handle_index(&dir, inner_files).await;
+            self.handle_index_batched(&dir, inner_files).await;
         }
         files
     }
 
-    async fn remove_from_crawler_queue(&self, directory: &CrawlerFile) -> Result<(), String> {
-        async_retry::retry_with_backoff(
+    async fn remove_from_crawler_queue(&self, directory: &CrawlerFile) {
+        if let Err(err) = async_retry::retry_with_backoff(
             |_| self.crawler_queue.delete_one(directory.clone()),
             5,
             Duration::from_millis(1000),
         )
         .await
+        {
+            println!(
+                "FileCrawlerWorker - Error removing directory from queue: {}",
+                err
+            );
+        }
     }
 
     /// Attempt to fetch the next item from the crawler queue, applying backoff if failing

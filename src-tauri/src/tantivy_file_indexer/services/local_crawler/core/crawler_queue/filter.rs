@@ -1,5 +1,7 @@
 
 
+use std::path::Path;
+
 use crate::tantivy_file_indexer::{
     dtos::add_to_crawler_queue::AddToCrawlerQueueDTO,
     services::local_crawler::core::indexing_crawler::plugins::filterer,
@@ -12,7 +14,7 @@ pub fn filter_out_directories_to_add(
     let directories: Vec<AddToCrawlerQueueDTO> = directories
         .into_iter()
         .filter(|dto| {
-            !filterer::CrawlerFilterer::high_noise_ratio(&dto.dir_path)
+            !filterer::CrawlerFilterer::high_noise_ratio(Path::new(&dto.dir_path))
         })
         .collect();
 

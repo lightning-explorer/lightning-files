@@ -16,7 +16,7 @@ use super::{
 };
 use std::{path::PathBuf, sync::Arc};
 
-use tantivy::SegmentId;
+use tantivy::directory::GarbageCollectionResult;
 use tantivy_ext::SearchIndex;
 use tauri::{AppHandle, Manager};
 use tokio::task::JoinHandle;
@@ -118,40 +118,9 @@ impl SearchIndexService {
         Arc::clone(&self.pipeline)
     }
 
-    /// If the number of `Segments` in the Tantivy Index is greater than `limit`,
-    /// then half of all the segments will get merged
-    pub async fn merge_segments(&self, limit: usize) -> Result<(), tantivy::TantivyError> {
-        let ids = self.get_mergeable_segment_ids(limit)?;
-        println!("Search Service: found {} segment ids to merge", ids.len());
-        if !ids.is_empty() {
-            self.index
-                .get_tantivy_backend()
-                .writer
-                .lock()
-                .await
-                .merge(&ids)
-                .await?;
-        }
-        Ok(())
-    }
-
-    fn get_mergeable_segment_ids(
-        &self,
-        limit: usize,
-    ) -> Result<Vec<SegmentId>, tantivy::TantivyError> {
-        let mut ids: Vec<SegmentId> = Vec::new();
-        let segments = self
-            .index
-            .get_tantivy_backend()
-            .index
-            .searchable_segments()?;
-        if segments.len() > limit {
-            for (i, segment) in segments.iter().enumerate() {
-                if i % 2 == 0 {
-                    ids.push(segment.id());
-                }
-            }
-        }
-        Ok(ids)
+    /// Removes entries not in use anymore
+    pub async fn collect_garbage(&self) -> Result<GarbageCollectionResult, tantivy::TantivyError> {
+        let backend = self.index.get_tantivy_backend();
+        backend.writer.lock().await.garbage_collect_files().await
     }
 }

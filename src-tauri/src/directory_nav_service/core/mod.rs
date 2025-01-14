@@ -21,9 +21,7 @@ pub mod files {
 }
 pub mod drives {
     pub mod tauri_cmds;
-    mod get_sys_drives;
 }
 pub mod sys {
-    mod info;
     pub mod tauri_cmds;
 }

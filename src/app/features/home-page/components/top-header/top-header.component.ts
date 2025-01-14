@@ -1,9 +1,11 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   NgZone,
   OnDestroy,
+  ViewChild,
 } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 import { DirectoryHistoryService } from "src/app/features/home-page/services/directory-history.service";
@@ -18,6 +20,8 @@ import {
   UtilButtonComponent,
 } from "./util-button/util-button.component";
 import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-directory-bar.component";
+import { MutedButtonComponent } from "../../../../shared/components/buttons/muted-button/muted-button.component";
+import { SearchbarComponent } from "../searchbar/searchbar.component";
 
 @Component({
   selector: "app-top-header",
@@ -29,19 +33,21 @@ import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-di
     TabsHolderComponent,
     IconifyIconModule,
     UtilButtonComponent,
-    CurrentDirectoryBarComponent
+    CurrentDirectoryBarComponent,
+    SearchbarComponent
 ],
   templateUrl: "./top-header.component.html",
   styleUrl: "./top-header.component.css",
 })
 export class TopHeaderComponent implements AfterViewInit, OnDestroy {
+  @ViewChild("toolbarButtonContainer") toolbarButtonContainer!: ElementRef;
   utilButtons: UtilButtonType[] = [
-    // "new",
-    // "copy",
-    // "paste",
-    // "cut",
-    // "rename",
-    // "trash",
+    "new",
+    "copy",
+    "paste",
+    "cut",
+    "rename",
+    "trash",
   ];
 
   visibleUtilButtons: UtilButtonType[] = [];
@@ -53,45 +59,50 @@ export class TopHeaderComponent implements AfterViewInit, OnDestroy {
     private directoryService: DirectoryNavigatorService,
     private directoryHistoryService: DirectoryHistoryService,
     private ngZone: NgZone,
-    private elementRef: ElementRef
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngAfterViewInit(): void {
-    const toolbar = this.elementRef.nativeElement as HTMLElement;
-
     this.resizeObserver = new ResizeObserver(() => {
       this.ngZone.run(() => {
         this.updateVisibleItems();
       });
     });
 
-    this.resizeObserver.observe(toolbar);
+    this.resizeObserver.observe(this.toolbarButtonContainer.nativeElement);
 
     this.updateVisibleItems();
   }
 
   ngOnDestroy(): void {
     if (this.resizeObserver) this.resizeObserver.disconnect();
+    this.cdr.detach();
   }
 
   updateVisibleItems() {
-    const toolbar = this.elementRef.nativeElement as HTMLElement;
+    this.visibleUtilButtons.length = 0;
+    this.overflowingUtilButtons.length = 0;
+    this.utilButtons.forEach((x) => {
+      this.visibleUtilButtons.push(x);
+    });
+    this.cdr.detectChanges();
 
-    const availableWidth = toolbar.offsetWidth;
+    const container = this.toolbarButtonContainer.nativeElement;
+    const containerWidth = container.offsetWidth;
 
-    const buttonWidth = 22;
-    let usedWidth = 180;
+    const toolbarButtons = Array.from(
+      container.querySelectorAll(".toolbar-button")
+    ) as HTMLElement[];
+    const padding = 1.2; // Arbitrary padding
+    const elementWidths = toolbarButtons.map(
+      (element) => element.offsetWidth * padding
+    );
+    let currentWidth = elementWidths.reduce((sum, width) => sum + width, 0);
 
-    this.visibleUtilButtons = [];
-    this.overflowingUtilButtons = [];
-
-    for (const item of this.utilButtons) {
-      if (usedWidth + buttonWidth <= availableWidth) {
-        this.visibleUtilButtons.push(item);
-        usedWidth += buttonWidth;
-      } else {
-        this.overflowingUtilButtons.push(item);
-      }
+    while(currentWidth > containerWidth){
+      currentWidth -= elementWidths.pop()!;
+      const removedElement = this.visibleUtilButtons.pop()!;
+      this.overflowingUtilButtons.push(removedElement);
     }
   }
 
@@ -108,3 +119,6 @@ export class TopHeaderComponent implements AfterViewInit, OnDestroy {
     this.directoryHistoryService.redo();
   }
 }
+
+// A:6 * B:5 * C:3 = D
+

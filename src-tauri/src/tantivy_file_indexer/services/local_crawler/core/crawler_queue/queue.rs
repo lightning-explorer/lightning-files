@@ -62,7 +62,7 @@ impl CrawlerQueue {
         // cutoff time is a value in minutes
 
         // Common error: This table often fails to refresh
-        match &self.get_recently_indexed_dirs_table().refresh(5).await {
+        match &self.get_recently_indexed_dirs_table().refresh(0.5).await {
             Ok(_val) => {
                 // if val > &0 {
                 //     #[cfg(feature = "file_crawler_logs")]
@@ -107,7 +107,7 @@ impl CrawlerQueue {
             .await
             .map_err(|err| {
                 DbErr::Custom(format!(
-                    "Error upserting directories to crawler queue: {}",
+                    "Error upserting directories to recently indexed table: {}",
                     err
                 ))
             })?;

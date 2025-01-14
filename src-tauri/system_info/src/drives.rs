@@ -1,12 +1,12 @@
-use crate::directory_nav_service::models::drive_model::DriveModel;
-use sysinfo::{DiskExt, System, SystemExt};
+use sysinfo::Disks;
+
+use crate::models::drive_model::DriveModel;
 
 pub fn get_system_drives() -> Vec<DriveModel> {
-    let mut system = System::new_all();
-    system.refresh_all();
     let mut drives = Vec::new();
+    let disks = Disks::new_with_refreshed_list();
 
-    for disk in system.disks() {
+    for disk in disks.iter() {
         let model = DriveModel {
             name: disk.mount_point().to_string_lossy().to_string(),
             label: None, // TODO: fill in if the user sets a custom label
