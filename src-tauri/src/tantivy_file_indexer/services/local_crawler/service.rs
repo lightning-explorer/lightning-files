@@ -1,6 +1,4 @@
 use tokio::sync::RwLock;
-
-use crate::tantivy_file_indexer::services::app_save::service::AppSaveService;
 use crate::tantivy_file_indexer::services::local_db::service::LocalDbService;
 use crate::tantivy_file_indexer::services::search_index::service::SearchIndexService;
 use crate::tantivy_file_indexer::shared::async_retry;
@@ -20,14 +18,12 @@ pub struct FileCrawlerService {
     queue: Arc<CrawlerQueue>,
     search_index: Arc<SearchIndexService>,
     local_db_service: Arc<LocalDbService>,
-    save_service: Arc<AppSaveService>,
 }
 
 impl FileCrawlerService {
     pub async fn new_async(
         local_db_service: Arc<LocalDbService>,
         search_index: Arc<SearchIndexService>,
-        save_service: Arc<AppSaveService>,
     ) -> Self {
         let queue = Arc::new(CrawlerQueue::new(Arc::clone(&local_db_service)));
         Self {
@@ -36,7 +32,6 @@ impl FileCrawlerService {
             queue,
             search_index: Arc::clone(&search_index),
             local_db_service,
-            save_service,
         }
     }
 
@@ -56,7 +51,7 @@ impl FileCrawlerService {
         // Create the garbage collector and inject it
         let collector = Arc::new(garbage_collector::CrawlerGarbageCollector::new(
             Arc::clone(&self.local_db_service),
-            Arc::clone(&self.save_service),
+            self.local_db_service.kv_store_table().clone(),
             Arc::clone(&self.search_index),
         ));
 

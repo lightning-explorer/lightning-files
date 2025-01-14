@@ -4,7 +4,7 @@
   (dragover)="onMainDragOver($event)"
 >
   <app-inline-search-bar />
-  ,m
+
   <div *ngIf="arrangeFilesAsGrid(); else filesViewport" class="body-grid">
     <div *ngFor="let file of files; let i = index" class="item">
       <app-file-result

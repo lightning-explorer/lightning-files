@@ -64,13 +64,13 @@ impl RecentlyIndexedDirectoriesTable {
 
     `cutoff_time` is a value in minutes
     */
-    pub async fn refresh(&self, cutoff_time: i64) -> Result<u64, sea_orm::DbErr> {
+    pub async fn refresh(&self, cutoff_time: f64) -> Result<u64, sea_orm::DbErr> {
         // removes old entries
         // Todo: add more sophisticated logic
         let now = Utc::now().timestamp();
 
         // Calculate the cutoff time (5 minutes ago)
-        let cutoff_time = now - (cutoff_time * 60);
+        let cutoff_time = now - ((cutoff_time * 60.0) as i64);
 
         let delete = recently_indexed_dir::Entity::delete_many()
             .filter(recently_indexed_dir::Column::Time.lt(cutoff_time))

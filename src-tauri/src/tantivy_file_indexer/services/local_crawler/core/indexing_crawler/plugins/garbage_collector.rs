@@ -11,7 +11,7 @@ use tokio::task::JoinHandle;
 
 use crate::tantivy_file_indexer::{
     services::{
-        app_save::service::AppSaveService, local_db::service::LocalDbService,
+        local_db::{service::LocalDbService, tables::app_kv_store::api::AppKvStoreTable},
         search_index::service::SearchIndexService,
     },
     shared::async_retry,
@@ -19,7 +19,7 @@ use crate::tantivy_file_indexer::{
 
 pub struct CrawlerGarbageCollector {
     db_service: Arc<LocalDbService>,
-    save_service: Arc<AppSaveService>,
+    kv_table: AppKvStoreTable,
     search_service: Arc<SearchIndexService>,
 
     num_files_processed: AtomicUsize,
@@ -32,16 +32,12 @@ pub struct CrawlerGarbageCollector {
 impl CrawlerGarbageCollector {
     pub fn new(
         db_service: Arc<LocalDbService>,
-        save_service: Arc<AppSaveService>,
+        kv_table: AppKvStoreTable,
         search_service: Arc<SearchIndexService>,
     ) -> Self {
-        // Go ahead and create the file
-        save_service
-            .save("crawlers_n", 0)
-            .expect("Unable to create file to save garbage collector data");
         Self {
             db_service,
-            save_service,
+            kv_table,
             search_service,
             num_files_processed: AtomicUsize::new(0),
             mini_batch_size: 1000,
@@ -49,27 +45,38 @@ impl CrawlerGarbageCollector {
         }
     }
 
-    pub fn register_num_files_processed(
-        self: &Arc<Self>,
-        num: usize,
-    ) -> Result<(), std::io::Error> {
+    pub async fn register_num_files_processed(self: &Arc<Self>, num: usize) -> Result<(), String> {
         self.num_files_processed.fetch_add(num, Ordering::Relaxed);
         let new_val = self.num_files_processed.load(Ordering::Relaxed);
         if new_val > self.mini_batch_size {
-            let counter_path = "crawlers_n";
+            let counter_ident = "crawlerNumFilesProcessed".to_string();
             // Reset counter of total files processed
             self.num_files_processed.store(0, Ordering::Relaxed);
             // Fetch the persisted counter from disk
-            let disk_data = self.save_service.load::<usize>(counter_path)?;
-
-            if disk_data > self.batch_size {
-                // Write back to disk
-                self.save_service.save(counter_path, 0)?;
-                // Collect the garbage
-                let self_clone = Arc::clone(self);
-                self_clone.dispatch_garbage_collection();
-            } else {
-                self.save_service.save(counter_path, disk_data + new_val)?;
+            match self
+                .kv_table
+                .get_or_create::<usize>(&counter_ident, 0)
+                .await
+            {
+                Ok(disk_data) => {
+                    if disk_data > self.batch_size {
+                        // Write back to disk
+                        self.kv_table.set(counter_ident, 0).await?;
+                        // Collect the garbage
+                        let self_clone = Arc::clone(self);
+                        self_clone.dispatch_garbage_collection();
+                    } else {
+                        self.kv_table
+                            .set(counter_ident, disk_data + new_val)
+                            .await?;
+                    }
+                }
+                Err(err) => {
+                    println!(
+                        "CrawlerGarbageCollector: Error registering number of files processed: {}",
+                        err
+                    );
+                }
             }
         }
         Ok(())
@@ -92,9 +99,9 @@ impl CrawlerGarbageCollector {
 
         // Attempt to merge segments
         self.search_service
-            .merge_segments(10)
-            .map_err(|err| err.to_string())
-            .await?;
+            .collect_garbage()
+            .await
+            .map_err(|err| err.to_string())?;
 
         Ok(())
     }

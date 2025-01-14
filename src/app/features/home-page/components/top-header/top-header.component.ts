@@ -21,6 +21,7 @@ import {
 } from "./util-button/util-button.component";
 import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-directory-bar.component";
 import { MutedButtonComponent } from "../../../../shared/components/buttons/muted-button/muted-button.component";
+import { SearchbarComponent } from "../searchbar/searchbar.component";
 
 @Component({
   selector: "app-top-header",
@@ -33,7 +34,8 @@ import { MutedButtonComponent } from "../../../../shared/components/buttons/mute
     IconifyIconModule,
     UtilButtonComponent,
     CurrentDirectoryBarComponent,
-  ],
+    SearchbarComponent
+],
   templateUrl: "./top-header.component.html",
   styleUrl: "./top-header.component.css",
 })

@@ -6,7 +6,7 @@ mod dtos {
 mod enums{
     pub mod file_changes;
 }
-mod models {
+pub mod models {
     pub mod drive_model;
     pub mod system_info_model;
     pub mod date_range;

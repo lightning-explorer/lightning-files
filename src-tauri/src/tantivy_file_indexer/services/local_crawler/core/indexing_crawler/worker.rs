@@ -82,6 +82,7 @@ where
                                 println!("File Crawler - Filterer recommends not crawling directory: {}. Skipping it.",file.path.to_string_lossy());
                                 // Fetched a directory that shouldn't be crawled:
                                 // Example: 'node_modules'
+                                self.remove_from_crawler_queue(&file).await;
                                 continue;
                             }
                         }
@@ -91,7 +92,7 @@ where
                         num_files_processed += len;
                         // Register this number of files to the garbage collector, if there is one
                         if let Some(collector) = &self.garbage_collector {
-                            if let Err(err) = collector.register_num_files_processed(len) {
+                            if let Err(err) = collector.register_num_files_processed(len).await {
                                 println!("Error registering files to gbg collector: {}", err);
                             }
                         }
@@ -125,8 +126,8 @@ where
                 }
             }
             // Handle messages from the task manager:
-            if let Some(message) = self.get_next_receiver_msg(){
-                match message{
+            if let Some(message) = self.get_next_receiver_msg() {
+                match message {
                     CrawlerMessage::Kill => break,
                     CrawlerMessage::Throttle(_) => todo!(),
                 }
@@ -165,14 +166,7 @@ where
         {
             Ok(_) => {
                 // If all goes well, then the directory can be removed from the crawler queue
-                if let Err(err) = self.remove_from_crawler_queue(dir).await {
-                    // If for some reason the directory can't be removed, it is no big deal, it just means
-                    // that it will get indexed again
-                    println!(
-                        "Error trying to remove directory from crawler queue: {}",
-                        err
-                    );
-                }
+                self.remove_from_crawler_queue(dir).await;
             }
             Err(err) => {
                 println!("Error indexing files: {}", err);
@@ -204,12 +198,7 @@ where
                         err
                     );
                     // Something must be wrong with the directory, so go ahead and remove it from the queue early
-                    if let Err(err) = self.remove_from_crawler_queue(directory).await {
-                        println!(
-                            "Error trying to remove directory from crawler queue: {}",
-                            err
-                        );
-                    }
+                    self.remove_from_crawler_queue(directory).await
                 }
             },
         }
@@ -228,13 +217,19 @@ where
         files
     }
 
-    async fn remove_from_crawler_queue(&self, directory: &CrawlerFile) -> Result<(), String> {
-        async_retry::retry_with_backoff(
+    async fn remove_from_crawler_queue(&self, directory: &CrawlerFile) {
+        if let Err(err) = async_retry::retry_with_backoff(
             |_| self.crawler_queue.delete_one(directory.clone()),
             5,
             Duration::from_millis(1000),
         )
         .await
+        {
+            println!(
+                "FileCrawlerWorker - Error removing directory from queue: {}",
+                err
+            );
+        }
     }
 
     /// Attempt to fetch the next item from the crawler queue, applying backoff if failing

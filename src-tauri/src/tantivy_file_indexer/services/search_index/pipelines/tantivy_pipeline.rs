@@ -6,7 +6,7 @@ use crate::tantivy_file_indexer::{
     shared::indexing_crawler::traits::commit_pipeline::CrawlerCommitPipeline,
 };
 use std::collections::HashMap;
-use tantivy_ext::SearchIndex;
+use tantivy_ext::{Field, Index, SearchIndex};
 
 /// Pipeline where Tantivy is used as the main database. SQLite is used as a queue
 pub struct TantivyPipeline {
@@ -32,7 +32,6 @@ impl CrawlerCommitPipeline for TantivyPipeline {
             &self.index,
             parent_key,
         ))?;
-
         Ok(files.into_iter().map(|x| x.into()).collect())
     }
 
@@ -67,6 +66,10 @@ impl CrawlerCommitPipeline for TantivyPipeline {
 
         // Classify and remove stale files
         let stale_keys = util::classify_stale_models(&children, &tantivy_models);
+        println!("Children: {:#?}",children);
+        for key in stale_keys.iter(){
+            println!("Found stale path: {}", key);
+        }
         self.remove_many(stale_keys).await?;
 
         util::map_err(self.index.add(tantivy_models.iter()).await)?;
