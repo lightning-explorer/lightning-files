@@ -21,21 +21,12 @@ export class FileResultPresentationService {
       }
   }
 
-  getCssClass(viewType:FileViewType) {
+  isIconType(viewType:FileViewType):boolean{
     switch (viewType) {
       case FileViewType.MediumIcon:
-        return "content-icon";
+        return true;
       default:
-        return "content-detail";
-    }
-  }
-
-  getBodyCssClass(viewType:FileViewType) {
-    switch (viewType) {
-      case FileViewType.MediumIcon:
-        return "body-icon";
-      default:
-        return "body";
+        return false;
     }
   }
 }

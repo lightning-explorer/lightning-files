@@ -38,6 +38,7 @@ where
     batch_size: usize,
     /// Message channel to receive orders from the task manager
     receiver: CrawlerManagerMessageReceiver,
+    channel_closed: bool,
 
     garbage_collector: Option<Arc<CrawlerGarbageCollector>>,
     filterer: Option<Arc<CrawlerFilterer>>,
@@ -63,6 +64,7 @@ where
             pipeline,
             batch_size,
             receiver,
+            channel_closed: false,
 
             garbage_collector: None,
             filterer: None,
@@ -168,6 +170,9 @@ where
     }
 
     fn get_next_receiver_msg(&mut self) -> Option<CrawlerMessage> {
+        if self.channel_closed {
+            return None;
+        }
         match self.receiver.try_recv() {
             Ok(message) => return Some(message),
             Err(err) => {
@@ -175,7 +180,8 @@ where
                     println!(
                         "WARNING: Disconnection between crawler and its task manager communication channel: {}",
                         err
-                    )
+                    );
+                    self.channel_closed = true;
                 }
                 // Otherwise, it'll be an `Empty` error, which we don't care about
             }
@@ -258,7 +264,7 @@ where
         mut files: Vec<(CrawlerFile, Vec<SystemFileModel>)>,
     ) -> Vec<(CrawlerFile, Vec<SystemFileModel>)> {
         //println!("Crawler is committing files bank");
-        if files.is_empty(){
+        if files.is_empty() {
             return files;
         }
         for (dir, inner_files) in files.drain(..) {

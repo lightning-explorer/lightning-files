@@ -101,7 +101,7 @@ impl CrawlerGarbageCollector {
             .collect_garbage()
             .await
             .map_err(|err| err.to_string())?;
-
+        println!("CrawlerGarbageCollector: Successfully collected garbage");
         Ok(())
     }
 }

@@ -85,7 +85,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   @Input() showFullFilePaths = false;
   @Input() allowFadeIn:boolean = true;
   @Input() isLoading: boolean = false;
-  @Input() viewType: FileViewType = FileViewType.MediumIcon;
+  @Input() viewType: FileViewType = FileViewType.Detail;
 
   @Output() fileClickedOn = new EventEmitter<FileModel>();
 

@@ -24,10 +24,10 @@ pub type CrawlerManagerMessageReceiver = mpsc::Receiver<CrawlerMessage>;
 pub type CrawlerManagerMessageSender = mpsc::Sender<CrawlerMessage>;
 
 pub async fn build_managed(mut factory: CrawlerFactory) {
-    let num_workers = 4;
+    let num_workers = 8;
 
     factory = factory.set_batch_size(512);
-    let tasks = factory.build(2).await;
+    let tasks = factory.build(num_workers).await;
 
     println!(
         "Crawler task manager has spawned {} file crawlers",
@@ -47,34 +47,34 @@ fn manage_crawl_tasks(
 ) {
     let check_frequency = Duration::from_secs(30);
     // TODO: have the task manager actually do stuff
-    tokio::spawn(async move {
-        loop {
-            tokio::time::sleep(check_frequency).await;
-            crawl_task_handles = remove_dead_crawlers(crawl_task_handles);
-            let num_active_crawlers = crawl_task_handles.len() as u32;
-            let recommended_crawlers = compute_recommended_num_crawlers().await;
-            println!(
-                "Crawler Task Manager: There are {} active crawlers and {} are recommended",
-                num_active_crawlers, recommended_crawlers
-            );
-            match num_active_crawlers.cmp(&recommended_crawlers) {
-                Ordering::Less => {
-                    // Add more crawlers
-                    let needed_crawlers = recommended_crawlers - num_active_crawlers;
-                    let factory_lock = factory.read().await;
+    // tokio::spawn(async move {
+    //     loop {
+    //         tokio::time::sleep(check_frequency).await;
+    //         crawl_task_handles = remove_dead_crawlers(crawl_task_handles);
+    //         let num_active_crawlers = crawl_task_handles.len() as u32;
+    //         let recommended_crawlers = compute_recommended_num_crawlers().await;
+    //         println!(
+    //             "Crawler Task Manager: There are {} active crawlers and {} are recommended",
+    //             num_active_crawlers, recommended_crawlers
+    //         );
+    //         match num_active_crawlers.cmp(&recommended_crawlers) {
+    //             Ordering::Less => {
+    //                 // Add more crawlers
+    //                 let needed_crawlers = recommended_crawlers - num_active_crawlers;
+    //                 let factory_lock = factory.read().await;
 
-                    let new_crawlers = factory_lock.build(needed_crawlers).await;
-                    // Put the new crawlers in with the rest of them
-                    crawl_task_handles.extend(new_crawlers);
-                }
-                Ordering::Equal => { /* No action is needed */ }
-                Ordering::Greater => {
-                    let crawlers_to_kill = num_active_crawlers - recommended_crawlers;
-                    kill_crawlers(&crawl_task_handles, crawlers_to_kill).await;
-                }
-            }
-        }
-    });
+    //                 let new_crawlers = factory_lock.build(needed_crawlers).await;
+    //                 // Put the new crawlers in with the rest of them
+    //                 crawl_task_handles.extend(new_crawlers);
+    //             }
+    //             Ordering::Equal => { /* No action is needed */ }
+    //             Ordering::Greater => {
+    //                 let crawlers_to_kill = num_active_crawlers - recommended_crawlers;
+    //                 kill_crawlers(&crawl_task_handles, crawlers_to_kill).await;
+    //             }
+    //         }
+    //     }
+    // });
 }
 
 /// Sends a message to some of the crawlers to gracefully terminate them

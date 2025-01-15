@@ -121,6 +121,10 @@ impl SearchIndexService {
     /// Removes entries not in use anymore
     pub async fn collect_garbage(&self) -> Result<GarbageCollectionResult, tantivy::TantivyError> {
         let backend = self.index.get_tantivy_backend();
-        backend.writer.lock().await.garbage_collect_files().await
+        let mut writer_lock = backend.writer.lock().await;
+        if let Err(err) = writer_lock.commit(){
+            println!("SearchService: Garbage collection failed to commit pending changes: {}",err);
+        }
+        writer_lock.garbage_collect_files().await
     }
 }

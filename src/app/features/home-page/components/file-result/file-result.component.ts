@@ -59,12 +59,8 @@ export class FileResultComponent {
     return this.presentionService.getIconSize(this.viewType);
   }
 
-  getCssClass() {
-    return this.presentionService.getCssClass(this.viewType);
-  }
-
-  getBodyCssClass() {
-    return this.presentionService.getBodyCssClass(this.viewType);
+  isIconType():boolean{
+    return this.presentionService.isIconType(this.viewType);
   }
 
   onMouseEnter() {

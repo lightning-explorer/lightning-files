@@ -1,4 +1,4 @@
-.content-detail {
+.content {
   display: flex;
   flex-direction: column;
   padding: 0.2em;
@@ -8,12 +8,11 @@
   margin: 0.2em;
   width: 100%;
   height: 100%;
-  pointer-events: none;
   transition: all ease 100ms;
   overflow: hidden;
 }
 
-.content-icon {
+.content.icon {
   display:inline-block;
   flex-direction: column;
   border: 0px;
@@ -32,7 +31,7 @@
   background-color: var(--select-primary);
 }
 
-.content-detail.altcolor {
+.content.altcolor {
   background-color: var(--alt);
 }
 
@@ -49,13 +48,13 @@
   text-align: left;
 }
 
-.body-icon {
+.body.icon {
   align-items: center;
   justify-content: center;
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 0.5em;
+  gap: 0em;
   font-size: .7rem;
   text-align: center;
   text-align: center;
@@ -73,6 +72,10 @@
   width: 100%;
   text-wrap: wrap;
   color: var(--text-primary);
+}
+
+.name.icon{
+  height: 2rem;
 }
 
 .name.hide {

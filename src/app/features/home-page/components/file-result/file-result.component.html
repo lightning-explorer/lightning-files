@@ -1,18 +1,32 @@
-<div *ngIf="file" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+<div
+  *ngIf="file"
+  (mouseenter)="onMouseEnter()"
+  (mouseleave)="onMouseLeave()"
+>
   <button
-    [class]="getCssClass()"
-    [ngClass]="{ selected: selected, grow: shouldGrow, hide: state.hide, altcolor:altColor && ! selected }"
+    class="content"
+    [ngClass]="{
+      icon:isIconType(),
+      selected: selected,
+      grow: shouldGrow,
+      hide: state.hide,
+      altcolor: altColor && !selected
+    }"
   >
-    <div [class]="getBodyCssClass()">
+    <div class="body" [ngClass]="{icon:isIconType()}">
       <div *ngIf="isPinned">
         <iconify-icon icon="pin" size="1em" color="--icon" />
       </div>
 
       <div>
-          <iconify-icon [icon]="getIcon()" color="--icon"  [size]="getIconSize()" />
+        <iconify-icon
+          [icon]="getIcon()"
+          color="--icon"
+          [size]="getIconSize()"
+        />
       </div>
 
-      <div class="name" [ngClass]="{ hide: state.hide }">
+      <div class="name" [ngClass]="{ hide: state.hide, icon:isIconType() }">
         <app-highlightable-label
           [text]="file.Name"
           [highlight]="state.highlightedText"
