@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { Component, Input, OnInit, ViewChild } from "@angular/core";
 import { FileViewType } from "./enums/view-type";
 import { CommonModule } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
@@ -8,6 +8,8 @@ import { HighlightableLabelComponent } from "@shared/components/highlightable-la
 import { PinService } from "src/app/features/home-page/services/pin.service";
 import { defaultFileState, FileState } from "./file-state";
 import { FileResultPresentationService } from "./file-presentation.service";
+import { FileContextMenuService } from "./services/context-menu.service";
+import { ContextMenuComponent } from "../../../../shared/components/popups/context-menu/context-menu.component";
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
 
@@ -19,15 +21,19 @@ import { FileResultPresentationService } from "./file-presentation.service";
     MatIconModule,
     IconifyIconModule,
     HighlightableLabelComponent,
+    ContextMenuComponent
   ],
   templateUrl: "./file-result.component.html",
   styleUrl: "./file-result.component.scss",
   animations: [],
+  providers: [FileContextMenuService]
 })
 export class FileResultComponent implements OnInit {
   _iconSize = "1rem";
   _isIconType = false;
   mouseOver = false;
+
+  @ViewChild("contextMenu") contextMenu!: ContextMenuComponent;
 
   get shouldGrow() {
     return (this.state.draggedOver || this.mouseOver) && !this.state.hide;
@@ -43,8 +49,9 @@ export class FileResultComponent implements OnInit {
 
   constructor(
     private pinService: PinService,
-    private presentionService: FileResultPresentationService
-  ) {}
+    private presentionService: FileResultPresentationService,
+    private contextMenuServce: FileContextMenuService
+  ) { }
 
   ngOnInit(): void {
     this._iconSize = this.presentionService.getIconSize(this.viewType);
@@ -56,10 +63,15 @@ export class FileResultComponent implements OnInit {
     return this.pinService.isFilePinned(this.file);
   }
 
-  getIcon():string{
-    if(this.file)
+  getIcon(): string {
+    if (this.file)
       return this.presentionService.getIcon(this.file);
     return "";
+  }
+
+  onRightClick(event: MouseEvent) {
+    if (this.file)
+      this.contextMenuServce.openMenu(this.contextMenu, event, this.file, this.state);
   }
 
   onMouseEnter() {

@@ -2,6 +2,7 @@
   *ngIf="file"
   (mouseenter)="onMouseEnter()"
   (mouseleave)="onMouseLeave()"
+  (contextmenu)="onRightClick($event)"
 >
   <button
     class="content"
@@ -36,3 +37,5 @@
     <p class="metadata" *ngIf="displayPath">score: {{ file.Score }}</p>
   </button>
 </div>
+
+<app-context-menu #contextMenu />

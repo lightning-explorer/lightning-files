@@ -3,6 +3,7 @@ import { ContextMenuComponent } from "@shared/components/popups/context-menu/con
 import { FileModel } from "@core/models/file-model";
 import { PinService } from "src/app/features/home-page/services/pin.service";
 import { TauriCommandsService } from "@core/services/tauri/commands.service";
+import { FileState } from "../file-state";
 
 @Injectable()
 export class FileContextMenuService {
@@ -11,7 +12,7 @@ export class FileContextMenuService {
     private commandsService: TauriCommandsService
   ) {}
 
-  openMenu(menu: ContextMenuComponent, event: MouseEvent, caller: FileModel) {
+  openMenu(menu: ContextMenuComponent, event: MouseEvent, caller: FileModel, state?: FileState) {
     event.preventDefault();
 
     const pin = this.pinService.isFilePinned(caller)

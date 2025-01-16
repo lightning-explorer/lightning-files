@@ -21,7 +21,7 @@ import {
 import { MoveItemsPopupComponent } from "./popups/move-items-popup/move-items-popup.component";
 import { InlineSearchBarComponent } from "./inline-search-bar/inline-search-bar.component";
 import { ContextMenuComponent } from "@shared/components/popups/context-menu/context-menu.component";
-import { FileContextMenuService } from "./services/interaction/context-menu.service";
+import { FileContextMenuService } from "../../../file-result/services/context-menu.service";
 import { DragDropService } from "./services/interaction/dragdrop.service";
 import { SelectService } from "./services/interaction/select.service";
 import {
@@ -49,7 +49,6 @@ import { FileViewType } from "../../../file-result/enums/view-type";
     FileResultComponent,
     ScrollingModule,
     MoveItemsPopupComponent,
-    ContextMenuComponent,
     InlineSearchBarComponent,
     FailedToMoveItemsPopupComponent,
   ],
@@ -57,7 +56,6 @@ import { FileViewType } from "../../../file-result/enums/view-type";
     SelectService,
     DragDropService,
     InlineSearchService,
-    FileContextMenuService,
     MoveItemsPopupStateService
   ],
   templateUrl: "./file-browser.component.html",
@@ -81,10 +79,8 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   files: FileModel[] = [];
   states: FileState[] = [];
 
-  @ViewChild("contextMenu") contextMenu!: ContextMenuComponent;
-
   @Input() showFullFilePaths = false;
-  @Input() allowFadeIn:boolean = true;
+  @Input() allowFadeIn: boolean = true;
   @Input() isLoading: boolean = false;
   @Input() viewType: FileViewType = FileViewType.Detail;
 
@@ -102,20 +98,19 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     private filesListService: FilesListService,
     private dragService: DragDropService,
     private selectService: SelectService,
-    private contextMenuService: FileContextMenuService,
     private moveItemsPopupState: MoveItemsPopupStateService,
     private ngZone: NgZone
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    if(this.viewType!=FileViewType.Detail)
+    if (this.viewType != FileViewType.Detail)
       this._arrangeFilesAsGrid = true;
 
     this.subscription.add(
       this.filesListService.observeAllFiles().subscribe((x) => {
-        if(this.allowFadeIn){
+        if (this.allowFadeIn) {
           this.hideAndFadeIn();
-        }else{
+        } else {
           this.viewport.checkViewportSize();
         }
         this.files = x;
@@ -190,10 +185,6 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     this.selectService.onFileDoubleClick(file);
   }
 
-  onFileRightClick(file: FileModel, event: MouseEvent) {
-    this.contextMenuService.openMenu(this.contextMenu, event, file);
-  }
-
   onFileDragStart(event: DragEvent, index: number, item: FileModel) {
     this.selectService.populateSelected(this.files);
     let selectedSet = new Set(this.selectedItems);
@@ -220,10 +211,10 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
 
   async onFileDrop(event: DragEvent, targetItem: FileModel) {
     this.dragService.onDrop(event, targetItem);
-    if(this.dragService.draggingItemsToADirectory){
+    if (this.dragService.draggingItemsToADirectory) {
       if (this.dragService.numberOfItemsBeingDragged > 0) {
         // If the popup doesn't get opened, it means the user disabled it
-        if(!this.moveItemsPopupState.attemptOpen()){
+        if (!this.moveItemsPopupState.attemptOpen()) {
           await this.dragService.moveDraggedItemsAsync();
         }
       }

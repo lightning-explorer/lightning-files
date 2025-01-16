@@ -7,7 +7,7 @@ import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.mo
 import { truncateText } from "@core/util/text-truncator";
 import { SelectService } from "../../files-display/components/file-browser/services/interaction/select.service";
 import { ContextMenuComponent } from "@shared/components/popups/context-menu/context-menu.component";
-import { FileContextMenuService } from "../../files-display/components/file-browser/services/interaction/context-menu.service";
+import { FileContextMenuService } from "../../file-result/services/context-menu.service";
 import { Subscription } from "rxjs";
 import { ToolbarComponent } from "../../sidebar/toolbar/toolbar.component";
 import { TooltipComponent } from "../../../../../shared/components/popups/tooltip/tooltip.component";
