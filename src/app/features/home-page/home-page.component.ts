@@ -70,7 +70,7 @@ export class HomePageComponent implements OnInit {
     this.directoryNavService.setCurrentDir(dir);
 
     // const searchParams: Partial<SearchParamsDTO> = {
-    //   FilePath: "new file",
+    //   FilePath: "file",
     // };
     // this.s.search(searchParams);
   }

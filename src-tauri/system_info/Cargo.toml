@@ -8,3 +8,4 @@ sysinfo = "0.33.1"
 serde = { version = "1.0.213", features = ["derive"] }
 dirs = "5.0"
 tokio = { version = "1.41.1", features = ["full"] }
+winapi = { version = "0.3", features = ["fileapi"] }

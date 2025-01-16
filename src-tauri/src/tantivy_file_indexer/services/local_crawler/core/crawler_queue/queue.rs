@@ -30,18 +30,15 @@ impl CrawlerQueue {
             db,
             notify: Arc::new(Notify::new()),
         }
-    }
+    } //         self.mark_taken(&next_entries, true).await?;
 
     pub async fn fetch_many(&self, amount: u64) -> Result<Vec<(PathBuf, Priority)>, DbErr> {
-        self.get_crawler_queue_table()
-            .get_many(amount)
-            .await
-            .map(|models| {
-                models
-                    .into_iter()
-                    .map(|model| (PathBuf::from(model.path), model.priority))
-                    .collect()
-            })
+        let models = self.get_crawler_queue_table().get_many(amount).await?;
+        self.get_crawler_queue_table().mark_taken(&models, true).await?;
+        Ok(models
+            .into_iter()
+            .map(|model| (PathBuf::from(model.path), model.priority))
+            .collect())
     }
 
     pub async fn delete_many(&self, models: Vec<indexed_dir::Model>) -> Result<(), DbErr> {

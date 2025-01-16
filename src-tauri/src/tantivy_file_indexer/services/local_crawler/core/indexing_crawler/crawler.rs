@@ -17,6 +17,7 @@ use super::plugins::{
 pub enum CrawlerError {
     ReadDirError(String),
     PushToQueueError(String),
+    NotDirError(String),
 }
 
 /// Where `file` should ideally be a directory. If its not, it will get ignored. Note that this is not a recursive crawl.
@@ -32,7 +33,10 @@ where
     C: CrawlerQueueApi,
 {
     if !file.path.is_dir() {
-        return Ok(Vec::new());
+        return Err(CrawlerError::NotDirError(format!(
+            "The path {} is not a directory",
+            file.path.to_string_lossy()
+        )));
     }
 
     let mut dtos = Vec::new();
@@ -49,8 +53,13 @@ where
                     filterer.should_index(&entry_path).await
                 {
                     // Optional log:
-                    //println!("Crawler Filterer - found path that shouldn't be indexed: {}. Reason: {}",entry_path.to_string_lossy(),reason);
-                    return Ok(Vec::new());
+                    // println!(
+                    //     "Crawler Filterer - found path that shouldn't be indexed: {}. Reason: {}",
+                    //     entry_path.to_string_lossy(),
+                    //     _reason
+                    // );
+                    // DONT BREAK HERE!!!!!!!!!!!!!!!!!!!!!!!!!
+                    continue
                 }
             }
 

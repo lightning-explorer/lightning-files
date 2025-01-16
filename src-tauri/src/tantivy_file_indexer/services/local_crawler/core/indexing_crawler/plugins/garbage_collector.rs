@@ -96,11 +96,11 @@ impl CrawlerGarbageCollector {
         .await
         .map_err(|err| err.to_string())?;
 
-        // Attempt to merge segments
-        self.search_service
-            .collect_garbage()
-            .await
-            .map_err(|err| err.to_string())?;
+        // Attempt to merge segments. TODO: this is removed for now. Do we need it back?
+        // self.search_service
+        //     .collect_garbage()
+        //     .await
+        //     .map_err(|err| err.to_string())?;
         println!("CrawlerGarbageCollector: Successfully collected garbage");
         Ok(())
     }

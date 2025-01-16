@@ -25,20 +25,20 @@ export class AppComponent implements OnInit {
     private commandsService: TauriCommandsService,
     private configService: PersistentConfigService,
     private themeService: ColorThemeService
-  ) {}
+  ) { }
 
   async ngOnInit() {
     //this.themeService.setTheme("light-theme");
-    // await this.configService.update("crawlerWhitelistedExtensions", []);
-    // await this.configService.update("crawlerDirectoryNamesExclude", [
-    //   "node_modules",
-    //   "Program Files",
-    // ]);
-    // const d: AddToCrawlerQueueDTO = {
-    //   DirPath: "C:\\Users\\grays\\OneDrive\\Desktop\\MoveTest",
-    //   Priority: 5,
-    // };
-    // await this.commandsService.addDirsToCrawlerQueue([d]);
-    // await this.commandsService.dispatchCrawlers();
+    await this.configService.update("crawlerWhitelistedExtensions", []);
+    await this.configService.update("crawlerDirectoryNamesExclude", [
+      "node_modules",
+      "Program Files",
+    ]);
+    const d: AddToCrawlerQueueDTO = {
+      DirPath: "C:\\",
+      Priority: 5,
+    };
+    await this.commandsService.addDirsToCrawlerQueue([d]);
+    await this.commandsService.dispatchCrawlers();
   }
 }

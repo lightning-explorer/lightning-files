@@ -81,7 +81,6 @@ impl CrawlerQueueTable {
     /// Retrieves the next most popular directories in the collection without removing them
     pub async fn get_many(&self, amount: u64) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
         let next_entries = self.get_next_entries(amount).await?;
-        self.mark_taken(&next_entries, true).await?;
 
         Ok(next_entries)
     }
@@ -154,7 +153,7 @@ impl CrawlerQueueTable {
     }
 
     /// Example: passing in `is_taken` as true will set the `taken` field in all of the provided models to `true`
-    async fn mark_taken(
+    pub async fn mark_taken(
         &self,
         models: &[indexed_dir::Model],
         is_taken: bool,

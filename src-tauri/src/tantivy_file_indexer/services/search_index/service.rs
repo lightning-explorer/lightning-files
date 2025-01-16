@@ -16,8 +16,7 @@ use super::{
 };
 use std::{path::PathBuf, sync::Arc};
 
-use tantivy::directory::GarbageCollectionResult;
-use tantivy_ext::SearchIndex;
+use tantivy_ext::{index::index_builder::SearchIndexBuilder, SearchIndex};
 use tauri::{AppHandle, Manager};
 use tokio::task::JoinHandle;
 
@@ -32,11 +31,14 @@ impl SearchIndexService {
     pub fn new(app_path: PathBuf, handle: &AppHandle) -> Self {
         let index_path = app_path.join("TantivyOut");
 
-        let index = SearchIndex::new(50_000_000, index_path);
+        let index = SearchIndexBuilder::new(index_path)
+            .with_memory_budget(50_000_000)
+            .with_recycle_after(5_000)
+            .build();
         let backend = index.get_tantivy_backend();
 
         let constructor = Arc::new(QueryConstructor::new(
-            backend.schema,
+            index.get_tantivy_backend().schema.clone(),
             backend.reader.clone(),
         ));
 
@@ -116,15 +118,5 @@ impl SearchIndexService {
 
     pub fn get_pipeline(&self) -> Arc<TantivyPipeline> {
         Arc::clone(&self.pipeline)
-    }
-
-    /// Removes entries not in use anymore
-    pub async fn collect_garbage(&self) -> Result<GarbageCollectionResult, tantivy::TantivyError> {
-        let backend = self.index.get_tantivy_backend();
-        let mut writer_lock = backend.writer.lock().await;
-        if let Err(err) = writer_lock.commit(){
-            println!("SearchService: Garbage collection failed to commit pending changes: {}",err);
-        }
-        writer_lock.garbage_collect_files().await
     }
 }

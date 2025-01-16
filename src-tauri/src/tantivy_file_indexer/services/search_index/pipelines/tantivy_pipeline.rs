@@ -63,7 +63,7 @@ impl CrawlerCommitPipeline for TantivyPipeline {
 
         self.remove_many(stale_keys).await?;
 
-        util::map_err(self.index.add(tantivy_models.iter()).await)?;
+        util::map_err(self.index.add(&tantivy_models).await)?;
 
         Ok(())
     }

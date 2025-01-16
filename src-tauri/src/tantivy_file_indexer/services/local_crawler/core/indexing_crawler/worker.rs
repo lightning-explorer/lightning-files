@@ -110,6 +110,7 @@ where
                         let inner_files = self.handle_crawl(&file).await;
                         let len = inner_files.len();
                         num_files_processed += len;
+                        //println!("Crawler processed {} files", len);
                         // Register this number of files to the garbage collector, if there is one
                         if let Some(collector) = &self.garbage_collector {
                             if let Err(err) = collector.register_num_files_processed(len).await {
@@ -131,7 +132,6 @@ where
                         files_bank = self.commit_files_bank(files_bank).await;
                     }
                     None => {
-                        println!("No tasks available. Attempting to create busy work");
                         // stagger the update since multiple crawlers may finish at the same time
                         self.random_wait().await;
                         let queue_clone = Arc::clone(&self.crawler_queue);
@@ -246,7 +246,7 @@ where
                         err
                     );
                 }
-                CrawlerError::ReadDirError(err) => {
+                CrawlerError::ReadDirError(err) | CrawlerError::NotDirError(err) => {
                     println!(
                         "Crawler could not read directory: {}. Removing it from the queue",
                         err

@@ -38,15 +38,16 @@ impl FileCrawlerService {
     /// Once built, the crawlers will get dispatched and start working
     /// 
     /// If this function gets called while the crawlers are already dispatched, nothing will happen
-    pub async fn dispatch_crawlers(&self) {
+    pub async fn dispatch_crawlers(&self) -> Result<(),String> {
         let mut has_dispatched_crawlers_lock = self.has_dispatched_crawlers.write().await;
         if *has_dispatched_crawlers_lock{
-            return;
+            return Err("Crawlers have already been dispatched".to_string());
         }
         *has_dispatched_crawlers_lock = true;
 
         let pipeline = self.search_index.get_pipeline();
         let crawler_queue = Arc::clone(&self.queue);
+        crawler_queue.set_taken_to_false_all().await.map_err(|err|err.to_string())?;
 
         // Create the garbage collector and inject it
         let collector = Arc::new(garbage_collector::CrawlerGarbageCollector::new(
@@ -65,6 +66,7 @@ impl FileCrawlerService {
 
         // Hand off the rest of the building to the task manager
         task_manager::build_managed(factory).await;
+        Ok(())
 
     }
 
