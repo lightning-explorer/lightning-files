@@ -21,8 +21,10 @@
 
 .body-grid{
     display: grid;
+    width: 100%;
+    height: 100%;
     grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
-    padding-right: 1.5rem;
+
     box-sizing: border-box;
 }
 
@@ -63,3 +65,5 @@ app-inline-search-bar {
     pointer-events: none;
     z-index: 10;
 }
+
+

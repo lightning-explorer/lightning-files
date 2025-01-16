@@ -24,7 +24,9 @@ import { FileResultPresentationService } from "./file-presentation.service";
   styleUrl: "./file-result.component.scss",
   animations: [],
 })
-export class FileResultComponent {
+export class FileResultComponent implements OnInit {
+  _iconSize = "1rem";
+  _isIconType = false;
   mouseOver = false;
 
   get shouldGrow() {
@@ -44,6 +46,11 @@ export class FileResultComponent {
     private presentionService: FileResultPresentationService
   ) {}
 
+  ngOnInit(): void {
+    this._iconSize = this.presentionService.getIconSize(this.viewType);
+    this._isIconType = this.presentionService.isIconType(this.viewType);
+  }
+
   get isPinned(): boolean {
     if (!this.file) return false;
     return this.pinService.isFilePinned(this.file);
@@ -53,14 +60,6 @@ export class FileResultComponent {
     if(this.file)
       return this.presentionService.getIcon(this.file);
     return "";
-  }
-
-  getIconSize():string{
-    return this.presentionService.getIconSize(this.viewType);
-  }
-
-  isIconType():boolean{
-    return this.presentionService.isIconType(this.viewType);
   }
 
   onMouseEnter() {

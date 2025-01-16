@@ -77,6 +77,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   subscription = new Subscription();
   @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
 
+  _arrangeFilesAsGrid = false;
   files: FileModel[] = [];
   states: FileState[] = [];
 
@@ -107,6 +108,9 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    if(this.viewType!=FileViewType.Detail)
+      this._arrangeFilesAsGrid = true;
+
     this.subscription.add(
       this.filesListService.observeAllFiles().subscribe((x) => {
         if(this.allowFadeIn){
@@ -147,12 +151,6 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
-  }
-
-  arrangeFilesAsGrid():boolean{
-    if(this.viewType==FileViewType.Detail)
-      return false;
-    return true;
   }
 
   hideAndFadeIn() {
