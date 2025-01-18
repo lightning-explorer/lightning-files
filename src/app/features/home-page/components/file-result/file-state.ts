@@ -4,6 +4,7 @@ export interface FileState{
     highlightedText: string,
     draggedOver:boolean,
     hide:boolean,
+    renameRequested:boolean,
     
     model:FileModel,
 }
@@ -14,6 +15,7 @@ export interface FileState{
       highlightedText: "",
       draggedOver: false,
       hide: false,
+      renameRequested:false,
 
       model
     };

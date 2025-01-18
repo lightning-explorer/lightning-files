@@ -1,15 +1,12 @@
-import { Component, Input, OnInit, ViewChild } from "@angular/core";
+import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from "@angular/core";
 import { FileViewType } from "./enums/view-type";
 import { CommonModule } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.module";
-import { FileModel } from "@core/models/file-model";
 import { HighlightableLabelComponent } from "@shared/components/highlightable-label/highlightable-label.component";
 import { PinService } from "src/app/features/home-page/services/pin.service";
 import { FileState } from "./file-state";
 import { FileResultPresentationService } from "./file-presentation.service";
-import { FileContextMenuService } from "./services/context-menu.service";
-import { ContextMenuComponent } from "../../../../shared/components/popups/context-menu/context-menu.component";
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
 
@@ -21,19 +18,17 @@ import { ContextMenuComponent } from "../../../../shared/components/popups/conte
     MatIconModule,
     IconifyIconModule,
     HighlightableLabelComponent,
-    ContextMenuComponent
   ],
   templateUrl: "./file-result.component.html",
   styleUrl: "./file-result.component.scss",
   animations: [],
-  providers: [FileContextMenuService]
+  providers: []
 })
 export class FileResultComponent implements OnInit {
   _iconSize = "1rem";
   _isIconType = false;
+  _isRenaming = false;
   mouseOver = false;
-
-  @ViewChild("contextMenu") contextMenu!: ContextMenuComponent;
 
   get shouldGrow() {
     if(!this.file)
@@ -51,7 +46,6 @@ export class FileResultComponent implements OnInit {
   constructor(
     private pinService: PinService,
     private presentionService: FileResultPresentationService,
-    private contextMenuServce: FileContextMenuService
   ) { }
 
   ngOnInit(): void {
@@ -70,16 +64,15 @@ export class FileResultComponent implements OnInit {
     return "";
   }
 
-  onRightClick(event: MouseEvent) {
-    if (this.file)
-      this.contextMenuServce.openMenu(this.contextMenu, event, this.file);
-  }
-
   onMouseEnter() {
     this.mouseOver = true;
   }
 
   onMouseLeave() {
     this.mouseOver = false;
+  }
+
+  rename(){
+    
   }
 }

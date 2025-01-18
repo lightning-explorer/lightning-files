@@ -35,7 +35,13 @@ export class FileContextMenuService {
         this.commandsService.openInExplorer(caller.FilePath);
       },
     };
-    const content = [pin, "div", openInExplorer];
+    const rename = {
+      name: "Rename",
+      action: () => {
+        file = {...file, renameRequested:true};
+      }
+    }
+    const content = [pin, "div", openInExplorer, rename];
 
     menu.content = content;
     menu.toggleOpen(event);

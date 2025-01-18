@@ -51,8 +51,10 @@ import { FileViewType } from "../../../file-result/enums/view-type";
     MoveItemsPopupComponent,
     InlineSearchBarComponent,
     FailedToMoveItemsPopupComponent,
-  ],
+    ContextMenuComponent
+],
   providers: [
+    FileContextMenuService,
     SelectService,
     DragDropService,
     InlineSearchService,
@@ -74,6 +76,7 @@ import { FileViewType } from "../../../file-result/enums/view-type";
 export class FileBrowserComponent implements OnInit, OnDestroy {
   subscription = new Subscription();
   @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
+  @ViewChild("contextMenu") contextMenu!: ContextMenuComponent;
 
   _arrangeFilesAsGrid = false;
   fileStates: FileState[] = [];
@@ -99,6 +102,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     private dragService: DragDropService,
     private selectService: SelectService,
     private moveItemsPopupState: MoveItemsPopupStateService,
+    private contextMenuService: FileContextMenuService,
     private ngZone: NgZone
   ) { }
 
@@ -173,6 +177,10 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   onFileClick(index: number, event: MouseEvent) {
     this.fileClickedOn.emit(this.files[index]);
     this.selectService.onFileClick(index, event);
+  }
+
+  onFileRightClick(index:number, event: MouseEvent) {
+      this.contextMenuService.openMenu(this.contextMenu, event, this.fileStates[index]);
   }
 
   onFileDoubleClick(file: FileModel) {
