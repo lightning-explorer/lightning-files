@@ -1,4 +1,4 @@
-<div *ngIf="file" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+<div *ngIf="file.model" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
   <button
     class="content"
     [ngClass]="{
@@ -22,7 +22,7 @@
         <app-highlightable-label
           *ngIf="!_isRenaming; else renameInputBox"
           [text]="file.model.Name"
-          [highlight]="file.highlightedText"
+          [highlight]="_highlightedText"
         />
         <ng-template #renameInputBox>
           <input />

@@ -51,14 +51,14 @@ import { FileViewType } from "../../../file-result/enums/view-type";
     MoveItemsPopupComponent,
     InlineSearchBarComponent,
     FailedToMoveItemsPopupComponent,
-    ContextMenuComponent
-],
+    ContextMenuComponent,
+  ],
   providers: [
     FileContextMenuService,
     SelectService,
     DragDropService,
     InlineSearchService,
-    MoveItemsPopupStateService
+    MoveItemsPopupStateService,
   ],
   templateUrl: "./file-browser.component.html",
   styleUrl: "./file-browser.component.css",
@@ -104,11 +104,10 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     private moveItemsPopupState: MoveItemsPopupStateService,
     private contextMenuService: FileContextMenuService,
     private ngZone: NgZone
-  ) { }
+  ) {}
 
   ngOnInit(): void {
-    if (this.viewType != FileViewType.Detail)
-      this._arrangeFilesAsGrid = true;
+    if (this.viewType != FileViewType.Detail) this._arrangeFilesAsGrid = true;
 
     this.subscription.add(
       this.filesListService.observeAllFiles().subscribe((states) => {
@@ -118,7 +117,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
           this.viewport.checkViewportSize();
         }
         this.fileStates = states;
-        this.files = states.map(x=>x.model);
+        this.files = states.map(x=>x.model).filter(x=>x != undefined);
       })
     );
 
@@ -179,8 +178,12 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     this.selectService.onFileClick(index, event);
   }
 
-  onFileRightClick(index:number, event: MouseEvent) {
-      this.contextMenuService.openMenu(this.contextMenu, event, this.fileStates[index]);
+  onFileRightClick(index: number, event: MouseEvent) {
+    this.contextMenuService.openMenu(
+      this.contextMenu,
+      event,
+      this.fileStates[index]
+    );
   }
 
   onFileDoubleClick(file: FileModel) {
@@ -226,7 +229,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
 
   @HostListener("window:keydown", ["$event"])
   async handleKeydown(event: KeyboardEvent) {
-    this.inlineSearchService.handleKeydown(event, this.files);
+    this.inlineSearchService.handleKeydown(event, this.fileStates);
   }
 
   // Prevent the stop sign from showing up if dragging a file over the background

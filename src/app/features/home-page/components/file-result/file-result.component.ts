@@ -1,12 +1,15 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from "@angular/core";
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from "@angular/core";
 import { FileViewType } from "./enums/view-type";
 import { CommonModule } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.module";
 import { HighlightableLabelComponent } from "@shared/components/highlightable-label/highlightable-label.component";
 import { PinService } from "src/app/features/home-page/services/pin.service";
-import { FileState } from "./file-state";
+import { defaultFileState, FileState } from "./file-state";
 import { FileResultPresentationService } from "./file-presentation.service";
+import { ContextMenuService } from "@core/services/window/context-menu.service";
+import { FileContextMenuService } from "./services/context-menu.service";
+import { Subscription } from "rxjs";
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
 
@@ -22,12 +25,14 @@ import { FileResultPresentationService } from "./file-presentation.service";
   templateUrl: "./file-result.component.html",
   styleUrl: "./file-result.component.scss",
   animations: [],
-  providers: []
+  providers: [FileContextMenuService]
 })
-export class FileResultComponent implements OnInit {
+export class FileResultComponent implements OnInit, OnDestroy {
+  private subscription = new Subscription();
   _iconSize = "1rem";
   _isIconType = false;
   _isRenaming = false;
+  _highlightedText = "";
   mouseOver = false;
 
   get shouldGrow() {
@@ -36,7 +41,7 @@ export class FileResultComponent implements OnInit {
     return (this.file.draggedOver || this.mouseOver) && !this.file.hide;
   }
 
-  @Input() file: FileState | undefined;
+  @Input() file: FileState = defaultFileState();
 
   @Input() selected = false;
   @Input() displayPath = false;
@@ -45,21 +50,29 @@ export class FileResultComponent implements OnInit {
 
   constructor(
     private pinService: PinService,
+    private contextMenuService:FileContextMenuService,
     private presentionService: FileResultPresentationService,
   ) { }
 
   ngOnInit(): void {
     this._iconSize = this.presentionService.getIconSize(this.viewType);
     this._isIconType = this.presentionService.isIconType(this.viewType);
+
+    this.subscription.add(this.file.renameRequested.subscribe(x=>{
+      console.log("rename time");
+    }));
+    this.subscription.add(this.file.highlightedText.subscribe(x=>{
+      this._highlightedText = x;
+    }));
   }
 
   get isPinned(): boolean {
-    if (!this.file) return false;
+    if (!this.file.model) return false;
     return this.pinService.isFilePinned(this.file.model);
   }
 
   getIcon(): string {
-    if (this.file)
+    if (this.file.model)
       return this.presentionService.getIcon(this.file.model);
     return "";
   }
@@ -73,6 +86,10 @@ export class FileResultComponent implements OnInit {
   }
 
   rename(){
-    
+
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 }

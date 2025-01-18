@@ -34,7 +34,7 @@ export class SearchbarComponent implements OnInit, OnDestroy {
   constructor(
     private homePageService: HomePageService,
     private searchEngineService: HomePageSearchService,
-    private fileOperationsService: FileOperationsService,
+    private fileOperationsService: FileOperationsService
   ) {}
 
   ngOnInit(): void {
@@ -69,7 +69,7 @@ export class SearchbarComponent implements OnInit, OnDestroy {
   onResultClick(file: FileState) {
     //this.inlineSearchService.clearQuery();
     const model = file.model;
-    this.fileOperationsService.openOrNavigateToFile(model);
+    if (model) this.fileOperationsService.openOrNavigateToFile(model);
   }
 
   onBlur() {

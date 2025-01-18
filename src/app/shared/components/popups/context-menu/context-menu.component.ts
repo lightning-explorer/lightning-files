@@ -1,16 +1,18 @@
 import { CommonModule } from "@angular/common";
 import {
   Component,
+  EventEmitter,
   HostListener,
   Input,
   OnDestroy,
   OnInit,
+  Output,
 } from "@angular/core";
 import { ContextMenuButton } from "./models/ContextMenuButton";
 import { WindowEventsService } from "@core/services/window/window-events.service";
 import { Subscription } from "rxjs";
 //
-type ContextMenuItem = ContextMenuButton | {};
+export type ContextMenuItem = ContextMenuButton | {};
 @Component({
   selector: "app-context-menu",
   standalone: true,
@@ -22,7 +24,8 @@ export class ContextMenuComponent {
   private subscription = new Subscription();
 
   @Input() content: ContextMenuItem[] = [];
-
+  /** Emits whenever the context menu gets closed */
+  @Output() close = new EventEmitter<void>();
   isVisible = false;
   xPos = 0;
   yPos = 0;
@@ -42,19 +45,24 @@ export class ContextMenuComponent {
   onClick(event: MouseEvent, action: () => void) {
     event.stopPropagation();
     action();
-    this.isVisible = false;
+    this.closeMenu();
   }
 
   @HostListener("document:mousedown", ["$event.target"])
   onClickOutside(targetElement: HTMLElement) {
     const clickedInside = targetElement.closest(".custom-context-menu");
     if (!clickedInside) {
-      this.isVisible = false;
+      this.closeMenu();
     }
   }
 
   @HostListener("document:wheel")
   onWindowScroll() {
+    this.closeMenu();
+  }
+
+  private closeMenu(){
     this.isVisible = false;
+    this.close.emit();
   }
 }

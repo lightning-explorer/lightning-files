@@ -4,6 +4,7 @@ import { FileModel } from "@core/models/file-model";
 import { filterAlphanumeric } from "@shared/util/keyboard-press-filter";
 import { BehaviorSubject, Observable } from "rxjs";
 import { FilesListService } from "../../../services/files-list.service";
+import { FileState } from "../../../../file-result/file-state";
 
 /**
  Calls the Rust backend to handle the query operation
@@ -22,8 +23,9 @@ export class InlineSearchService {
   firstOccurenceOfQueryIndex$ =
     this.firstOccurenceOfQueryIndexSubject.asObservable();
 
-  async handleKeydown(event: KeyboardEvent, files: FileModel[]) {
+  async handleKeydown(event: KeyboardEvent, files: FileState[]) {
     if (!this.isInputFocused()) {
+      const models = files.map(x=>x.model);
       const key = filterAlphanumeric(event);
       let input_was_backspace = false;
       if (event.key == "Backspace") {
@@ -45,21 +47,19 @@ export class InlineSearchService {
       const queryDto: InlineQueryDTO = {
         Query: this.searchQuerySubject.getValue(),
       };
-      const dtos = await this.query(queryDto, files);
+      const dtos = await this.query(queryDto, models);
 
       this.numberOfFoundItemsSubject.next(dtos.length);
 
       for (let i = 0; i < files.length; i++) {
         let file = files[i];
-        if (dtos.some((x) => x.Name === file.Name)) {
+        if (dtos.some((x) => x.Name === file.model.Name)) {
           if (!input_was_backspace)
             this.firstOccurenceOfQueryIndexSubject.next(i);
 
-          this.filesListService.updateFileState(file, {
-            highlightedText: this.searchQuerySubject.getValue(),
-          });
+            file.highlightedText.next(this.searchQuerySubject.getValue());
         } else {
-          this.filesListService.updateFileState(file, { highlightedText: "" });
+          file.highlightedText.next("");
         }
       }
     }

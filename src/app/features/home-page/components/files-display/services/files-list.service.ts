@@ -27,7 +27,7 @@ export class FilesListService {
   updateFileState(file: FileModel, state: Partial<FileState>) {
     const subject = this.getOrCreateFileStateSubject(file);
     const currentState = subject.value;
-    subject.next({ ...currentState, ...state });
+    subject.next({ ...currentState, ...state }); 
   }
 
   /** Removes all current files and replaces them with new ones */
@@ -55,6 +55,4 @@ export class FilesListService {
   observeAllFiles(): Observable<FileState[]> {
     return this.filesSubject.asObservable();
   }
-
-
 }
