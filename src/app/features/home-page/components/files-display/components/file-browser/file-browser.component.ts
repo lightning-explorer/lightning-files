@@ -76,8 +76,8 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
 
   _arrangeFilesAsGrid = false;
+  fileStates: FileState[] = [];
   files: FileModel[] = [];
-  states: FileState[] = [];
 
   @Input() showFullFilePaths = false;
   @Input() allowFadeIn: boolean = true;
@@ -107,20 +107,15 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
       this._arrangeFilesAsGrid = true;
 
     this.subscription.add(
-      this.filesListService.observeAllFiles().subscribe((x) => {
+      this.filesListService.observeAllFiles().subscribe((states) => {
         if (this.allowFadeIn) {
           this.hideAndFadeIn();
         } else {
           this.viewport.checkViewportSize();
         }
-        this.files = x;
+        this.fileStates = states;
+        this.files = states.map(x=>x.model);
       })
-    );
-
-    this.subscription.add(
-      this.filesListService
-        .observeAllStates()
-        .subscribe((x) => (this.states = x))
     );
 
     this.subscription.add(

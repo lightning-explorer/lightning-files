@@ -5,9 +5,9 @@ import { FileModel } from "@core/models/file-model";
 
 @Injectable()
 export class FilesListService {
-  private fileStates = new Map<FileModel, BehaviorSubject<FileState>>();
-  private filesSubject = new BehaviorSubject<FileModel[]>([]);
-  private statesSubject = new BehaviorSubject<FileState[]>([]);
+  /** Associates the file path with the actual file */
+  private fileMaps = new Map<string, BehaviorSubject<FileState>>();
+  private filesSubject = new BehaviorSubject<FileState[]>([]);
 
   constructor() {}
 
@@ -15,12 +15,12 @@ export class FilesListService {
   private getOrCreateFileStateSubject(
     file: FileModel
   ): BehaviorSubject<FileState> {
-    if (!this.fileStates.has(file)) {
-      const initialState = defaultFileState();
-      this.fileStates.set(file, new BehaviorSubject(initialState));
-      this.emitFileStates(); // Emit the updated map
+    const path = file.FilePath;
+    if (!this.fileMaps.has(path)) {
+      const initialState = defaultFileState(file);
+      this.fileMaps.set(path, new BehaviorSubject(initialState));
     }
-    return this.fileStates.get(file)!;
+    return this.fileMaps.get(path)!;
   }
 
   /** Update or add a file state reactively */
@@ -28,44 +28,33 @@ export class FilesListService {
     const subject = this.getOrCreateFileStateSubject(file);
     const currentState = subject.value;
     subject.next({ ...currentState, ...state });
-    this.emitFileStates(); // Emit the updated map
   }
 
   /** Removes all current files and replaces them with new ones */
-  setFiles(files: FileModel[]) {
+  setFiles(files: FileState[]) {
     // Complete old state subjects
-    this.fileStates.forEach((subject) => subject.complete());
-    this.fileStates.clear();
-
-    // Add new files with default states
-    files.forEach((file) => this.getOrCreateFileStateSubject(file));
+    this.fileMaps.forEach((subject) => subject.complete());
+    this.fileMaps.clear();
 
     // Notify observers of the new list of files
     this.filesSubject.next(files);
-    this.emitFileStates(); // Emit the updated map
+  }
+
+  /** Stores the files with default state */
+  setFilesDefault(files: FileModel[]){
+    const state = files.map(x=>defaultFileState(x));
+    this.setFiles(state);
   }
 
   /** Observe the state of a specific file */
-  observeFileState(file: FileModel): Observable<FileState> {
+  observeFileState(file:FileModel): Observable<FileState> {
     return this.getOrCreateFileStateSubject(file).asObservable();
   }
 
   /** Observe the entire list of files */
-  observeAllFiles(): Observable<FileModel[]> {
+  observeAllFiles(): Observable<FileState[]> {
     return this.filesSubject.asObservable();
   }
 
-  /** Observe the entire list of file states */
-  observeAllStates(): Observable<FileState[]> {
-    return this.statesSubject.asObservable();
-  }
 
-  /** Emit the current snapshot of the fileStates map */
-  private emitFileStates() {
-    let states:FileState[] = [];
-    this.fileStates.forEach((stateSubject, _) =>{
-      states.push(stateSubject.value);
-    });
-    this.statesSubject.next(states);
-  }
 }

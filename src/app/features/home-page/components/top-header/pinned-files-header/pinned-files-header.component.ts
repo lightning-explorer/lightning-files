@@ -12,6 +12,7 @@ import { Subscription } from "rxjs";
 import { ToolbarComponent } from "../../sidebar/toolbar/toolbar.component";
 import { TooltipComponent } from "../../../../../shared/components/popups/tooltip/tooltip.component";
 import { TooltipDirective } from "@shared/components/popups/tooltip/tooltip.directive";
+import { defaultFileState } from "../../file-result/file-state";
 
 @Component({
   selector: "app-pinned-files-header",
@@ -45,7 +46,8 @@ export class PinnedFilesHeaderComponent implements OnDestroy {
   }
 
   onFileRightClick(event: MouseEvent, file: FileModel) {
-    this.contextMenuService.openMenu(this.contextMenu, event, file);
+    const state = defaultFileState(file);
+    this.contextMenuService.openMenu(this.contextMenu, event, state);
   }
 
   processFilename(name: string) {

@@ -48,7 +48,7 @@ fn manage_crawl_tasks(
     let check_frequency = Duration::from_secs(30);
     // TODO: have the task manager actually do stuff
     tokio::spawn(async move {
-    loop {
+        for i in 0..10 {
             tokio::time::sleep(check_frequency).await;
             crawl_task_handles = remove_dead_crawlers(crawl_task_handles);
             let num_active_crawlers = crawl_task_handles.len() as u32;
@@ -73,7 +73,10 @@ fn manage_crawl_tasks(
                     kill_crawlers(&crawl_task_handles, crawlers_to_kill).await;
                 }
             }
+            println!("Crawler cycle {}", i);
         }
+        println!("Killing all crawlers");
+        kill_crawlers(&crawl_task_handles, 99).await;
     });
 }
 

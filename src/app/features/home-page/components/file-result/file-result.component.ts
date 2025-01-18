@@ -6,7 +6,7 @@ import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.mo
 import { FileModel } from "@core/models/file-model";
 import { HighlightableLabelComponent } from "@shared/components/highlightable-label/highlightable-label.component";
 import { PinService } from "src/app/features/home-page/services/pin.service";
-import { defaultFileState, FileState } from "./file-state";
+import { FileState } from "./file-state";
 import { FileResultPresentationService } from "./file-presentation.service";
 import { FileContextMenuService } from "./services/context-menu.service";
 import { ContextMenuComponent } from "../../../../shared/components/popups/context-menu/context-menu.component";
@@ -36,11 +36,12 @@ export class FileResultComponent implements OnInit {
   @ViewChild("contextMenu") contextMenu!: ContextMenuComponent;
 
   get shouldGrow() {
-    return (this.state.draggedOver || this.mouseOver) && !this.state.hide;
+    if(!this.file)
+      return false;
+    return (this.file.draggedOver || this.mouseOver) && !this.file.hide;
   }
 
-  @Input() file: FileModel | undefined;
-  @Input() state: FileState = defaultFileState();
+  @Input() file: FileState | undefined;
 
   @Input() selected = false;
   @Input() displayPath = false;
@@ -60,18 +61,18 @@ export class FileResultComponent implements OnInit {
 
   get isPinned(): boolean {
     if (!this.file) return false;
-    return this.pinService.isFilePinned(this.file);
+    return this.pinService.isFilePinned(this.file.model);
   }
 
   getIcon(): string {
     if (this.file)
-      return this.presentionService.getIcon(this.file);
+      return this.presentionService.getIcon(this.file.model);
     return "";
   }
 
   onRightClick(event: MouseEvent) {
     if (this.file)
-      this.contextMenuServce.openMenu(this.contextMenu, event, this.file, this.state);
+      this.contextMenuServce.openMenu(this.contextMenu, event, this.file);
   }
 
   onMouseEnter() {

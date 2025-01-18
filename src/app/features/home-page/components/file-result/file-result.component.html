@@ -10,7 +10,7 @@
       icon:_isIconType,
       selected: selected,
       grow: shouldGrow,
-      hide: state.hide,
+      hide: file.hide,
       altcolor: (altColor && !selected) && !_isIconType
     }"
   >
@@ -27,14 +27,14 @@
         />
       </div>
 
-      <div class="name" [ngClass]="{ hide: state.hide, icon:_isIconType }">
+      <div class="name" [ngClass]="{ hide: file.hide, icon:_isIconType }">
         <app-highlightable-label
-          [text]="file.Name"
-          [highlight]="state.highlightedText"
+          [text]="file.model.Name"
+          [highlight]="file.highlightedText"
         />
       </div>
     </div>
-    <p class="metadata" *ngIf="displayPath">score: {{ file.Score }}</p>
+    <p class="metadata" *ngIf="displayPath">score: {{ file.model.Score }}</p>
   </button>
 </div>
 

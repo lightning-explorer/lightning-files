@@ -29,7 +29,7 @@ export class ExtendedSearchComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.searchService.files$.subscribe((files) => {
         this.zone.run(() => {
-          this.filesListService.setFiles(files);
+          this.filesListService.setFilesDefault(files);
         });
       })
     );

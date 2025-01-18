@@ -8,12 +8,11 @@
 
     <cdk-virtual-scroll-viewport
       itemSize="32"
-      style="height: 100%; width: 100%" class="body-grid"
+      style="height: 100%; width: 100%"
     >
-      <div *cdkVirtualFor="let file of files; let i = index" class="item">
+      <div *cdkVirtualFor="let file of fileStates; let i = index" class="item">
         <app-file-result
           [file]="file"
-          [state]="states[i]"
           [viewType]="viewType"
           [altColor]="i % 2 == 0"
           [displayPath]="showFullFilePaths"

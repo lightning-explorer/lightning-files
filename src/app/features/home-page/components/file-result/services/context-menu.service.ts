@@ -12,8 +12,9 @@ export class FileContextMenuService {
     private commandsService: TauriCommandsService
   ) {}
 
-  openMenu(menu: ContextMenuComponent, event: MouseEvent, caller: FileModel, state?: FileState) {
+  openMenu(menu: ContextMenuComponent, event: MouseEvent, file: FileState) {
     event.preventDefault();
+    const caller = file.model;
 
     const pin = this.pinService.isFilePinned(caller)
       ? {

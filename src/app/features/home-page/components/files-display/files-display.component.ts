@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FileBrowserComponent } from "./components/file-browser/file-browser.component";
 import { FormControl } from "@angular/forms";
 import { FileModel } from "@core/models/file-model";
-import { FilePreviewComponent } from "./components/file-preview/file-preview.component";
 import { Observable, Subscription } from "rxjs";
 import { FilesListService } from "./services/files-list.service";
 import { CommonModule } from "@angular/common";
@@ -36,9 +35,9 @@ export class FilesDisplayComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.subscription.add(
-      this.directoryService.currentFiles$.subscribe((files) =>
-        this.filesListService.setFiles(files)
-      )
+      this.directoryService.currentFiles$.subscribe((models) => {
+        this.filesListService.setFilesDefault(models);
+      })
     );
     this.subscription.add(
       this.directoryService.isLoading$.subscribe((x) => (this.isLoading = x))

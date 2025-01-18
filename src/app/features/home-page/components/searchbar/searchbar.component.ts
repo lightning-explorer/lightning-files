@@ -8,6 +8,7 @@ import { FileModel, newDefaultFileModel } from "@core/models/file-model";
 import { HomePageService, SubPage } from "../../services/home-page.service";
 import { FileOperationsService } from "../../services/file-operations.service";
 import { HomePageSearchService } from "../../services/home-page-search.service";
+import { FileState } from "../file-result/file-state";
 
 @Component({
   selector: "app-searchbar",
@@ -27,7 +28,7 @@ export class SearchbarComponent implements OnInit, OnDestroy {
   isOnExtendedSearchPage = false;
   exceededSearchResults = false;
 
-  searchResults: FileModel[] = [];
+  searchResults: FileState[] = [];
   inputControl = new FormControl();
 
   constructor(
@@ -65,8 +66,9 @@ export class SearchbarComponent implements OnInit, OnDestroy {
     await this.searchEngineService.search(searchParams);
   }
 
-  onResultClick(model: FileModel) {
+  onResultClick(file: FileState) {
     //this.inlineSearchService.clearQuery();
+    const model = file.model;
     this.fileOperationsService.openOrNavigateToFile(model);
   }
 
