@@ -11,12 +11,14 @@ import { DirectoryWatcherService } from "../../services/directory-watcher.servic
 import { FilesDisplayFooterComponent } from "./components/files-display-footer/files-display-footer.component";
 import { TopHeaderComponent } from "./components/top-header/top-header.component";
 import { SelectService } from "./services/select.service";
+import { SearchOverlayStateService } from "./components/search-overlay/services/search-overlay-state.service";
+import { SearchOverlayComponent } from "./components/search-overlay/search-overlay.component";
 
 @Component({
   selector: "app-files-display",
   standalone: true,
-  imports: [FileBrowserComponent, CommonModule, FilesDisplayFooterComponent, TopHeaderComponent],
-  providers: [FilesListService, SelectService],
+  imports: [FileBrowserComponent, CommonModule, FilesDisplayFooterComponent, TopHeaderComponent, SearchOverlayComponent],
+  providers: [FilesListService, SelectService, SearchOverlayStateService],
   templateUrl: "./files-display.component.html",
   styleUrl: "./files-display.component.scss",
 })

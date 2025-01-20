@@ -15,6 +15,7 @@ import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { Subscription } from "rxjs";
 import { BreadcrumbModel } from "./models/breadcrumb-model";
 import { DirectoryNavigatorService } from "src/app/features/home-page/services/directory-navigator.service";
+import { checkOverflow } from "@shared/util/element-overflow-checker";
 
 @Component({
   selector: "app-current-directory-bar",
@@ -39,7 +40,7 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnDestroy {
   constructor(
     private directoryService: DirectoryNavigatorService,
     private cdr: ChangeDetectorRef,
-    private ngZone:NgZone
+    private ngZone: NgZone
   ) {}
 
   ngAfterViewInit(): void {
@@ -116,25 +117,7 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnDestroy {
 
     this.cdr.detectChanges();
 
-    const containerWidth = this.textInput.nativeElement.offsetWidth;
-    const breadcrumbElements = Array.from(
-      this.textInput.nativeElement.querySelectorAll(".breadcrumb")
-    ) as HTMLElement[];
-    const padding = 1; // Arbitrary padding
-    const elementWidths = breadcrumbElements.map(
-      (element) => element.offsetWidth * padding
-    );
-    const totalWidth = elementWidths.reduce((sum, width) => sum + width, 0);
-
-    let currentWidth = totalWidth;
-
-    while (
-      currentWidth > containerWidth &&
-      this.visibleDirectories.length > 1
-    ) {
-      currentWidth -= elementWidths.shift()!;
-      this.visibleDirectories.shift();
-    }
+    checkOverflow(this.visibleDirectories, this.textInput, ".breadcrumb");
 
     this.showEllipsis = this.visibleDirectories.length > 0;
   }

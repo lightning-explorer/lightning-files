@@ -7,7 +7,7 @@ import { FileResultComponent } from "../file-result/file-result.component";
 import { FileModel, newDefaultFileModel } from "@core/models/file-model";
 import { HomePageService, SubPage } from "../../services/home-page.service";
 import { FileOperationsService } from "../../services/file-operations.service";
-import { HomePageSearchService } from "../../services/home-page-search.service";
+import { HomePageSearchService } from "../../pages/extended-search/services/home-page-search.service";
 
 @Component({
   selector: "app-searchbar",
@@ -33,7 +33,7 @@ export class SearchbarComponent implements OnInit, OnDestroy {
   constructor(
     private homePageService: HomePageService,
     private searchEngineService: HomePageSearchService,
-    private fileOperationsService: FileOperationsService,
+    private fileOperationsService: FileOperationsService
   ) {}
 
   ngOnInit(): void {

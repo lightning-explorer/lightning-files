@@ -1,7 +1,7 @@
-import { Injectable, OnDestroy } from "@angular/core";
+import { Injectable, OnDestroy, OnInit } from "@angular/core";
 import { SearchParamsDTO } from "@core/dtos/search-params-dto";
 import { LocalStreamingSearchService } from "@core/services/search/text/local-streaming-search.service";
-import { HomePageService, SubPage } from "./home-page.service";
+import { HomePageService, SubPage } from "../../../services/home-page.service";
 import { BehaviorSubject, Subscription } from "rxjs";
 import { StreamingSearchParamsDTO } from "@core/dtos/streaming-search-params-dtos";
 
@@ -26,13 +26,21 @@ export class HomePageSearchService implements OnDestroy {
         this.isOnExtendedSearchPageSubject.next(page === "extendedSearch");
       })
     );
+    this.subscription.add(
+      this.searchService.lastSearchParams$.subscribe(params=>{
+            // Assuming we are still querying based off the file path
+        if(params){
+          const queryStr = params.Params.FilePath;
+          if(queryStr){
+            this.searchQueryStrSubject.next(queryStr);
+          }
+        }
+      })
+    )
   }
 
   async search(params: Partial<SearchParamsDTO>) {
-    // Assuming we are still querying based off the file path
-    this.searchQueryStrSubject.next(params.FilePath ?? "");
-
-    this.homePageService.setPage('extendedSearch');
+    this.homePageService.setPage("extendedSearch");
 
     let searchParams: SearchParamsDTO = {
       NumResults: 500,

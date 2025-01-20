@@ -12,7 +12,7 @@ import { DirectoryNavigatorService } from "./services/directory-navigator.servic
 import { DirectoryHistoryService } from "./services/directory-history.service";
 import { PinService } from "./services/pin.service";
 import { FileOperationsService } from "./services/file-operations.service";
-import { HomePageSearchService } from "./services/home-page-search.service";
+import { HomePageSearchService } from "./pages/extended-search/services/home-page-search.service";
 import { PersistentConfigService } from "@core/services/persistence/config.service";
 import { SettingsComponent } from "./pages/settings/settings.component";
 import { DirectoryWatcherService } from "./services/directory-watcher.service";
@@ -22,11 +22,7 @@ import { SearchParamsDTO } from "@core/dtos/search-params-dto";
 @Component({
   selector: "app-home-page",
   standalone: true,
-  imports: [
-    CommonModule,
-    SidebarComponent,
-    MatIconModule,
-  ],
+  imports: [CommonModule, SidebarComponent, MatIconModule],
   templateUrl: "./home-page.component.html",
   styleUrl: "./home-page.component.scss",
   providers: [
@@ -55,13 +51,16 @@ export class HomePageComponent implements OnInit {
     private directoryNavService: DirectoryNavigatorService,
     private homePageService: HomePageService,
     private configService: PersistentConfigService,
-    private s:HomePageSearchService
+    private s: HomePageSearchService
   ) {
     this.homePageService.page$.subscribe((page) => (this.page = page));
   }
 
   async ngOnInit(): Promise<void> {
-    const lastDirAt = await this.configService.readOrSet("lastDirectoryAt", "C:\\");
+    const lastDirAt = await this.configService.readOrSet(
+      "lastDirectoryAt",
+      "C:\\"
+    );
     console.log("Here is the last directory at:");
     console.log(lastDirAt);
     const dir = lastDirAt ?? "C:\\";

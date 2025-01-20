@@ -44,6 +44,8 @@ export class FileResultComponent implements OnInit, DoCheck {
 
   @Input() file: FileModel | undefined;
   @Input() state: FileState = defaultFileState();
+  /** If the file's name is longer than the max text length, then it will be truncated */
+  @Input() maxTextLength?:number;
 
   @Input() selected = false;
   @Input() displayPath = false;
@@ -65,6 +67,18 @@ export class FileResultComponent implements OnInit, DoCheck {
     if (this.state.requestRename) {
       this.renameRequested();
     }
+  }
+
+  get fileNameField():string{
+    if(this.file){
+      const name = this.file.Name;
+      if(this.maxTextLength && name.length > this.maxTextLength){
+        const text = name.substring(0,this.maxTextLength);
+        return `${text}...`
+      }
+      return this.file.Name;
+    }
+    return "";
   }
 
   get isPinned(): boolean {

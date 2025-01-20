@@ -10,10 +10,18 @@ export class LocalStreamingSearchService {
   private filesSubject = new BehaviorSubject<FileModel[]>([]);
   public files$ = this.filesSubject.asObservable();
 
+  private lastSearchParamsSubject = new BehaviorSubject<StreamingSearchParamsDTO|undefined>(undefined);
+  lastSearchParams$ = this.lastSearchParamsSubject.asObservable();
+
   constructor(private commandsService: TauriCommandsService) {}
+
+  clearResults(){
+    this.filesSubject.next([]);
+  }
 
   async query(params: StreamingSearchParamsDTO) {
     this.filesSubject.next([]);
+    this.lastSearchParamsSubject.next(params);
     const innerParams = params.Params;
     // Because fuzzy queries have a tendency to return junk results when a low character
     // count is given, ignore calling the query altogether if the word length doesn't suffice

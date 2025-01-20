@@ -2,19 +2,19 @@
     display: flex;
     color: var(--text-primary);
     align-items: center;
-    padding: .1em;
-    padding-bottom: 1em;
+    padding: .1rem;
+    padding-bottom: 1rem;
 }
 
 .name{
-    padding-top: .5em;
-    margin-left: .4em;
-    line-height: 1em;
+    padding-top: .5rem;
+    margin-left: .4rem;
+    line-height: 1rem;
     font-size: .7rem;
 }
 
 .name .version{
     color: var(--text-muted);
-    font-size: .6em;
-    margin-left: .2em;
+    font-size: .6rem;
+    margin-left: .2rem;
 }

@@ -22,7 +22,7 @@ import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-di
 import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.module";
 import { SearchbarComponent } from "../../../searchbar/searchbar.component";
 import { DirectoryNavigatorService } from "src/app/features/home-page/services/directory-navigator.service";
-
+import { checkOverflow } from "@shared/util/element-overflow-checker";
 
 @Component({
   selector: "app-top-header",
@@ -35,8 +35,8 @@ import { DirectoryNavigatorService } from "src/app/features/home-page/services/d
     IconifyIconModule,
     UtilButtonComponent,
     CurrentDirectoryBarComponent,
-    SearchbarComponent
-],
+    SearchbarComponent,
+  ],
   templateUrl: "./top-header.component.html",
   styleUrl: "./top-header.component.css",
 })
@@ -88,23 +88,13 @@ export class TopHeaderComponent implements AfterViewInit, OnDestroy {
     });
     this.cdr.detectChanges();
 
-    const container = this.toolbarButtonContainer.nativeElement;
-    const containerWidth = container.offsetWidth;
-
-    const toolbarButtons = Array.from(
-      container.querySelectorAll(".toolbar-button")
-    ) as HTMLElement[];
-    const padding = 1.2; // Arbitrary padding
-    const elementWidths = toolbarButtons.map(
-      (element) => element.offsetWidth * padding
+    this.overflowingUtilButtons = checkOverflow(
+      this.visibleUtilButtons,
+      this.toolbarButtonContainer,
+      ".toolbar-button",
+      false,
+      1.2
     );
-    let currentWidth = elementWidths.reduce((sum, width) => sum + width, 0);
-
-    while(currentWidth > containerWidth){
-      currentWidth -= elementWidths.pop()!;
-      const removedElement = this.visibleUtilButtons.pop()!;
-      this.overflowingUtilButtons.push(removedElement);
-    }
   }
 
   async onNavigateBackDirectoryClick() {

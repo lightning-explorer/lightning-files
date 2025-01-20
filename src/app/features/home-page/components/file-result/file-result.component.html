@@ -22,12 +22,12 @@
         <input
           #renameInputBox
           *ngIf="_isRenaming; else fileName"
-          [(ngModel)]="file.Name"
+          [(ngModel)]="fileNameField"
           (blur)="cancelRename()"
         />
         <ng-template #fileName>
           <app-highlightable-label
-            [text]="file.Name"
+            [text]="fileNameField"
             [highlight]="state.highlightedText"
           />
         </ng-template>

@@ -12,9 +12,10 @@
 }
 
 .content button {
+  display: block;
   border-radius: 20px;
   justify-content: center;
-  min-width: 7rem;
+  overflow-x: hidden;
   box-sizing: border-box;
   padding: 0.3rem;
   padding-right: 1rem;
@@ -25,11 +26,18 @@
   align-items: center;
   background-color: var(--input);
   color: var(--text-primary);
+  transition: all 0.2s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.content button:hover{
+  background-color: var(--primary);
 }
 
 label {
+  display: inline-block;
   font-size: 0.75rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 iconify-icon {
