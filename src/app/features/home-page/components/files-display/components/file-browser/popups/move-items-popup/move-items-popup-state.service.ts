@@ -4,7 +4,7 @@ import { BehaviorSubject } from "rxjs";
 
 @Injectable()
 export class MoveItemsPopupStateService {
-  private isVisibleSubject = new BehaviorSubject<boolean>(true);
+  private isVisibleSubject = new BehaviorSubject<boolean>(false);
   isVisible$ = this.isVisibleSubject.asObservable();
 
   constructor(private configService: PersistentConfigService) {}
