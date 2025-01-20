@@ -81,6 +81,12 @@
   color: var(--text-muted);
 }
 
+.name input{
+  background-color: transparent;
+  border: 1px solid;
+  border-radius: 5px;
+}
+
 .metadata {
   display: flex;
   gap: 0px;

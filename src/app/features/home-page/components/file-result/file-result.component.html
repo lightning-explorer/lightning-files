@@ -1,41 +1,38 @@
-<div
-  *ngIf="file"
-  (mouseenter)="onMouseEnter()"
-  (mouseleave)="onMouseLeave()"
-  (contextmenu)="onRightClick($event)"
->
+<div *ngIf="file" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
   <button
     class="content"
     [ngClass]="{
-      icon:_isIconType,
+      icon: _isIconType,
       selected: selected,
       grow: shouldGrow,
       hide: state.hide,
-      altcolor: (altColor && !selected) && !_isIconType
+      altcolor: altColor && !selected && !_isIconType
     }"
   >
-    <div class="body" [ngClass]="{icon:_isIconType}">
+    <div class="body" [ngClass]="{ icon: _isIconType }">
       <div *ngIf="isPinned">
         <iconify-icon icon="pin" size="1em" color="--icon" />
       </div>
 
       <div>
-        <iconify-icon
-          [icon]="getIcon()"
-          color="--icon"
-          [size]="_iconSize"
-        />
+        <iconify-icon [icon]="getIcon()" color="--icon" [size]="_iconSize" />
       </div>
 
-      <div class="name" [ngClass]="{ hide: state.hide, icon:_isIconType }">
-        <app-highlightable-label
-          [text]="file.Name"
-          [highlight]="state.highlightedText"
+      <div class="name" [ngClass]="{ hide: state.hide, icon: _isIconType }">
+        <input
+          #renameInputBox
+          *ngIf="_isRenaming; else fileName"
+          [(ngModel)]="file.Name"
+          (blur)="cancelRename()"
         />
+        <ng-template #fileName>
+          <app-highlightable-label
+            [text]="file.Name"
+            [highlight]="state.highlightedText"
+          />
+        </ng-template>
       </div>
     </div>
     <p class="metadata" *ngIf="displayPath">score: {{ file.Score }}</p>
   </button>
 </div>
-
-<app-context-menu #contextMenu />

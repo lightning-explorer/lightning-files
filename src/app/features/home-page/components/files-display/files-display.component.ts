@@ -9,12 +9,14 @@ import { CommonModule } from "@angular/common";
 import { DirectoryNavigatorService } from "../../services/directory-navigator.service";
 import { DirectoryWatcherService } from "../../services/directory-watcher.service";
 import { FilesDisplayFooterComponent } from "./components/files-display-footer/files-display-footer.component";
+import { TopHeaderComponent } from "./components/top-header/top-header.component";
+import { SelectService } from "./services/select.service";
 
 @Component({
   selector: "app-files-display",
   standalone: true,
-  imports: [FileBrowserComponent, CommonModule, FilesDisplayFooterComponent],
-  providers: [FilesListService],
+  imports: [FileBrowserComponent, CommonModule, FilesDisplayFooterComponent, TopHeaderComponent],
+  providers: [FilesListService, SelectService],
   templateUrl: "./files-display.component.html",
   styleUrl: "./files-display.component.scss",
 })

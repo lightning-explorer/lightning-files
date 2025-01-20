@@ -9,19 +9,20 @@ import {
 } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 import { DirectoryHistoryService } from "src/app/features/home-page/services/directory-history.service";
-import { DirectoryNavigatorService } from "../../services/directory-navigator.service";
+
 import { PinnedFilesHeaderComponent } from "./pinned-files-header/pinned-files-header.component";
 import { TabsHolderComponent } from "./tabs-holder/tabs-holder.component";
-import { DropdownButtonModalComponent } from "../../../../shared/components/buttons/dropdown-button-modal/dropdown-button-modal.component";
-import { IconifyIconModule } from "../../../../shared/components/icons/IconifyIcons/icon.module";
+
 import { CommonModule } from "@angular/common";
 import {
   UtilButtonType,
   UtilButtonComponent,
 } from "./util-button/util-button.component";
 import { CurrentDirectoryBarComponent } from "./current-directory-bar/current-directory-bar.component";
-import { MutedButtonComponent } from "../../../../shared/components/buttons/muted-button/muted-button.component";
-import { SearchbarComponent } from "../searchbar/searchbar.component";
+import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.module";
+import { SearchbarComponent } from "../../../searchbar/searchbar.component";
+import { DirectoryNavigatorService } from "src/app/features/home-page/services/directory-navigator.service";
+
 
 @Component({
   selector: "app-top-header",
@@ -119,6 +120,3 @@ export class TopHeaderComponent implements AfterViewInit, OnDestroy {
     this.directoryHistoryService.redo();
   }
 }
-
-// A:6 * B:5 * C:3 = D
-

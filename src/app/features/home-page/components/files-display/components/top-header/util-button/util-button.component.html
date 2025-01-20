@@ -8,7 +8,7 @@
 
   <ng-template #iconButton>
     <button class="content">
-      <iconify-icon [icon]="type" size="1.2rem" />
+      <iconify-icon [icon]="type" size="1.2rem" (click)="onClick()"/>
     </button>
   </ng-template>
 </div>

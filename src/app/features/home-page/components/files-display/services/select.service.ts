@@ -4,7 +4,12 @@ import { BehaviorSubject } from "rxjs";
 import { DirectoryNavigatorService } from "src/app/features/home-page/services/directory-navigator.service";
 import { FileOperationsService } from "src/app/features/home-page/services/file-operations.service";
 import { HomePageService } from "src/app/features/home-page/services/home-page.service";
+import { FileState } from "../../file-result/file-state";
 
+interface File{
+  model:FileModel,
+  state:FileState,
+}
 /**
  * Handles both single click select and multiselect
  */
@@ -12,9 +17,11 @@ import { HomePageService } from "src/app/features/home-page/services/home-page.s
 export class SelectService {
   private selectedIndicesSubject = new BehaviorSubject<Set<number>>(new Set());
   private selectedItemsSubject = new BehaviorSubject<FileModel[]>([]);
+  private lastSelectedItemSubject = new BehaviorSubject<File|undefined>(undefined);
 
   selectedIndices$ = this.selectedIndicesSubject.asObservable();
   selectedItems$ = this.selectedItemsSubject.asObservable();
+  lastSelectedItem$ = this.lastSelectedItemSubject.asObservable();
 
   lastSelectedIndex: number | null = null;
 
@@ -88,5 +95,9 @@ export class SelectService {
       if (item) res.push(item);
     });
     this.selectedItemsSubject.next(res);
+  }
+
+  setLastSelectedItemState(file:File){
+    this.lastSelectedItemSubject.next(file);
   }
 }

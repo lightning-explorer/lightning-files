@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { TabsService } from '../../../services/tabs.service';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { DirectoryTabComponent } from "./directory-tab/directory-tab.component";
+import { TabsService } from 'src/app/features/home-page/services/tabs.service';
 
 interface TabModel{
   fullPath:string,

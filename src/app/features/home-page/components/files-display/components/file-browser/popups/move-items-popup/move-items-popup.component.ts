@@ -4,7 +4,7 @@ import { ModalPopupComponent } from "@shared/components/popups/modal-popup/modal
 import { ButtonModel } from "@shared/components/popups/modal-popup/models/ButtonModel";
 import { RadioButtonComponent } from "@shared/components/buttons/radio-button/radio-button.component";
 import { PersistentConfigService } from "@core/services/persistence/config.service";
-import { SelectService } from "../../services/interaction/select.service";
+import { SelectService } from "../../../../services/select.service";
 import { DragDropService } from "../../services/interaction/dragdrop.service";
 import { Subscription } from "rxjs";
 import { DirectoryNavigatorService } from "src/app/features/home-page/services/directory-navigator.service";
@@ -14,7 +14,12 @@ import { PrettyButtonComponent } from "../../../../../../../../shared/components
 @Component({
   selector: "app-move-items-popup",
   standalone: true,
-  imports: [CommonModule, ModalPopupComponent, RadioButtonComponent, PrettyButtonComponent],
+  imports: [
+    CommonModule,
+    ModalPopupComponent,
+    RadioButtonComponent,
+    PrettyButtonComponent,
+  ],
   templateUrl: "./move-items-popup.component.html",
   styleUrl: "./move-items-popup.component.css",
 })
@@ -32,7 +37,7 @@ export class MoveItemsPopupComponent {
     private stateService: MoveItemsPopupStateService
   ) {}
 
-  async onDontAskAgainToggled(newVal:boolean){
+  async onDontAskAgainToggled(newVal: boolean) {
     this.stateService.setDontAskAgain(newVal);
   }
 
@@ -40,9 +45,8 @@ export class MoveItemsPopupComponent {
     await this.dragDropService.moveDraggedItemsAsync();
   }
 
-  onCloseRequested(){
+  onCloseRequested() {
     this.dragDropService.unhideAllDraggingItems();
     this.stateService.closePopup();
   }
-
 }

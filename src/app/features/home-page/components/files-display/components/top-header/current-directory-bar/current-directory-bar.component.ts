@@ -14,7 +14,7 @@ import {
 import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { Subscription } from "rxjs";
 import { BreadcrumbModel } from "./models/breadcrumb-model";
-import { DirectoryNavigatorService } from "../../../services/directory-navigator.service";
+import { DirectoryNavigatorService } from "src/app/features/home-page/services/directory-navigator.service";
 
 @Component({
   selector: "app-current-directory-bar",

@@ -25,7 +25,9 @@
           (dragend)="onFileDragEnd($event, file)"
           [selected]="selectedIndices.has(i)"
           (click)="onFileClick(i, $event)"
+          (contextmenu)="onFileRightClick(i,$event)"
           (dblclick)="onFileDoubleClick(file)"
+
         />
       </div>
     </cdk-virtual-scroll-viewport>
@@ -33,6 +35,7 @@
 </div>
 
 <!-- The below items are disconnected from the main component's html -->
+<app-context-menu #contextMenu />
 <app-move-items-popup #moveItemsPopup />
 
 <app-generic-err-popup #genericErrPopup />

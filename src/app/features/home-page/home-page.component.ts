@@ -6,7 +6,6 @@ import { SidebarComponent } from "./components/sidebar/sidebar.component";
 import { FilesDisplayComponent } from "./components/files-display/files-display.component";
 import { MatIconModule } from "@angular/material/icon";
 
-import { TopHeaderComponent } from "./components/top-header/top-header.component";
 import { HomePageService, SubPage } from "./services/home-page.service";
 import { ExtendedSearchComponent } from "./pages/extended-search/extended-search.component";
 import { DirectoryNavigatorService } from "./services/directory-navigator.service";
@@ -27,7 +26,6 @@ import { SearchParamsDTO } from "@core/dtos/search-params-dto";
     CommonModule,
     SidebarComponent,
     MatIconModule,
-    TopHeaderComponent,
   ],
   templateUrl: "./home-page.component.html",
   styleUrl: "./home-page.component.scss",

@@ -5,18 +5,24 @@ import { CommonModule } from "@angular/common";
 import { getIconFromPath } from "@core/util/get-icon-from-path";
 import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.module";
 import { truncateText } from "@core/util/text-truncator";
-import { SelectService } from "../../files-display/components/file-browser/services/interaction/select.service";
+
 import { ContextMenuComponent } from "@shared/components/popups/context-menu/context-menu.component";
-import { FileContextMenuService } from "../../file-result/services/context-menu.service";
+
 import { Subscription } from "rxjs";
-import { ToolbarComponent } from "../../sidebar/toolbar/toolbar.component";
-import { TooltipComponent } from "../../../../../shared/components/popups/tooltip/tooltip.component";
+
 import { TooltipDirective } from "@shared/components/popups/tooltip/tooltip.directive";
+import { SelectService } from "../../../services/select.service";
+import { FileContextMenuService } from "../../../../file-result/services/context-menu.service";
 
 @Component({
   selector: "app-pinned-files-header",
   standalone: true,
-  imports: [CommonModule, IconifyIconModule, ContextMenuComponent, TooltipDirective],
+  imports: [
+    CommonModule,
+    IconifyIconModule,
+    ContextMenuComponent,
+    TooltipDirective,
+  ],
   providers: [SelectService, FileContextMenuService],
   templateUrl: "./pinned-files-header.component.html",
   styleUrl: "./pinned-files-header.component.css",
