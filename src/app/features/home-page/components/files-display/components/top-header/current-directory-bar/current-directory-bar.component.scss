@@ -33,7 +33,6 @@ input:hover {
 .block {
   font-size: 0.9em;
   border-radius: 5px;
-  text-wrap: nowrap;
   color: var(--text-muted);
 }
 
@@ -52,5 +51,5 @@ input:hover {
 }
 
 .breadcrumb label {
-  //font-weight: 700;
+  text-wrap: nowrap;
 }

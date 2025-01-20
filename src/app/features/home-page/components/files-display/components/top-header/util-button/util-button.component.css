@@ -9,10 +9,14 @@
 }
 
 .icon {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    gap: 0.4rem;
-    align-items: center;
-    color: var(--text-primary);
-  }
+  display: flex;
+  width: 100%;
+  height: 100%;
+  gap: 0.4rem;
+  align-items: center;
+  color: var(--text-primary);
+}
+
+label {
+  white-space: nowrap;
+}
