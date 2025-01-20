@@ -5,7 +5,7 @@ export type SubPage = "main" | "extendedSearch" | "settings";
 
 @Injectable()
 export class HomePageService {
-    private pageSubject = new BehaviorSubject<SubPage>("extendedSearch");
+    private pageSubject = new BehaviorSubject<SubPage>("main");
     page$ = this.pageSubject.asObservable();
 
     setPage(page: SubPage) {

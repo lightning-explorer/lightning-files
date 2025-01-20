@@ -1,4 +1,4 @@
-<div class="backdrop" *ngIf="_isVisible" (click)="onBackdropClicked()">
+<div class="backdrop" *ngIf="_isVisible" (click)="onBackdropClicked()" @fadeInOnEnter>
   <div class="content" (click)="$event.stopPropagation()">
     <label>Find a file:</label>
     <app-line-input

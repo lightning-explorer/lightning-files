@@ -19,6 +19,7 @@ import { HomePageService } from "src/app/features/home-page/services/home-page.s
 import { Subscription } from "rxjs";
 import { FileModel } from "@core/models/file-model";
 import { quadraticEase } from "@shared/util/ease-value";
+import { fadeInOnEnterAnimation } from "@shared/animations/fade-in-on-enter.animation";
 
 @Component({
   selector: "app-search-overlay",
@@ -26,7 +27,7 @@ import { quadraticEase } from "@shared/util/ease-value";
   imports: [CommonModule, LineInputComponent, FileResultComponent],
   templateUrl: "./search-overlay.component.html",
   styleUrl: "./search-overlay.component.css",
-  animations: [slideInRightAnimation],
+  animations: [slideInRightAnimation, fadeInOnEnterAnimation],
 })
 export class SearchOverlayComponent implements OnInit, OnDestroy {
   private subscription = new Subscription();

@@ -29,6 +29,7 @@
 * {
   /* Disables the default blue bg when highlighting text with the cursor*/
   user-select: none;
+  
 }
 
 :root {
@@ -79,6 +80,14 @@
   --select-primary: #85e3ff80;
 }
 
+html, body{
+  font-size: 15px;
+}
+
+input::selection{
+  background-color: var(--primary);
+}
+
 html {
   // background: radial-gradient(
   //   circle at 100% 107%,
@@ -109,7 +118,6 @@ input {
   margin: 0px;
   font-weight: 400;
   color: var(--font-color);
-  font-size: 13px;
   font-family: 'Poppins';
   min-width: 0px;
 }

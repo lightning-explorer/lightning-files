@@ -7,11 +7,11 @@
     padding: 0.3em 0.6em;
     opacity: 0;
     pointer-events: none;
-    background: var(--bg-solid);
+    background: var(--bg-dark);
     border-radius: 8px;
-    color: var(--primary);
+    color: var(--text-primary);
     font-weight: 400;
-    font-size: .8em;
+    font-size: .7em;
     box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;
 
     visibility: visible;
@@ -26,6 +26,6 @@
     top: -0.2em;
     left: 50%;
     transform: translate(-50%) rotate(45deg);
-    background: var(--bg-solid);
+    background: var(--bg-dark);
 }
 

@@ -83,8 +83,12 @@
 
 .name input{
   background-color: transparent;
-  border: 1px solid;
-  border-radius: 5px;
+  border: none;
+  font-size: inherit;
+}
+
+.name input:focus{
+  outline: none;
 }
 
 .metadata {

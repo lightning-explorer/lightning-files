@@ -1,4 +1,12 @@
-import { ChangeDetectorRef, Component, DoCheck, ElementRef, Input, OnInit, ViewChild } from "@angular/core";
+import {
+  ChangeDetectorRef,
+  Component,
+  DoCheck,
+  ElementRef,
+  Input,
+  OnInit,
+  ViewChild,
+} from "@angular/core";
 import { FileViewType } from "./enums/view-type";
 import { CommonModule } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
@@ -11,6 +19,7 @@ import { FileResultPresentationService } from "./file-presentation.service";
 import { FileContextMenuService } from "./services/context-menu.service";
 import { ContextMenuComponent } from "../../../../shared/components/popups/context-menu/context-menu.component";
 import { FormsModule } from "@angular/forms";
+import { rangeToFirstPeriod } from "@shared/util/string";
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
 
@@ -34,7 +43,7 @@ export class FileResultComponent implements OnInit, DoCheck {
   _isIconType = false;
   _isRenaming = false;
   _nameBeforeRename?: string;
-  @ViewChild("renameInputBox") renameBox!: ElementRef;
+  @ViewChild("renameInputBox") renameBox!: ElementRef<HTMLInputElement>;
 
   mouseOver = false;
 
@@ -45,7 +54,7 @@ export class FileResultComponent implements OnInit, DoCheck {
   @Input() file: FileModel | undefined;
   @Input() state: FileState = defaultFileState();
   /** If the file's name is longer than the max text length, then it will be truncated */
-  @Input() maxTextLength?:number;
+  @Input() maxTextLength?: number;
 
   @Input() selected = false;
   @Input() displayPath = false;
@@ -55,7 +64,7 @@ export class FileResultComponent implements OnInit, DoCheck {
   constructor(
     private pinService: PinService,
     private presentionService: FileResultPresentationService,
-    private cdr:ChangeDetectorRef
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -69,16 +78,20 @@ export class FileResultComponent implements OnInit, DoCheck {
     }
   }
 
-  get fileNameField():string{
-    if(this.file){
+  get fileNameField(): string {
+    if (this.file) {
       const name = this.file.Name;
-      if(this.maxTextLength && name.length > this.maxTextLength){
-        const text = name.substring(0,this.maxTextLength);
-        return `${text}...`
+      if (this.maxTextLength && name.length > this.maxTextLength) {
+        const text = name.substring(0, this.maxTextLength);
+        return `${text}...`;
       }
       return this.file.Name;
     }
     return "";
+  }
+
+  set fileNameField(val: string) {
+    if (this.file) this.file.Name = val;
   }
 
   get isPinned(): boolean {
@@ -102,11 +115,17 @@ export class FileResultComponent implements OnInit, DoCheck {
   renameRequested() {
     this.state.requestRename = false;
     this._isRenaming = true;
-    if (this.file) this._nameBeforeRename = this.file.Name;
-    // Trigger the CDR so that the renameInputBox gets picked up
-    // since it is typically hidden behind an ngIf
-    this.cdr.detectChanges();
-    this.renameBox.nativeElement.focus();
+    if (this.file) {
+      this._nameBeforeRename = this.file.Name;
+      // Trigger the CDR so that the renameInputBox gets picked up
+      // since it is typically hidden behind an ngIf
+      this.cdr.detectChanges();
+      this.renameBox.nativeElement.focus();
+      const { start, end } = rangeToFirstPeriod(this.file.Name);
+      setTimeout(()=>{
+        this.renameBox.nativeElement.setSelectionRange(start, end);
+      },10);
+    }
   }
 
   cancelRename() {

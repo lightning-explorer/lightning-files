@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from "@angular/core";
+import { Component, HostListener, OnDestroy, OnInit } from "@angular/core";
 
 import { CommonModule } from "@angular/common";
 
@@ -18,6 +18,7 @@ import { SettingsComponent } from "./pages/settings/settings.component";
 import { DirectoryWatcherService } from "./services/directory-watcher.service";
 import { TabsService } from "./services/tabs.service";
 import { SearchParamsDTO } from "@core/dtos/search-params-dto";
+import { Subscription } from "rxjs";
 
 @Component({
   selector: "app-home-page",
@@ -36,7 +37,9 @@ import { SearchParamsDTO } from "@core/dtos/search-params-dto";
     TabsService,
   ],
 })
-export class HomePageComponent implements OnInit {
+export class HomePageComponent implements OnInit, OnDestroy {
+  private subscription = new Subscription();
+
   page: SubPage = "main";
   pages = {
     main: FilesDisplayComponent,
@@ -53,7 +56,9 @@ export class HomePageComponent implements OnInit {
     private configService: PersistentConfigService,
     private s: HomePageSearchService
   ) {
-    this.homePageService.page$.subscribe((page) => (this.page = page));
+    this.subscription.add(
+      this.homePageService.page$.subscribe((page) => (this.page = page))
+    );
   }
 
   async ngOnInit(): Promise<void> {
@@ -70,5 +75,9 @@ export class HomePageComponent implements OnInit {
     //   FilePath: "file",
     // };
     // this.s.search(searchParams);
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 }

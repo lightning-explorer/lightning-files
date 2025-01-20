@@ -21,9 +21,11 @@
       <div class="name" [ngClass]="{ hide: state.hide, icon: _isIconType }">
         <input
           #renameInputBox
+          type="text"
           *ngIf="_isRenaming; else fileName"
           [(ngModel)]="fileNameField"
           (blur)="cancelRename()"
+          spellcheck="false"
         />
         <ng-template #fileName>
           <app-highlightable-label
