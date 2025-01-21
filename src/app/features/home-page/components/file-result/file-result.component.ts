@@ -15,11 +15,10 @@ import { FileModel } from "@core/models/file-model";
 import { HighlightableLabelComponent } from "@shared/components/highlightable-label/highlightable-label.component";
 import { PinService } from "src/app/features/home-page/services/pin.service";
 import { defaultFileState, FileState } from "./file-state";
-import { FileResultPresentationService } from "./file-presentation.service";
 import { FileContextMenuService } from "./services/context-menu.service";
-import { ContextMenuComponent } from "../../../../shared/components/popups/context-menu/context-menu.component";
 import { FormsModule } from "@angular/forms";
 import { rangeToFirstPeriod } from "@shared/util/string";
+import { FileIconComponent } from "../file-icon/file-icon.component";
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
 
@@ -32,6 +31,7 @@ import { rangeToFirstPeriod } from "@shared/util/string";
     IconifyIconModule,
     HighlightableLabelComponent,
     FormsModule,
+    FileIconComponent,
   ],
   templateUrl: "./file-result.component.html",
   styleUrl: "./file-result.component.scss",
@@ -39,7 +39,6 @@ import { rangeToFirstPeriod } from "@shared/util/string";
   providers: [FileContextMenuService],
 })
 export class FileResultComponent implements OnInit, DoCheck {
-  _iconSize = "1rem";
   _isIconType = false;
   _isRenaming = false;
   _nameBeforeRename?: string;
@@ -61,15 +60,10 @@ export class FileResultComponent implements OnInit, DoCheck {
   @Input() altColor = false;
   @Input() viewType: FileViewType = FileViewType.Detail;
 
-  constructor(
-    private pinService: PinService,
-    private presentionService: FileResultPresentationService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  constructor(private pinService: PinService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    this._iconSize = this.presentionService.getIconSize(this.viewType);
-    this._isIconType = this.presentionService.isIconType(this.viewType);
+    this._isIconType = this.isIconType(this.viewType);
   }
 
   ngDoCheck(): void {
@@ -99,11 +93,6 @@ export class FileResultComponent implements OnInit, DoCheck {
     return this.pinService.isFilePinned(this.file);
   }
 
-  getIcon(): string {
-    if (this.file) return this.presentionService.getIcon(this.file);
-    return "";
-  }
-
   onMouseEnter() {
     this.mouseOver = true;
   }
@@ -122,9 +111,9 @@ export class FileResultComponent implements OnInit, DoCheck {
       this.cdr.detectChanges();
       this.renameBox.nativeElement.focus();
       const { start, end } = rangeToFirstPeriod(this.file.Name);
-      setTimeout(()=>{
+      setTimeout(() => {
         this.renameBox.nativeElement.setSelectionRange(start, end);
-      },10);
+      }, 10);
     }
   }
 
@@ -133,5 +122,14 @@ export class FileResultComponent implements OnInit, DoCheck {
     // Revert the file to its old name and don't make changes
     if (this.file && this._nameBeforeRename)
       this.file.Name = this._nameBeforeRename;
+  }
+
+  private isIconType(viewType: FileViewType): boolean {
+    switch (viewType) {
+      case FileViewType.MediumIcon:
+        return true;
+      default:
+        return false;
+    }
   }
 }

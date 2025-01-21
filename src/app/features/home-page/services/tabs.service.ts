@@ -13,9 +13,12 @@ export class TabsService implements OnDestroy {
   constructor(private directoryNavService: DirectoryNavigatorService) {
     this.subscription.add(
       this.directoryNavService.currentDir$.subscribe((x) => {
-        this.currentDir = x;
-        if (this.openPathsSubject.getValue().length == 0) {
-          this.openPathsSubject.next([x]);
+        // TODO: this could possibly be more robust
+        if(x.length!=0){
+          this.currentDir = x;
+          if (this.openPathsSubject.getValue().length == 0) {
+            this.openPathsSubject.next([x]);
+          }
         }
       })
     );

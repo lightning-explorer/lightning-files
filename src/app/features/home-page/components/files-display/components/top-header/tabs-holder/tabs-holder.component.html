@@ -1,6 +1,8 @@
 <div class="content" (mouseenter)="test()">
     
     <div *ngFor="let tab of tabs">
-        <app-directory-tab/>
+        <app-directory-tab [tab]="tab"/>
     </div>
+    <!-- <label class="add-tab">+</label> -->
+
 </div>

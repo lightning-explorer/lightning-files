@@ -1,1 +1,4 @@
-<button class="tab">hello</button>
+<button class="tab" *ngIf="this.tab" (click)="onClick()">
+  <app-file-icon [filePath]="this.tab.fullPath" [isDirectory]="true" />
+  <label>{{this.tab.label}}</label>
+</button>

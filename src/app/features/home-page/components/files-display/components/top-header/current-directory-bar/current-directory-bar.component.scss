@@ -31,6 +31,8 @@ input:hover {
 }
 
 .block {
+  align-items: center;
+  line-height: 0px;
   font-size: 0.9em;
   border-radius: 5px;
   color: var(--text-muted);
@@ -45,7 +47,7 @@ input:hover {
   display: flex;
   height: 100%;
   align-items: center;
-  padding-bottom: 0.2em;
+  padding: 0.2em;
   padding-right: 0.4em;
   padding-left: 0.4em;
 }

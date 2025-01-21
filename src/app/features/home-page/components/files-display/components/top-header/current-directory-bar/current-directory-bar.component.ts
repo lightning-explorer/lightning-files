@@ -90,7 +90,7 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnDestroy {
   }
 
   private updateVisibleDirectories() {
-    const parts = this.directory.split("\\");
+    const parts = this.directory.split("\\").filter((x) => x != "");
     let dirBuilder: string = "";
     let i = 0;
     this.visibleDirectories.length = 0;
@@ -105,7 +105,7 @@ export class CurrentDirectoryBarComponent implements AfterViewInit, OnDestroy {
         });
         i++;
         // Add a '>' block
-        if (i != parts.length) {
+        if (i < parts.length) {
           this.visibleDirectories.push({
             fullPath: "",
             section: ">",

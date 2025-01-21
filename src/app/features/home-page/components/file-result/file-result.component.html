@@ -14,9 +14,7 @@
         <iconify-icon icon="pin" size="1em" color="--icon" />
       </div>
 
-      <div>
-        <iconify-icon [icon]="getIcon()" color="--icon" [size]="_iconSize" />
-      </div>
+      <app-file-icon [filePath]="file.FilePath" [isDirectory]="file.IsDirectory" [viewType]="viewType"/>
 
       <div class="name" [ngClass]="{ hide: state.hide, icon: _isIconType }">
         <input
