@@ -25,8 +25,8 @@ export class QuickAccessFilesService {
   private async sysPathsAsQuickAccessPaths(): Promise<QuickAccessPath[]> {
     let paths: QuickAccessPath[] = [];
     const info = await this.systemInfoService.getSystemInfo();
-    if (info.HomeDirectoryPath)
-      paths.push({ path: info.HomeDirectoryPath, name: "Home" });
+    // if (info.HomeDirectoryPath)
+    //   paths.push({ path: info.HomeDirectoryPath, name: "Home" });
     if (info.DesktopDirectoryPath)
       paths.push({ path: info.DesktopDirectoryPath, name: "Desktop" });
     if (info.DownloadsDirectoryPath)

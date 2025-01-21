@@ -16,7 +16,7 @@ import { HomePageSearchService } from "./pages/extended-search/services/home-pag
 import { PersistentConfigService } from "@core/services/persistence/config.service";
 import { SettingsComponent } from "./pages/settings/settings.component";
 import { DirectoryWatcherService } from "./services/directory-watcher.service";
-import { TabsService } from "./services/tabs.service";
+import { TabsService } from "./components/files-display/services/tabs.service";
 import { SearchParamsDTO } from "@core/dtos/search-params-dto";
 import { Subscription } from "rxjs";
 

@@ -41,6 +41,7 @@ import { MoveItemsPopupStateService } from "./popups/move-items-popup/move-items
 import { HomePageService } from "src/app/features/home-page/services/home-page.service";
 import { FileViewType } from "../../../file-result/enums/view-type";
 
+/** Files are passed in via an instance of a `FilesListService` */
 @Component({
   selector: "app-file-browser",
   standalone: true,
@@ -115,6 +116,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
         } else {
           this.viewport.checkViewportSize();
         }
+        this.selectService.clearSelection();
         this.files = x;
       })
     );

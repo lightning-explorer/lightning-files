@@ -13,11 +13,12 @@ import { TopHeaderComponent } from "./components/top-header/top-header.component
 import { SelectService } from "./services/select.service";
 import { SearchOverlayStateService } from "./components/search-overlay/services/search-overlay-state.service";
 import { SearchOverlayComponent } from "./components/search-overlay/search-overlay.component";
+import { HomeViewComponent } from "./components/home-view/home-view.component";
 
 @Component({
   selector: "app-files-display",
   standalone: true,
-  imports: [FileBrowserComponent, CommonModule, FilesDisplayFooterComponent, TopHeaderComponent, SearchOverlayComponent],
+  imports: [FileBrowserComponent, CommonModule, FilesDisplayFooterComponent, TopHeaderComponent, SearchOverlayComponent, HomeViewComponent],
   providers: [FilesListService, SelectService, SearchOverlayStateService],
   templateUrl: "./files-display.component.html",
   styleUrl: "./files-display.component.scss",
@@ -25,6 +26,7 @@ import { SearchOverlayComponent } from "./components/search-overlay/search-overl
 export class FilesDisplayComponent implements OnInit, OnDestroy {
   private subscription = new Subscription();
 
+  _isOnHomePage = false;
   isLoading = false;
   inputControl = new FormControl();
   noFilesMsg = "";
@@ -49,6 +51,7 @@ export class FilesDisplayComponent implements OnInit, OnDestroy {
     );
     this.subscription.add(
       this.directoryService.currentDir$.subscribe(async (dir) => {
+        this._isOnHomePage = dir === "Home";
         this.noFilesMsg = dir;
         this.watcherService.watchDirectory(dir);
       })

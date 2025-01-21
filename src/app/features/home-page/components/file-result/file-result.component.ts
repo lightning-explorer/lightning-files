@@ -72,6 +72,14 @@ export class FileResultComponent implements OnInit, DoCheck {
     }
   }
 
+  get fileDisplayName():string{
+    const fileName = this.fileNameField;
+    if(fileName.endsWith(".lnk")){
+      return fileName.split(".")[0];
+    }
+    return fileName;
+  }
+
   get fileNameField(): string {
     if (this.file) {
       const name = this.file.Name;

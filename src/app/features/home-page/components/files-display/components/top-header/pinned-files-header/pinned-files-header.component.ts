@@ -13,6 +13,7 @@ import { Subscription } from "rxjs";
 import { TooltipDirective } from "@shared/components/popups/tooltip/tooltip.directive";
 import { SelectService } from "../../../services/select.service";
 import { FileContextMenuService } from "../../../../file-result/services/context-menu.service";
+import { FileIconComponent } from "../../../../file-icon/file-icon.component";
 
 @Component({
   selector: "app-pinned-files-header",
@@ -22,6 +23,7 @@ import { FileContextMenuService } from "../../../../file-result/services/context
     IconifyIconModule,
     ContextMenuComponent,
     TooltipDirective,
+    FileIconComponent,
   ],
   providers: [SelectService, FileContextMenuService],
   templateUrl: "./pinned-files-header.component.html",
@@ -58,7 +60,4 @@ export class PinnedFilesHeaderComponent implements OnDestroy {
     return truncateText(name, 20);
   }
 
-  getIcon(file: FileModel): string {
-    return getIconFromPath(file ? file.FilePath : "");
-  }
 }

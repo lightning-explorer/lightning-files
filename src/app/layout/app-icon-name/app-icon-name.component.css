@@ -3,12 +3,14 @@
     color: var(--text-primary);
     align-items: center;
     padding: .1rem;
-    padding-bottom: 1rem;
+    padding-left: .4rem;
 }
 
 .name{
-    padding-top: .5rem;
-    margin-left: .4rem;
+    display: flex;
+    align-items: center;    
+
+    margin-left: .2rem;
     line-height: 1rem;
     font-size: .8rem;
 }
@@ -17,4 +19,9 @@
     color: var(--text-muted);
     font-size: .6rem;
     margin-left: .2rem;
+}
+
+.icon{
+    width: 1.2rem;
+    height: 1.2rem;
 }

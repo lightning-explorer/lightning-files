@@ -1,4 +1,5 @@
-export function getIconFromPath(path: string): string {
+/** Returns the icon of a file as a string or undefined if the file type is not supported */
+export function getIconFromPath(path: string): string | undefined {
     const ext = getFileExtension(path);
     switch (ext) {
         case 'png':
@@ -19,7 +20,7 @@ export function getIconFromPath(path: string): string {
         case 'pdf':
             return 'pdf'
     }
-    return "default";
+    return undefined;
 }
 
 function getFileExtension(filePath: string) {

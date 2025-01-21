@@ -12,17 +12,10 @@
           <label>{{ processFilename(file.Name) }}</label>
         </span>
 
-        <div *ngIf="file.IsDirectory; else elseBlock" class="icon">
-          <iconify-icon icon="folder" size="1.2em" />
-        </div>
-
-        <ng-template #elseBlock class="icon">
-          <iconify-icon
-            [icon]="getIcon(file)"
-            color="--text-primary"
-            size="1.2em"
-          />
-        </ng-template>
+        <app-file-icon
+          [filePath]="file.FilePath"
+          [isDirectory]="file.IsDirectory"
+        />
       </button>
     </div>
   </div>
