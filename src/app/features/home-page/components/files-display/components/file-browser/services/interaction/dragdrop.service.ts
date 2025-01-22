@@ -43,7 +43,7 @@ export class DragDropService {
     //  icon:'assets/icons/appicon.svg'
     //})
 
-    event.dataTransfer?.setData("text/plain", JSON.stringify(items));
+    event.dataTransfer?.setData("text/plain", JSON.stringify([...items]));
     event.dataTransfer!.effectAllowed = "move";
   }
 
