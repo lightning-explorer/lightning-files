@@ -20,7 +20,7 @@
   padding: 1em;
   padding-right: 0rem;
   box-sizing: border-box;
-  overflow-x: hidden;
+
   background-color: var(--bg-light);
   justify-content: space-between;
 }
@@ -40,8 +40,8 @@
 .divider {
   display: block;
   border-radius: 10px;
-  height: 5px;
-  background-color: var(--secondary-color);
-  margin-top: 10px;
-  margin-bottom: 10px;
+  height: 1px;
+  background-color: var(--input);
+  margin-top: 5px;
+  margin-bottom: 5px;
 }

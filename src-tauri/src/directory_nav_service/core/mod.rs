@@ -18,6 +18,9 @@ pub mod files {
     pub mod user_input_validator {
         pub mod tauri_cmds;
     }
+    pub mod icons {
+        pub mod tauri_cmds;
+    }
 }
 pub mod drives {
     pub mod tauri_cmds;

@@ -5,3 +5,4 @@ pub use super::core::files::{
 };
 pub use super::services::watcher::tauri_exports::*;
 pub use super::core::sys::tauri_cmds::*;
+pub use super::core::files::icons::tauri_cmds::*;

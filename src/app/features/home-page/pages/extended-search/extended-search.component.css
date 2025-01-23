@@ -6,20 +6,22 @@
 }
 
 .content {
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    height: 80vh;
+    height: 100%;
     width: 100%;
 }
 
 .top {
     display: flex;
     flex-direction: column;
-    width: 100%;
-    align-items: center;
+
+    padding: .5rem;
 }
 
 .top label{
+    font-size: .8rem;
     line-height: 1rem;
     margin-bottom: .5em;
 }

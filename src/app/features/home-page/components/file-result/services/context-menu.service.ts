@@ -12,10 +12,16 @@ export class FileContextMenuService {
     private commandsService: TauriCommandsService
   ) {}
 
-  openMenu(menu: ContextMenuComponent, event: MouseEvent, file: FileState) {
+  openMenu(
+    menu: ContextMenuComponent,
+    event: MouseEvent,
+    caller: FileModel,
+    state?: FileState
+  ) {
     event.preventDefault();
     const caller = file.model;
 
+    let content: any[] = [];
     const pin = this.pinService.isFilePinned(caller)
       ? {
           name: "Unpin",
@@ -29,19 +35,23 @@ export class FileContextMenuService {
             this.pinService.pinFile(caller);
           },
         };
+    content.push(pin);
     const openInExplorer = {
       name: "Open in Explorer",
       action: () => {
         this.commandsService.openInExplorer(caller.FilePath);
       },
     };
-    const rename = {
-      name: "Rename",
-      action: () => {
-        file = {...file, renameRequested:true};
-      }
+    content.push(openInExplorer);
+    if (state) {
+      const rename = {
+        name: "Rename",
+        action: () => {
+          state.requestRename=true;
+        },
+      };
+      content.push(rename);
     }
-    const content = [pin, "div", openInExplorer, rename];
 
     menu.content = content;
     menu.toggleOpen(event);

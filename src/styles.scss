@@ -29,6 +29,7 @@
 * {
   /* Disables the default blue bg when highlighting text with the cursor*/
   user-select: none;
+  
 }
 
 :root {
@@ -39,7 +40,8 @@
   --bg-dark: #000000c9;
   --bg-transparent: #0000009d;
 
-  --input: #302f338f;
+  --input: #ffffff15;
+
 
   --bg-grad1: #1e1b20;
   --bg-grad2: #1b1b1bfb;
@@ -53,6 +55,7 @@
 
   --icon: #ffffff;
 
+  --select: #ffffff65;
   --select-primary: #ff85ef80;
 }
 
@@ -77,6 +80,14 @@
   --icon: #78aeff;
 
   --select-primary: #85e3ff80;
+}
+
+html, body{
+  font-size: 15px;
+}
+
+input::selection{
+  background-color: var(--primary);
 }
 
 html {
@@ -109,7 +120,6 @@ input {
   margin: 0px;
   font-weight: 400;
   color: var(--font-color);
-  font-size: 13px;
   font-family: 'Poppins';
   min-width: 0px;
 }

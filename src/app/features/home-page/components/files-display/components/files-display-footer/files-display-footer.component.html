@@ -1,14 +1,13 @@
-<div class="content">
-    <button>
-        <iconify-icon icon="tag" size="1rem"/>
-        <label>Tags</label>
-    </button>
-    <button>
-        <iconify-icon icon="keyframes" size="1.2rem"/>
-        <label>Drag and Collect</label>
-    </button>
-    <button>
-        <iconify-icon icon="search" size="1.2rem"/>
-        <label>Search</label>
-    </button>
+<div class="content" >
+  <button class="button">
+    <iconify-icon icon="tag" size="1rem" />
+    <label class="text">Tags</label>
+  </button>
+
+  <app-drag-collect-button/>
+
+  <button (click)="onSearchClick()" class="button">
+    <iconify-icon icon="search" size="1.2rem" />
+    <label class="text">Search</label>
+  </button>
 </div>

@@ -415,4 +415,17 @@ export class TauriCommandsService {
   async stopWatchingDirectory(){
     await this.invokeSafe<void>("stop_watching_directory");
   }
+
+  /** Get the icon of a file as a base64 encoded string */
+  async getFileIcon(path: string, size:number): Promise<string | undefined> {
+    return await this.invokeSafe<string>("get_file_icon", {
+      path,
+      width: size,
+      height: size,
+    }).catch((err) => {
+      console.error(`Error getting file icon: ${err}. File path: ${path}`);
+      return undefined;
+    });
+  }
 }
+

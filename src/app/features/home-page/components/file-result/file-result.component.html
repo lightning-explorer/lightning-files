@@ -5,7 +5,7 @@
       icon: _isIconType,
       selected: selected,
       grow: shouldGrow,
-      hide: file.hide,
+      hide: state.hide,
       altcolor: altColor && !selected && !_isIconType
     }"
   >
@@ -14,18 +14,22 @@
         <iconify-icon icon="pin" size="1em" color="--icon" />
       </div>
 
-      <div>
-        <iconify-icon [icon]="getIcon()" color="--icon" [size]="_iconSize" />
-      </div>
+      <app-file-icon [filePath]="file.FilePath" [isDirectory]="file.IsDirectory" [viewType]="viewType"/>
 
-      <div class="name" [ngClass]="{ hide: file.hide, icon: _isIconType }">
-        <app-highlightable-label
-          *ngIf="!_isRenaming; else renameInputBox"
-          [text]="file.model.Name"
-          [highlight]="file.highlightedText"
+      <div class="name" [ngClass]="{ hide: state.hide, icon: _isIconType }">
+        <input
+          #renameInputBox
+          type="text"
+          *ngIf="_isRenaming; else fileName"
+          [(ngModel)]="fileNameField"
+          (blur)="cancelRename()"
+          spellcheck="false"
         />
-        <ng-template #renameInputBox>
-          <input />
+        <ng-template #fileName>
+          <app-highlightable-label
+            [text]="fileDisplayName"
+            [highlight]="state.highlightedText"
+          />
         </ng-template>
       </div>
     </div>

@@ -3,7 +3,7 @@ label{
     font-size: inherit;
     pointer-events: none;
     text-wrap: inherit;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     white-space: wrap;
 }
 

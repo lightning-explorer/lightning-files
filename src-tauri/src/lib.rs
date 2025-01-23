@@ -55,6 +55,7 @@ pub fn run() {
             dispatch_crawlers,
             watch_directory,
             stop_watching_directory,
+            get_file_icon,
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();

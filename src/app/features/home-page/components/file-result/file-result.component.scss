@@ -81,6 +81,16 @@
   color: var(--text-muted);
 }
 
+.name input{
+  background-color: transparent;
+  border: none;
+  font-size: inherit;
+}
+
+.name input:focus{
+  outline: none;
+}
+
 .metadata {
   display: flex;
   gap: 0px;

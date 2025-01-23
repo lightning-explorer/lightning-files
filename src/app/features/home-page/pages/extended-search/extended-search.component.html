@@ -1,11 +1,6 @@
 <div class="content">
-  <div class="top" *ngIf="searchQuery$ | async as query">
-    <label
-      >Showing results for <b>{{ query }}</b></label
-    >
+  <div class="top">
+    <app-search-input [text]="_inputText" (textChanged)="onInputTextChanged($event)" #searchInput/>
   </div>
-  <app-file-browser
-    [isLoading]="false"
-    [showFullFilePaths]="true"
-  />
+  <app-file-browser/>
 </div>

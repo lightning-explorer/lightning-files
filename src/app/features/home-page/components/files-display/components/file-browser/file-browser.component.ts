@@ -23,7 +23,7 @@ import { InlineSearchBarComponent } from "./inline-search-bar/inline-search-bar.
 import { ContextMenuComponent } from "@shared/components/popups/context-menu/context-menu.component";
 import { FileContextMenuService } from "../../../file-result/services/context-menu.service";
 import { DragDropService } from "./services/interaction/dragdrop.service";
-import { SelectService } from "./services/interaction/select.service";
+import { SelectService } from "../../services/select.service";
 import {
   animate,
   state,
@@ -41,6 +41,7 @@ import { MoveItemsPopupStateService } from "./popups/move-items-popup/move-items
 import { HomePageService } from "src/app/features/home-page/services/home-page.service";
 import { FileViewType } from "../../../file-result/enums/view-type";
 
+/** Files are passed in via an instance of a `FilesListService` */
 @Component({
   selector: "app-file-browser",
   standalone: true,
@@ -51,14 +52,13 @@ import { FileViewType } from "../../../file-result/enums/view-type";
     MoveItemsPopupComponent,
     InlineSearchBarComponent,
     FailedToMoveItemsPopupComponent,
-    ContextMenuComponent
-],
+    ContextMenuComponent,
+  ],
   providers: [
-    FileContextMenuService,
-    SelectService,
     DragDropService,
     InlineSearchService,
-    MoveItemsPopupStateService
+    MoveItemsPopupStateService,
+    FileContextMenuService,
   ],
   templateUrl: "./file-browser.component.html",
   styleUrl: "./file-browser.component.css",
@@ -101,14 +101,14 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     private filesListService: FilesListService,
     private dragService: DragDropService,
     private selectService: SelectService,
+    private contextMenuService: FileContextMenuService,
     private moveItemsPopupState: MoveItemsPopupStateService,
     private contextMenuService: FileContextMenuService,
     private ngZone: NgZone
-  ) { }
+  ) {}
 
   ngOnInit(): void {
-    if (this.viewType != FileViewType.Detail)
-      this._arrangeFilesAsGrid = true;
+    if (this.viewType != FileViewType.Detail) this._arrangeFilesAsGrid = true;
 
     this.subscription.add(
       this.filesListService.observeAllFiles().subscribe((states) => {
@@ -117,8 +117,8 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
         } else {
           this.viewport.checkViewportSize();
         }
-        this.fileStates = states;
-        this.files = states.map(x=>x.model);
+        this.selectService.clearSelection();
+        this.files = x;
       })
     );
 
@@ -175,8 +175,17 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   }
 
   onFileClick(index: number, event: MouseEvent) {
+    const model = this.files[index];
+    const state = this.states[index];
     this.fileClickedOn.emit(this.files[index]);
     this.selectService.onFileClick(index, event);
+    this.selectService.setLastSelectedItemState({model,state});
+  }
+
+  onFileRightClick(index: number, event: MouseEvent) {
+    const file = this.files[index];
+    const state = this.states[index];
+    this.contextMenuService.openMenu(this.contextMenu, event, file, state);
   }
 
   onFileRightClick(index:number, event: MouseEvent) {

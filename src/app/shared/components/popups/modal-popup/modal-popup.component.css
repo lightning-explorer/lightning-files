@@ -71,6 +71,7 @@
 }
 
 .close-btn {
+    display: inline-block;
     cursor: pointer;
     border: none;
     background: none;
@@ -80,5 +81,5 @@
 }
 
 .close-btn:hover {
-    background-color: var(--primary);
+    color: var(--primary);
 }
