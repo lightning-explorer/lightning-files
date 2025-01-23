@@ -10,46 +10,62 @@ export class FileContextMenuService {
   constructor(
     private pinService: PinService,
     private commandsService: TauriCommandsService
-  ) {}
+  ) { }
 
   openMenu(
     menu: ContextMenuComponent,
     event: MouseEvent,
-    caller: FileModel,
-    state?: FileState
+    callers: FileModel[],
+    states?: FileState[]
   ) {
     event.preventDefault();
 
     let content: any[] = [];
-    const pin = this.pinService.isFilePinned(caller)
-      ? {
+    if (callers.length == 1) {
+      const caller = callers[0];
+      const pin = this.pinService.isFilePinned(caller)
+        ? {
           name: "Unpin",
           action: () => {
             this.pinService.unpinFile(caller);
           },
         }
-      : {
+        : {
           name: "Quick Pin",
           action: () => {
             this.pinService.pinFile(caller);
           },
         };
-    content.push(pin);
-    const openInExplorer = {
-      name: "Open in Explorer",
-      action: () => {
-        this.commandsService.openInExplorer(caller.FilePath);
-      },
-    };
-    content.push(openInExplorer);
-    if (state) {
-      const rename = {
-        name: "Rename",
+      content.push(pin);
+    }
+    if (callers.length == 1) {
+      const caller = callers[0];
+      const openInExplorer = {
+        name: "Open in Explorer",
         action: () => {
-          state.requestRename=true;
+          this.commandsService.openInExplorer(caller.FilePath);
         },
       };
-      content.push(rename);
+      content.push(openInExplorer);
+    }
+    const copy = {
+      name: "Copy",
+      action: () => {
+        this.commandsService.copyPathsToClipboard(callers.map(c => c.FilePath));
+      },
+    };
+    content.push(copy);
+    if (states && states.length == 1) {
+      const state = states[0];
+      if (state) {
+        const rename = {
+          name: "Rename",
+          action: () => {
+            state.requestRename = true;
+          },
+        };
+        content.push(rename);
+      }
     }
 
     menu.content = content;

@@ -1,35 +1,23 @@
-<div *ngIf="file" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()" (drop)="onDrop($event)">
-  <button
-    class="content"
-    [ngClass]="{
+<div *ngIf="file" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+  <button class="content" [ngClass]="{
       icon: _isIconType,
       selected: selected,
       grow: shouldGrow,
       hide: state.hide,
       altcolor: altColor && !selected && !_isIconType
-    }"
-  >
+    }">
     <div class="body" [ngClass]="{ icon: _isIconType }">
       <div *ngIf="isPinned">
         <iconify-icon icon="pin" size="1em" color="--icon" />
       </div>
 
-      <app-file-icon [filePath]="file.FilePath" [isDirectory]="file.IsDirectory" [viewType]="viewType"/>
+      <app-file-icon [filePath]="file.FilePath" [isDirectory]="file.IsDirectory" [viewType]="viewType" />
 
       <div class="name" [ngClass]="{ hide: state.hide, icon: _isIconType }">
-        <input
-          #renameInputBox
-          type="text"
-          *ngIf="_isRenaming; else fileName"
-          [(ngModel)]="fileNameField"
-          (blur)="cancelRename()"
-          spellcheck="false"
-        />
+        <input #renameInputBox type="text" *ngIf="_isRenaming; else fileName" [(ngModel)]="fileNameField"
+          (blur)="cancelRename()" spellcheck="false" />
         <ng-template #fileName>
-          <app-highlightable-label
-            [text]="fileDisplayName"
-            [highlight]="state.highlightedText"
-          />
+          <app-highlightable-label [text]="fileDisplayName" [highlight]="state.highlightedText" />
         </ng-template>
       </div>
     </div>

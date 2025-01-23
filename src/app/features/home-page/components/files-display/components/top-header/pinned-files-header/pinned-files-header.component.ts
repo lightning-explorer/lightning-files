@@ -53,7 +53,7 @@ export class PinnedFilesHeaderComponent implements OnDestroy {
   }
 
   onFileRightClick(event: MouseEvent, file: FileModel) {
-    this.contextMenuService.openMenu(this.contextMenu, event, file);
+    this.contextMenuService.openMenu(this.contextMenu, event, [file]);
   }
 
   processFilename(name: string) {

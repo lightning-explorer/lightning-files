@@ -12,16 +12,18 @@ import { TauriCommandsService } from "@core/services/tauri/commands.service";
 
 @Injectable()
 export class DragDropService {
+  private filesAwaitingDrop: File[] = [];
+
   private draggingItemsToSubject = new BehaviorSubject<FileModel | undefined>(
     undefined
   );
-  private draggedItemsSubject = new BehaviorSubject<Set<FileModel>>(new Set());
 
   draggingItemsTo$ = this.draggingItemsToSubject.asObservable();
-  draggedItems$ = this.draggedItemsSubject.asObservable();
-  get numberOfItemsBeingDragged() {
-    return this.draggedItemsSubject.getValue().size;
+
+  get numFilesAwaitingDrop() {
+    return this.filesAwaitingDrop.length;
   }
+
   /** Returns true if the files were attempted to be dropped in a directory */
   get draggingItemsToADirectory(): boolean {
     return this.draggingItemsToSubject.getValue()?.IsDirectory ?? false;
@@ -30,30 +32,20 @@ export class DragDropService {
   constructor(
     private commandsService: TauriCommandsService,
     private filesListService: FilesListService
-  ) {}
+  ) { }
 
   onDragStart(event: DragEvent, items: Set<FileModel>) {
     event.preventDefault();
-    items.forEach((f) =>
-      this.filesListService.updateFileState(f, { hide: true })
-    );
-    //this.draggedItemsSubject.next(items);
 
-    startDrag({item:Array.from(items).map(x=>x.FilePath),
-     icon:'assets/icons/appicon.svg'
-    },(result)=>{
-      console.log(result);
+    startDrag({
+      item: Array.from(items).map(x => x.FilePath),
+      icon: 'assets/icons/appicon.svg'
     });
-
-    //event.dataTransfer?.setData("text/plain", JSON.stringify([...items]));
-    //event.dataTransfer!.effectAllowed = "move";
   }
 
   onDragOver(event: DragEvent, targetItem: FileModel) {
+    event.preventDefault();
     if (targetItem.IsDirectory) {
-      event.preventDefault();
-      event.dataTransfer!.dropEffect = "move";
-
       this.filesListService.updateFileState(targetItem, { draggedOver: true });
     }
   }
@@ -64,20 +56,21 @@ export class DragDropService {
   }
 
   onDrop(event: DragEvent, targetItem: FileModel) {
-    // You can't drag a folder into itself
-    if (this.draggedItemsSubject.getValue().has(targetItem)) return;
-
-    this.filesListService.updateFileState(targetItem, { draggedOver: false });
-
-    this.draggingItemsToSubject.next(targetItem);
+    this.filesAwaitingDrop = [];
     event.preventDefault();
-
-    this.unhideAllDraggingItems();
-    return;
+    if (!event.dataTransfer?.files) return;
+    const files = Array.from(event.dataTransfer.files);
+    if (files.some(x => x.name == targetItem.Name)) {
+      console.log("Same file");
+      return;
+    }
+    this.filesAwaitingDrop = files;
+    this.draggingItemsToSubject.next(targetItem);
+    this.filesListService.updateFileState(targetItem, { draggedOver: false });
   }
 
   onDragEnd(event: DragEvent, targetItem: FileModel) {
-    this.unhideAllDraggingItems();
+    //this.unhideAllDraggingItems();
   }
 
   /** Attempt to move the items that were being dragged into their previous target */
@@ -86,21 +79,21 @@ export class DragDropService {
     // Ensure that the target exists and is a directory
     if (!target || !target.IsDirectory) return;
 
-    this.draggedItemsSubject.getValue().forEach(async (item) => {
-      const file = item.FilePath;
+    this.filesAwaitingDrop.forEach(async (item) => {
+      const file = item.name;
       const moveTo = target.FilePath;
-      await this.commandsService.movePathIntoDirectory(moveTo,file);
+      await this.commandsService.movePathIntoDirectory(moveTo, file);
       if (file != moveTo) {
-        console.log(`Moved ${item.FilePath} to ${moveTo}`);
+        console.log(`Moved ${item.name} to ${moveTo}`);
       }
     });
   }
 
   unhideAllDraggingItems() {
-    const currentItems = this.draggedItemsSubject.getValue();
-    currentItems.forEach((f) =>
-      this.filesListService.updateFileState(f, { hide: false })
-    );
-    this.draggedItemsSubject.next(new Set([...currentItems]));
+    // const currentItems = this.draggedItemsSubject.getValue();
+    // currentItems.forEach((f) =>
+    //   this.filesListService.updateFileState(f, { hide: false })
+    // );
+    // this.draggedItemsSubject.next(new Set([...currentItems]));
   }
 }

@@ -1,15 +1,14 @@
 use directory_nav_service::tauri_exports::*;
 use tantivy_file_indexer::{
     services::local_crawler::tauri_exports::*, /*services::local_db::tables::files::tauri_exports::*,*/
+    services::local_db::tables::app_kv_store::tauri_exports::*,
     services::local_db::tauri_exports::*, services::search_index::tauri_exports::*,
-    services::local_db::tables::app_kv_store::tauri_exports::*
 };
 use tauri::Manager;
 mod app_init;
 mod directory_nav_service;
 mod shared;
 mod tantivy_file_indexer;
-
 
 pub fn run() {
     tauri::Builder::default()
@@ -57,6 +56,11 @@ pub fn run() {
             watch_directory,
             stop_watching_directory,
             get_file_icon,
+            copy_paths_to_clipboard,
+            paste_files_to_directory,
+            files_exist_in_clipboard,
+            create_new_file,
+            create_new_directory,
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();
@@ -71,7 +75,6 @@ pub fn run() {
             #[cfg(target_os = "windows")]
             window_vibrancy::apply_acrylic(&window, Some((18, 18, 18, 125)))
                 .expect("Unsupported platform! 'apply_blur' is only supported on Windows");
-
 
             Ok(())
         })

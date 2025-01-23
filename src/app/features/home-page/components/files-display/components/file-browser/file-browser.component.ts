@@ -188,9 +188,14 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   }
 
   onFileRightClick(index: number, event: MouseEvent) {
-    const file = this.files[index];
-    const state = this.states[index];
-    this.contextMenuService.openMenu(this.contextMenu, event, file, state);
+    if(this.selectedIndices.has(index)) {
+      const indices = Array.from(this.selectedIndices);
+      const files = indices.map(x=>this.files[x]);
+      const states = indices.map(x=>this.states[x]);
+      this.contextMenuService.openMenu(this.contextMenu, event, files, states);
+    } else {
+      this.contextMenuService.openMenu(this.contextMenu, event, [this.files[index]], [this.states[index]]);
+    }
   }
 
   onFileDoubleClick(file: FileModel) {
@@ -223,9 +228,9 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   }
 
   async onFileDrop(event: DragEvent, targetItem: FileModel) {
-    this.dragService.onDrop(event, targetItem);
+    const files = this.dragService.onDrop(event, targetItem);
     if (this.dragService.draggingItemsToADirectory) {
-      if (this.dragService.numberOfItemsBeingDragged > 0) {
+      if (this.dragService.numFilesAwaitingDrop > 0) {
         // If the popup doesn't get opened, it means the user disabled it
         if (!this.moveItemsPopupState.attemptOpen()) {
           await this.dragService.moveDraggedItemsAsync();

@@ -132,12 +132,30 @@ export class FileResultComponent implements OnInit, DoCheck {
       this.file.Name = this._nameBeforeRename;
   }
 
-  onDrop(event: DragEvent){
-    console.log(event.dataTransfer?.items);
-    if (!event.dataTransfer?.files) return;
-    const files = Array.from(event.dataTransfer.files);
-    console.log(files);
-  }
+  // onDragOver(event: DragEvent) {
+  //   // Prevent default to allow drop
+  //   event.preventDefault();
+  //   if(!this.file?.IsDirectory) return;
+  //   // Check if files are being dragged
+  //   if (event.dataTransfer?.types.includes('Files')) {
+  //     this.state.draggedOver = true;
+  //   }
+  // }
+
+  // onDragLeave(event: DragEvent) {
+  //   event.preventDefault();
+  //   this.state.draggedOver = false;
+  // }
+
+  // onDrop(event: DragEvent){
+  //   event.preventDefault();
+  //   if (!event.dataTransfer?.files) return;
+  //   const files = Array.from(event.dataTransfer.files);
+  //   if(files.some(x=>x.name==this.file?.Name)){
+  //     console.log("Same file");
+  //     return;
+  //   }
+  // }
 
   private isIconType(viewType: FileViewType): boolean {
     switch (viewType) {
