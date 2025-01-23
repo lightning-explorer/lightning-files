@@ -36,6 +36,10 @@ export class DragDropService {
 
   onDragStart(event: DragEvent, items: Set<FileModel>) {
     event.preventDefault();
+    if (items.size == 0) {
+      console.warn("No items to drag");
+      return;
+    }
 
     startDrag({
       item: Array.from(items).map(x => x.FilePath),

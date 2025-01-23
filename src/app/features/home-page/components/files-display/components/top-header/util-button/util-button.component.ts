@@ -44,13 +44,15 @@ export type UtilButtonType =
 })
 export class UtilButtonComponent implements OnInit, OnDestroy {
   private subscription = new Subscription();
+  _isUsable = false;
   _lastSelectedFile?: File;
   _dropdownFeatures = [];
   _isDropdownType = false;
   _icon: string | undefined = undefined;
+  
+  _numSelectedItems = 0;
 
   constructor(
-    private elementRef: ElementRef,
     private filesList: FilesListService,
     private selectService: SelectService
   ) {}
@@ -68,6 +70,17 @@ export class UtilButtonComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.selectService.lastSelectedItem$.subscribe((f) => {
         this._lastSelectedFile = f;
+      })
+    );
+    this.subscription.add(
+      this.selectService.selectedIndices$.subscribe((f) => {
+        const n = f.size;
+        this._numSelectedItems = n;
+        if(n > 0 && !(this.type == "rename" && n != 1)){
+          this._isUsable = true;
+          return; 
+        }
+        this._isUsable = false;
       })
     );
   }

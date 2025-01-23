@@ -8,9 +8,15 @@
   display: flex;
   border: 0px;
   padding: 0.1rem;
+  color: var(--text-muted);
+  transition: color 0.1s ease-in-out;
 }
 
-.content:hover {
+.content.usable {
+  color: var(--primary);
+}
+
+.content.usable:hover {
   color: var(--text-primary);
 }
 

@@ -7,7 +7,7 @@
   </app-dropdown-button-modal>
 
   <ng-template #iconButton>
-    <button class="content" [appTooltip]="utilityName">
+    <button class="content" [appTooltip]="utilityName" [ngClass]="{'usable': _isUsable}">
       <iconify-icon [icon]="type" size="1.2rem" (click)="onClick()" />
     </button>
   </ng-template>

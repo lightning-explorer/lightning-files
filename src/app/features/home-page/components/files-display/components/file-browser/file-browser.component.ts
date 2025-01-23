@@ -180,6 +180,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   }
 
   onFileClick(index: number, event: MouseEvent) {
+    event.stopPropagation();
     const model = this.files[index];
     const state = this.states[index];
     this.fileClickedOn.emit(this.files[index]);

@@ -24,7 +24,6 @@ pub struct SearchIndexService {
     /// Dictates how crawlers store documents
     pub pipeline: Arc<TantivyPipeline>,
     querier: Arc<Querier>,
-    index: SearchIndex<TantivyFileModel>,
 }
 
 impl SearchIndexService {
@@ -38,7 +37,7 @@ impl SearchIndexService {
         let backend = index.get_tantivy_backend();
 
         let constructor = Arc::new(QueryConstructor::new(
-            index.get_tantivy_backend().schema.clone(),
+            SearchIndex::<TantivyFileModel>::schema().clone(),
             backend.reader.clone(),
         ));
 
@@ -53,7 +52,6 @@ impl SearchIndexService {
                 backend.reader.clone(),
                 Arc::clone(&constructor),
             )),
-            index,
         }
     }
 

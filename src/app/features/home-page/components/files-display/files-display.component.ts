@@ -37,6 +37,7 @@ export class FilesDisplayComponent implements OnInit, OnDestroy {
   constructor(
     private filesListService: FilesListService,
     private directoryService: DirectoryNavigatorService,
+    private selectService: SelectService,
     private watcherService: DirectoryWatcherService
   ) {}
 
@@ -62,6 +63,11 @@ export class FilesDisplayComponent implements OnInit, OnDestroy {
       })
     );
     this.directoryService.setFiles();
+  }
+
+  onClick(){
+    console.log("clicked");
+    this.selectService.clearSelection();
   }
 
   ngOnDestroy(): void {
