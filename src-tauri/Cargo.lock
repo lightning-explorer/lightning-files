@@ -1485,7 +1485,9 @@ dependencies = [
 
 [[package]]
 name = "getfileicon"
-version = "0.1.2"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "773358df5d10e48a62fa7b016eb6eb25ce85edf4aeb85335a0ec68417b0f13a3"
 dependencies = [
  "base64 0.22.1",
  "image",
