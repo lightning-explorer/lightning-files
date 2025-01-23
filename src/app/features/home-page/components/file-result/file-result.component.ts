@@ -48,7 +48,7 @@ export class FileResultComponent implements OnInit, DoCheck {
 
   get shouldGrow() {
     return (this.state.draggedOver || this.mouseOver) && !this.state.hide;
-  }
+  } 
 
   @Input() file: FileModel | undefined;
   @Input() state: FileState = defaultFileState();
