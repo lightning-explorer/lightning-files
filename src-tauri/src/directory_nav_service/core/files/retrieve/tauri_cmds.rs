@@ -49,6 +49,42 @@ pub async fn get_files_as_models(
     Ok(())
 }
 
+#[tauri::command]
+pub async fn get_files_as_models_all(
+    directory: String,
+    params: GetFilesParamsDTO,
+) -> Result<Vec<SystemFileModel>, String> {
+    let path = Path::new(&directory);
+
+    match params.sort_by {
+        Some(ref sort_params) => {
+            // Files can't be output as we get to them, they must be preprocessed first
+            let files =
+                file_retriever::read_files_and_process(path).map_err(|err| err.to_string())?;
+            let mut filtered: Vec<SystemFileModel> = files
+                .into_iter()
+                .filter(|file| file_retriever::should_include_file(file, &params))
+                .collect();
+            // Now we can sort the files:
+            file_sorter::sort_files(&mut filtered, sort_params);
+            Ok(filtered)
+        }
+        None => {
+            // Output files as we get to them
+            let mut files_to_add = Vec::new();
+            file_retriever::read_files_incremental(path, |fp| {
+                if let Some(model) = helper::create_file_model_from_path(fp) {
+                    if file_retriever::should_include_file(&model, &params) {
+                        files_to_add.push(model);
+                    }
+                }
+            })
+            .map_err(|err| err.to_string())?;
+            Ok(files_to_add)
+        }
+    }
+}
+
 fn emit_file(handle: &AppHandle, file: &SystemFileModel) {
     handle.emit("sys_file_model", &file).unwrap_or_default();
 }

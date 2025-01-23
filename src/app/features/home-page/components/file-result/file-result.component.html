@@ -1,4 +1,4 @@
-<div *ngIf="file" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+<div *ngIf="file" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()" (drop)="onDrop($event)">
   <button
     class="content"
     [ngClass]="{

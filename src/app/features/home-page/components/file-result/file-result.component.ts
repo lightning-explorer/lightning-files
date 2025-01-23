@@ -132,6 +132,13 @@ export class FileResultComponent implements OnInit, DoCheck {
       this.file.Name = this._nameBeforeRename;
   }
 
+  onDrop(event: DragEvent){
+    console.log(event.dataTransfer?.items);
+    if (!event.dataTransfer?.files) return;
+    const files = Array.from(event.dataTransfer.files);
+    console.log(files);
+  }
+
   private isIconType(viewType: FileViewType): boolean {
     switch (viewType) {
       case FileViewType.MediumIcon:

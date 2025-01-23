@@ -32,13 +32,13 @@ export class DirectoryNavigatorService {
   constructor(
     private commandsService: TauriCommandsService,
     private configService: PersistentConfigService,
-  ) {}
+  ) { }
 
   async setCurrentDir(dir: string, params?: GetFilesParamsDTO) {
     // avoid redundant emissions
     if (this.currentDirSubject.getValue() !== dir) {
       // Ensure that the config is updated:
-      await this.configService.update("lastDirectoryAt",dir);
+      await this.configService.update("lastDirectoryAt", dir);
 
       const currentMeta = this.currentDirMetadataSubject.getValue();
       this.currentDirMetadataSubject.next({
@@ -63,14 +63,11 @@ export class DirectoryNavigatorService {
     if (!params) params = getFilesParams_DefaultParams(); // No sorting logic or anything fancy
 
     this.currentFilesSubject.next([]);
-    await this.commandsService.getFilesAsModels(
+    const files = await this.commandsService.getFilesAsModels(
       directory,
-      (file) => {
-        const updatedFiles = [...this.currentFilesSubject.getValue(), file];
-        this.currentFilesSubject.next(updatedFiles);
-      },
       params
     );
+    this.currentFilesSubject.next(files);
   }
 
   async isPathAFile(filePath: string): Promise<boolean> {

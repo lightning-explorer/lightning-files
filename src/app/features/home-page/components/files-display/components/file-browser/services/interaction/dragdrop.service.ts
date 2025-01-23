@@ -33,18 +33,20 @@ export class DragDropService {
   ) {}
 
   onDragStart(event: DragEvent, items: Set<FileModel>) {
-    //event.preventDefault();
+    event.preventDefault();
     items.forEach((f) =>
       this.filesListService.updateFileState(f, { hide: true })
     );
-    this.draggedItemsSubject.next(items);
+    //this.draggedItemsSubject.next(items);
 
-    //startDrag({item:Array.from(items).map(x=>x.FilePath),
-    //  icon:'assets/icons/appicon.svg'
-    //})
+    startDrag({item:Array.from(items).map(x=>x.FilePath),
+     icon:'assets/icons/appicon.svg'
+    },(result)=>{
+      console.log(result);
+    });
 
-    event.dataTransfer?.setData("text/plain", JSON.stringify([...items]));
-    event.dataTransfer!.effectAllowed = "move";
+    //event.dataTransfer?.setData("text/plain", JSON.stringify([...items]));
+    //event.dataTransfer!.effectAllowed = "move";
   }
 
   onDragOver(event: DragEvent, targetItem: FileModel) {
