@@ -35,7 +35,6 @@ import { checkOverflow } from "@shared/util/element-overflow-checker";
     IconifyIconModule,
     UtilButtonComponent,
     CurrentDirectoryBarComponent,
-    SearchbarComponent,
   ],
   templateUrl: "./top-header.component.html",
   styleUrl: "./top-header.component.css",
