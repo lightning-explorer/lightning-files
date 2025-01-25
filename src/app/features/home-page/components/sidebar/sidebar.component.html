@@ -1,29 +1,28 @@
 <div class="content" [ngStyle]="{ width: previewWidth + 'px' }">
-  <div class="top">
+  <div class="scroll-region">
+    <app-button-w-svg
+      svgSrc="assets/icons/home.svg"
+      (click)="homeButtonClicked()"
+    >
+      Home
+    </app-button-w-svg>
 
-    <div class="scroll-region">
+    <div class="divider"></div>
 
-      <app-button-w-svg svgSrc="assets/icons/home.svg" (click)="homeButtonClicked()">
-        Home
-      </app-button-w-svg>
-
-      <div class="divider"></div>
-
-      <div *ngIf="quickAccessPaths$ | async as paths">
-        <div *ngFor="let path of paths">
-          <app-quick-access-shortcut
-            [path]="path"
-            (click)="quickAccessShortcutClicked(path)"
-          />
-        </div>
+    <div *ngIf="quickAccessPaths$ | async as paths">
+      <div *ngFor="let path of paths">
+        <app-quick-access-shortcut
+          [path]="path"
+          (click)="quickAccessShortcutClicked(path)"
+        />
       </div>
+    </div>
 
-      <div class="divider"></div>
+    <div class="divider"></div>
 
-      <div *ngIf="drives$ | async as drives">
-        <div *ngFor="let drive of drives" class="drive-result-container">
-          <app-drive-result [drive]="drive" (click)="driveClicked(drive)" />
-        </div>
+    <div *ngIf="drives$ | async as drives">
+      <div *ngFor="let drive of drives">
+        <app-drive-result [drive]="drive" (click)="driveClicked(drive)" />
       </div>
     </div>
   </div>

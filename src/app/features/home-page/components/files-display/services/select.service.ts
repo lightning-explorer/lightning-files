@@ -53,7 +53,9 @@ export class SelectService {
     this.clearSelection();
     await this.fileOperationsService.openOrNavigateToFile(file);
     // Navigate back to the file list view:
-    this.homePageService.setPage("main");
+    if(file.IsDirectory){
+      this.homePageService.setPage("main");
+    }
   }
 
   selectRange(start: number, end: number) {

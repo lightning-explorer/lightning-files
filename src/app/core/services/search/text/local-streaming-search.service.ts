@@ -10,12 +10,14 @@ export class LocalStreamingSearchService {
   private filesSubject = new BehaviorSubject<FileModel[]>([]);
   public files$ = this.filesSubject.asObservable();
 
-  private lastSearchParamsSubject = new BehaviorSubject<StreamingSearchParamsDTO|undefined>(undefined);
+  private lastSearchParamsSubject = new BehaviorSubject<
+    StreamingSearchParamsDTO | undefined
+  >(undefined);
   lastSearchParams$ = this.lastSearchParamsSubject.asObservable();
 
   constructor(private commandsService: TauriCommandsService) {}
 
-  clearResults(){
+  clearResults() {
     this.filesSubject.next([]);
   }
 
@@ -32,7 +34,7 @@ export class LocalStreamingSearchService {
       return; // Early return
     await this.commandsService.searchIndexQueryStreaming(
       params,
-      (emittedFiles) => {
+      async (emittedFiles) => {
         // Check if the emitted result corresponds to the correct query.
         // The query string is stored in the metadata field
         if (emittedFiles.Metadata == params.Params.FilePath) {
@@ -41,6 +43,7 @@ export class LocalStreamingSearchService {
         }
       }
     );
+    //await this.ensureFilesExist();
   }
 
   fuzzyQueryIsAdequate(params: SearchParamsDTO): boolean {
@@ -52,5 +55,16 @@ export class LocalStreamingSearchService {
       return false;
     }
     return true;
+  }
+
+  /** Ensures that the files in the files variable exist in the file system. */
+  async ensureFilesExist() {
+    const files = this.filesSubject.getValue();
+    files.forEach(async (file) => {
+      if(!await this.commandsService.validateFileExists(file.FilePath)){
+        console.log(`File ${file.FilePath} does not exist in the file system.`);
+        this.filesSubject.next(this.filesSubject.getValue().filter((f) => f.FilePath !== file.FilePath));
+      }
+    });
   }
 }

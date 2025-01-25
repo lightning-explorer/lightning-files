@@ -42,6 +42,9 @@ import { checkOverflow } from "@shared/util/element-overflow-checker";
 export class TopHeaderComponent implements AfterViewInit, OnDestroy {
   @ViewChild("toolbarButtonContainer") toolbarButtonContainer!: ElementRef;
   utilButtons: UtilButtonType[] = [
+    "undo",
+    "redo",
+    "navigateBack",
     "new",
     "copy",
     "paste",
@@ -56,8 +59,6 @@ export class TopHeaderComponent implements AfterViewInit, OnDestroy {
   private resizeObserver!: ResizeObserver;
 
   constructor(
-    private directoryService: DirectoryNavigatorService,
-    private directoryHistoryService: DirectoryHistoryService,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef
   ) {}
@@ -92,20 +93,7 @@ export class TopHeaderComponent implements AfterViewInit, OnDestroy {
       this.toolbarButtonContainer,
       ".toolbar-button",
       false,
-      1.2
+      1
     );
-  }
-
-  async onNavigateBackDirectoryClick() {
-    let parent = await this.directoryService.getParentDirectory();
-    await this.directoryService.setCurrentDir(parent);
-  }
-
-  async onUndoClick() {
-    this.directoryHistoryService.undo();
-  }
-
-  async onRedoClick() {
-    this.directoryHistoryService.redo();
   }
 }

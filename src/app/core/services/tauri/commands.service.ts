@@ -322,6 +322,16 @@ export class TauriCommandsService {
   }
 
   /**
+   * Returns `true` if the file exists in the file system. If the file does not exist, it is removed from the index.
+   */
+  async validateFileExists(path: string): Promise<boolean> {
+    return await this.invokeSafe<boolean>("validate_file_exists", { path }).catch((err) => {
+      console.log(err);
+      return false;
+    });
+  }
+
+  /**
    * Why does this method return the same thing you pass in. Well, FileModels on the frontend usually aren't fully initialized. Example: `Popularity` doesn't get filled out.
    *
    * You will pass in one of these incomplete file models and the backend will return you the corresponding file model (asumming it exists in the index)

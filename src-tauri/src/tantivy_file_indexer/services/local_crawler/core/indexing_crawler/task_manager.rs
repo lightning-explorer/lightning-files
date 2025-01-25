@@ -13,7 +13,7 @@ use crate::tantivy_file_indexer::services::{
 use super::{factory, worker_task_handle::CrawlerWorkerTaskHandle};
 
 /// The max number of crawlers that can be active at once
-const MAX_NUM_CRAWLERS: u32 = 8;
+const MAX_NUM_CRAWLERS: u32 = 2;
 type CrawlerFactory = factory::IndexingCrawlersFactory<CrawlerQueue, TantivyPipeline>;
 /// A message from the crawler task manager
 pub enum CrawlerMessage {
@@ -24,7 +24,7 @@ pub type CrawlerManagerMessageReceiver = mpsc::Receiver<CrawlerMessage>;
 pub type CrawlerManagerMessageSender = mpsc::Sender<CrawlerMessage>;
 
 pub async fn build_managed(mut factory: CrawlerFactory) {
-    let num_workers = 8;
+    let num_workers = MAX_NUM_CRAWLERS;
 
     factory = factory.set_batch_size(512);
     let tasks = factory.build(num_workers).await;
@@ -36,7 +36,7 @@ pub async fn build_managed(mut factory: CrawlerFactory) {
     let factory = Arc::new(RwLock::new(factory));
     {
         let mut factory_lock = factory.write().await;
-        factory_lock.set_throttle(ThrottleAmount::None);
+        factory_lock.set_throttle(ThrottleAmount::High);
     }
 
     manage_crawl_tasks(tasks, factory);
@@ -46,9 +46,8 @@ fn manage_crawl_tasks(
     factory: Arc<RwLock<CrawlerFactory>>,
 ) {
     let check_frequency = Duration::from_secs(30);
-    // TODO: have the task manager actually do stuff
     tokio::spawn(async move {
-    loop {
+        loop {
             tokio::time::sleep(check_frequency).await;
             crawl_task_handles = remove_dead_crawlers(crawl_task_handles);
             let num_active_crawlers = crawl_task_handles.len() as u32;

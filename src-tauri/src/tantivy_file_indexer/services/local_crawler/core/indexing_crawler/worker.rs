@@ -239,14 +239,14 @@ where
                 return dtos;
             }
             Err(err) => match err {
-                CrawlerError::PushToQueueError(err) => {
+                CrawlerError::PushToQueue(err) => {
                     println!(
                         "Crawler could not push found directories to queue: {}. 
             The original directory will stay in the queue for re-indexing",
                         err
                     );
                 }
-                CrawlerError::ReadDirError(err) | CrawlerError::NotDirError(err) => {
+                CrawlerError::ReadDir(err) | CrawlerError::NotDir(err) => {
                     println!(
                         "Crawler could not read directory: {}. Removing it from the queue",
                         err

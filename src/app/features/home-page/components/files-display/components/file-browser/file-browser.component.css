@@ -1,7 +1,7 @@
 :host {
     display: flex;
     scrollbar-width: thin;
-    scrollbar-color: var(--primary) transparent;
+    scrollbar-color: var(--input) transparent;
     flex: 1;
 }
 

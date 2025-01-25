@@ -24,6 +24,7 @@ pub struct SearchIndexService {
     /// Dictates how crawlers store documents
     pub pipeline: Arc<TantivyPipeline>,
     querier: Arc<Querier>,
+    search_index: SearchIndex<TantivyFileModel>,
 }
 
 impl SearchIndexService {
@@ -32,9 +33,10 @@ impl SearchIndexService {
 
         let index = SearchIndexBuilder::new(index_path)
             .with_memory_budget(50_000_000)
-            .with_recycle_after(5_000)
+            .with_recycle_after(10_000)
             .build();
-        let backend = index.get_tantivy_backend();
+        let index_clone = index.clone();
+        let backend = index_clone.get_tantivy_backend();
 
         let constructor = Arc::new(QueryConstructor::new(
             SearchIndex::<TantivyFileModel>::schema().clone(),
@@ -47,6 +49,7 @@ impl SearchIndexService {
         let pipeline = TantivyPipeline::new(index.clone());
 
         Self {
+            search_index: index,
             pipeline: Arc::new(pipeline),
             querier: Arc::new(Querier::new(
                 backend.reader.clone(),
@@ -117,4 +120,16 @@ impl SearchIndexService {
     pub fn get_pipeline(&self) -> Arc<TantivyPipeline> {
         Arc::clone(&self.pipeline)
     }
+
+    /// Returns true if the file exists in the file system. If the file does not exist, it is removed from the index.
+    pub async fn validate_file_exists(&self, path: &str) -> Result<bool, tantivy::TantivyError> {
+        if PathBuf::from(path).exists() {
+            return Ok(true);
+        }
+        let path_str = path.to_string();
+        let terms = vec![TantivyFileModel::file_path_string_field().term(path_str)];
+        self.search_index.remove_by_terms(terms).await?;
+        Ok(false)
+    }
 }
+

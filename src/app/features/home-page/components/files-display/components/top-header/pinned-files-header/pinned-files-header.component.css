@@ -16,6 +16,7 @@
 }
 
 .file {
+    
     display: flex;
     font-size: .8rem;
     background-color: var(--bg-primary);

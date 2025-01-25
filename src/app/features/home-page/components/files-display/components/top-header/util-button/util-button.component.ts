@@ -16,6 +16,8 @@ import { FileModel } from "@core/models/file-model";
 import { FileState } from "../../../../file-result/file-state";
 import { TooltipDirective } from "@shared/components/popups/tooltip/tooltip.directive";
 import { capitalizeFirstLetter } from "@shared/util/string";
+import { DirectoryHistoryService } from "src/app/features/home-page/services/directory-history.service";
+import { DirectoryNavigatorService } from "src/app/features/home-page/services/directory-navigator.service";
 
 interface File {
   model: FileModel;
@@ -23,6 +25,9 @@ interface File {
 }
 
 export type UtilButtonType =
+  | "undo"
+  | "redo"
+  | "navigateBack"
   | "copy"
   | "paste"
   | "new"
@@ -44,27 +49,35 @@ export type UtilButtonType =
 })
 export class UtilButtonComponent implements OnInit, OnDestroy {
   private subscription = new Subscription();
+  _alwaysActive = false;
   _isUsable = false;
   _lastSelectedFile?: File;
   _dropdownFeatures = [];
   _isDropdownType = false;
   _icon: string | undefined = undefined;
-  
+
   _numSelectedItems = 0;
 
   constructor(
     private filesList: FilesListService,
-    private selectService: SelectService
+    private selectService: SelectService,
+    private directoryService: DirectoryNavigatorService,
+    private directoryHistoryService: DirectoryHistoryService,
   ) {}
 
   @Input() type: UtilButtonType = "copy";
 
   get utilityName(): string {
+    if(this.type=='navigateBack') return 'Up';
     return capitalizeFirstLetter(this.type);
   }
 
   ngOnInit(): void {
     if (this.type == "new") this._isDropdownType = true;
+
+    if(this.type == "navigateBack" || this.type == "undo" || this.type == "redo") this._alwaysActive = true;
+
+
     this._icon = this.type;
 
     this.subscription.add(
@@ -74,11 +87,15 @@ export class UtilButtonComponent implements OnInit, OnDestroy {
     );
     this.subscription.add(
       this.selectService.selectedIndices$.subscribe((f) => {
+        if(this._alwaysActive) {
+          this._isUsable = true;
+          return;
+        }
         const n = f.size;
         this._numSelectedItems = n;
-        if(n > 0 && !(this.type == "rename" && n != 1)){
+        if (n > 0 && !(this.type == "rename" && n != 1)) {
           this._isUsable = true;
-          return; 
+          return;
         }
         this._isUsable = false;
       })
@@ -86,11 +103,42 @@ export class UtilButtonComponent implements OnInit, OnDestroy {
   }
 
   onClick() {
-    if (this.type == "rename") {
-      if (this._lastSelectedFile)
-        this._lastSelectedFile.state.requestRename = true;
-      return;
+    if (this._isUsable) {
+      if (this.type == "rename") {
+        this.renameAction();
+        return;
+      }
+      if (this.type == "navigateBack") {
+        this.navigateBackAction();
+        return;
+      }
+      if (this.type == "undo") {
+        this.undoAction();
+        return;
+      }
+      if (this.type == "redo") {
+        this.redoAction();
+        return;
+      }
     }
+  }
+
+  async navigateBackAction() {
+    let parent = await this.directoryService.getParentDirectory();
+    await this.directoryService.setCurrentDir(parent);
+  }
+
+  async renameAction() {
+    if (this._lastSelectedFile)
+      this._lastSelectedFile.state.requestRename = true;
+  }
+
+  async undoAction() {
+    this.directoryHistoryService.undo();
+  }
+
+  async redoAction() {
+    this.directoryHistoryService.redo();
   }
 
   ngOnDestroy(): void {
