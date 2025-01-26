@@ -6,6 +6,9 @@ export class FileNameResolverService {
     constructor() { }
     
     getFileNameFromFullPath(fullPath:string){
+        if(fullPath.endsWith('\\')){
+            fullPath = fullPath.slice(0, -1);
+        }
         return fullPath.split('\\').pop() ?? "";
     }
 }

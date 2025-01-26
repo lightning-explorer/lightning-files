@@ -26,6 +26,14 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: "Karla";
+  src: url("./assets/fonts/Karla-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+
 * {
   /* Disables the default blue bg when highlighting text with the cursor*/
   user-select: none;
@@ -82,9 +90,6 @@
   --select-primary: #85e3ff80;
 }
 
-html, body{
-  font-size: 15px;
-}
 
 input::selection{
   background-color: var(--primary);
@@ -120,7 +125,8 @@ input {
   margin: 0px;
   font-weight: 400;
   color: var(--font-color);
-  font-family: 'Poppins';
+  font-size: 12px;
+  font-family: 'Karla';
   min-width: 0px;
 }
 

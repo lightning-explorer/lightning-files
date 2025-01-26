@@ -14,8 +14,8 @@
   }
   
   .content:hover{
-    background-color: var(--select-primary);
-    scale: 1.1;
+    background-color: var(--select);
+
   }
   
   .icon {
