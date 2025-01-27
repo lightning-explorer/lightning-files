@@ -17,7 +17,7 @@ import { PinService } from "src/app/features/home-page/services/pin.service";
 import { defaultFileState, FileState } from "./file-state";
 import { FileContextMenuService } from "./services/context-menu.service";
 import { FormsModule } from "@angular/forms";
-import { rangeToFirstPeriod } from "@shared/util/string";
+import { rangeToLastPeriod } from "@shared/util/string";
 import { FileIconComponent } from "../file-icon/file-icon.component";
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
@@ -118,7 +118,7 @@ export class FileResultComponent implements OnInit, DoCheck {
       // since it is typically hidden behind an ngIf
       this.cdr.detectChanges();
       this.renameBox.nativeElement.focus();
-      const { start, end } = rangeToFirstPeriod(this.file.Name);
+      const { start, end } = rangeToLastPeriod(this.file.Name);
       setTimeout(() => {
         this.renameBox.nativeElement.setSelectionRange(start, end);
       }, 10);

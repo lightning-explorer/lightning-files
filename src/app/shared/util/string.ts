@@ -3,11 +3,11 @@ export function capitalizeFirstLetter(word: string) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-export function rangeToFirstPeriod(text:string):{start:number,end:number}{
-    const firstPeriod = text.indexOf('.');
-    if(firstPeriod<=1){
+export function rangeToLastPeriod(text:string):{start:number,end:number}{
+    const lastPeriod = text.lastIndexOf('.');
+    if(lastPeriod<=1){
         return {start:0, end:text.length}
     }else{
-        return {start:0, end:firstPeriod}
+        return {start:0, end:lastPeriod}
     }
 }

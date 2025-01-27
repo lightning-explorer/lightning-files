@@ -7,6 +7,9 @@ export class MoveItemsPopupStateService {
   private isVisibleSubject = new BehaviorSubject<boolean>(false);
   isVisible$ = this.isVisibleSubject.asObservable();
 
+  private itemsAddingSubject = new BehaviorSubject<number>(0);
+  itemsAdding$ = this.itemsAddingSubject.asObservable();
+
   constructor(private configService: PersistentConfigService) {}
 
   async getDontAskAgain() {
@@ -14,6 +17,10 @@ export class MoveItemsPopupStateService {
   }
   async setDontAskAgain(val: boolean) {
     this.configService.update("moveItemsDontAskAgain", val);
+  }
+
+  setItemsAdding(val: number) {
+    this.itemsAddingSubject.next(val);
   }
 
   async attemptOpen(): Promise<boolean> {

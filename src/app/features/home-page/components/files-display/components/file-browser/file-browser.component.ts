@@ -229,10 +229,11 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   }
 
   async onFileDrop(event: DragEvent, targetItem: FileModel) {
-    const files = this.dragService.onDrop(event, targetItem);
+    this.dragService.onDrop(event, targetItem);
     if (this.dragService.draggingItemsToADirectory) {
       if (this.dragService.numFilesAwaitingDrop > 0) {
         // If the popup doesn't get opened, it means the user disabled it
+        this.moveItemsPopupState.setItemsAdding(this.dragService.numFilesAwaitingDrop);
         if (!this.moveItemsPopupState.attemptOpen()) {
           await this.dragService.moveDraggedItemsAsync();
         }

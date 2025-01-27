@@ -31,8 +31,8 @@ export class DirectoryNavigatorService {
 
   constructor(
     private commandsService: TauriCommandsService,
-    private configService: PersistentConfigService,
-  ) { }
+    private configService: PersistentConfigService
+  ) {}
 
   async setCurrentDir(dir: string, params?: GetFilesParamsDTO) {
     // avoid redundant emissions
@@ -62,7 +62,6 @@ export class DirectoryNavigatorService {
 
     if (!params) params = getFilesParams_DefaultParams(); // No sorting logic or anything fancy
 
-    this.currentFilesSubject.next([]);
     const files = await this.commandsService.getFilesAsModels(
       directory,
       params

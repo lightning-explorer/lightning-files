@@ -6,18 +6,18 @@
     class="content"
   >
     <div *ngIf="currentDir$ | async as pathFrom">
-      <div *ngIf="itemsAdding$ | async as items">
+      <div *ngIf="itemsAdding$ | async as itemsAdding">
         <div *ngIf="dest$ | async as dest">
-          <div *ngIf="items.size == 1; else elseBlock">
+          <div *ngIf="itemsAdding == 1; else elseBlock">
             <p>
-              Are you sure you want to move <b>{{ items.size }}</b> item from
+              Are you sure you want to move <b>{{ itemsAdding }}</b> item from
               <b>{{ pathFrom }}</b> to <b>{{ dest.FilePath }}</b
               >?
             </p>
           </div>
           <ng-template #elseBlock>
             <p>
-              Are you sure you want to move <b>{{ items.size }}</b> items from
+              Are you sure you want to move <b>{{ itemsAdding }}</b> items from
               <b>{{ pathFrom }}</b> to <b>{{ dest.FilePath }}</b
               >?
             </p>
