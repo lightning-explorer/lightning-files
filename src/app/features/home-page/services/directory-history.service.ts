@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy } from "@angular/core";
 import { DirectoryNavigatorService } from "./directory-navigator.service";
 import { DirectoryMetadata } from "../../../core/models/directory-metadata";
-import { Subscription } from "rxjs";
+import { Subscription, BehaviorSubject } from "rxjs";
 import { PersistentConfigService } from "@core/services/persistence/config.service";
 
 /**
@@ -13,8 +13,12 @@ export class DirectoryHistoryService implements OnDestroy {
 
   private selfUpdated = false;
   private currentDir: string | undefined;
-  private undoStack: string[] = [];
-  private redoStack: string[] = [];
+
+  private undoStackSubject = new BehaviorSubject<string[]>([]);
+  undoStack$ = this.undoStackSubject.asObservable();
+
+  private redoStackSubject = new BehaviorSubject<string[]>([]);
+  redoStack$ = this.redoStackSubject.asObservable();
 
   constructor(
     private directoryNavService: DirectoryNavigatorService,
@@ -33,15 +37,16 @@ export class DirectoryHistoryService implements OnDestroy {
       this.selfUpdated = false;
       return;
     }
-    if (oldDir) this.undoStack.push(oldDir);
-    this.redoStack.length = 0; // Clear the redo stack since it is now invalidated
+    if (oldDir) this.undoStackSubject.next([...this.undoStackSubject.getValue(), oldDir]);
+    this.redoStackSubject.next([]); // Clear the redo stack since it is now invalidated
   }
 
   /** Navigate to the previously visited directory, if any */
   undo() {
-    if (this.undoStack.length == 0) return; // Nowhere to undo
-    const lastDirectory = this.undoStack.pop();
-    if (this.currentDir) this.redoStack.push(this.currentDir);
+    if (this.undoStackSubject.getValue().length == 0) return; // Nowhere to undo
+    const lastDirectory = this.undoStackSubject.getValue().pop();
+    this.undoStackSubject.next(this.undoStackSubject.getValue().slice(0, -1));
+    if (this.currentDir) this.redoStackSubject.next([...this.redoStackSubject.getValue(), this.currentDir]);
 
     this.selfUpdated = true;
     this.directoryNavService.setCurrentDir(lastDirectory!);
@@ -49,9 +54,10 @@ export class DirectoryHistoryService implements OnDestroy {
 
   /**  Navigate back to the visited directory, if any */
   redo() {
-    if (this.redoStack.length == 0) return; // Nowhere to redo
-    const nextDirectory = this.redoStack.pop();
-    if (this.currentDir) this.undoStack.push(this.currentDir);
+    if (this.redoStackSubject.getValue().length == 0) return; // Nowhere to redo
+    const nextDirectory = this.redoStackSubject.getValue().pop();
+    this.redoStackSubject.next(this.redoStackSubject.getValue().slice(0, -1));
+    if (this.currentDir) this.undoStackSubject.next([...this.undoStackSubject.getValue(), this.currentDir]);
 
     this.selfUpdated = true;
     this.directoryNavService.setCurrentDir(nextDirectory!);
