@@ -17,6 +17,7 @@ import { ColorThemeService } from "@core/services/customization/color-theme.serv
 import { AppIconNameComponent } from "../../../../layout/app-icon-name/app-icon-name.component";
 import { ExtendBarVerticalComponent } from "../../../../shared/components/draggable/extend-bar-vertical/extend-bar-vertical.component";
 import { ButtonWSvgComponent } from "../../../../shared/components/buttons/button-w-svg/button-w-svg.component";
+import { ButtonWIconComponent } from "../../../../shared/components/buttons/button-w-icon/button-w-icon.component";
 
 @Component({
   selector: "app-sidebar",
@@ -27,7 +28,8 @@ import { ButtonWSvgComponent } from "../../../../shared/components/buttons/butto
     DropdownButtonComponent,
     QuickAccessShortcutComponent,
     ExtendBarVerticalComponent,
-    ButtonWSvgComponent
+    ButtonWSvgComponent,
+    ButtonWIconComponent
 ],
   templateUrl: "./sidebar.component.html",
   styleUrl: "./sidebar.component.scss",

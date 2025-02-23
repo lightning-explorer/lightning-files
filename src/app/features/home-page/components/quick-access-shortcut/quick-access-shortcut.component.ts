@@ -7,7 +7,7 @@ import { ButtonWSvgComponent } from "../../../../shared/components/buttons/butto
 @Component({
   selector: 'app-quick-access-shortcut',
   standalone: true,
-  imports: [CommonModule, ButtonWSvgComponent],
+  imports: [CommonModule, ButtonWSvgComponent, ButtonWIconComponent],
   templateUrl: './quick-access-shortcut.component.html',
   styleUrl: './quick-access-shortcut.component.css'
 })
@@ -16,11 +16,11 @@ export class QuickAccessShortcutComponent {
 
   constructor(){}
 
-  getSvgIconPath():string{
+  getIconName():string{
     if(this.path){
       // The alias name, so `Desktop` for example
       const name = this.path.name.toLowerCase();
-      return `assets/icons/${name}.svg`;
+      return name;
     }
     return "";
   }
