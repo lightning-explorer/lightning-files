@@ -2,6 +2,7 @@ mod dtos {
     pub mod inline_query_dto;
     pub mod get_files_dtos;
     pub mod sort_files_by_dto;
+    pub mod get_icon_dto;
 }
 mod enums{
     pub mod file_changes;

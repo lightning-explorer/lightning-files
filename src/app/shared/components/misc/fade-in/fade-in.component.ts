@@ -40,7 +40,7 @@ export class FadeInComponent implements OnInit, OnChanges {
           observer.disconnect(); // Stop observing after animation starts
         }
       },
-      { threshold: 0.1 } // Adjust threshold as needed
+      { threshold: 0.2 } // Adjust threshold as needed
     );
 
     observer.observe(this.el.nativeElement);

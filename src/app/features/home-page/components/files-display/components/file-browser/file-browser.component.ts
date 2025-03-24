@@ -68,7 +68,7 @@ import { FileViewType } from "../../../file-result/enums/view-type";
       state("visible", style({ opacity: 1, display: "block" })),
       transition("hidden => visible", [
         style({ display: "block" }),
-        animate("100ms ease-in"),
+        animate("25ms ease-in"),
       ]),
     ]),
   ],

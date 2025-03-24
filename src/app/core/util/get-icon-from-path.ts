@@ -12,6 +12,10 @@ export function getIconFromPath(path: string): string | undefined {
             return "zip";
         case 'xlsx':
             return "excel";
+        case 'json':
+            return "json";
+        case 'csv':
+            return "csv";
         case 'docx':
         case 'dotm':
             return "word";

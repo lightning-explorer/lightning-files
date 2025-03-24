@@ -50,15 +50,19 @@ export class FileIconComponent implements OnInit, OnChanges {
         this.icon$.next(icon);
         return;
       }
-      const base64Icon = await this.commandsService.getFileIcon(
-        this.filePath,
-        20
-      );
-      if (base64Icon) {
-        this._isBase64 = true;
-        this.icon$.next(base64Icon);
-        return;
-      }
+      // const systemIcon = await this.commandsService.getFileIcon(
+      //   this.filePath,
+      //   20
+      // );
+      // if (systemIcon) {
+      //   console.log(this.filePath, systemIcon);
+      //   if (!systemIcon.DefaultIcon) {
+      //     this._isBase64 = true;
+      //     this.icon$.next(systemIcon.Base64Icon);
+      //     return;
+      //   }
+      // }
+      this.icon$.next("default");
     }
     this.icon$.next("default");
   }

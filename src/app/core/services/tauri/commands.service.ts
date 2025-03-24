@@ -14,7 +14,7 @@ import { SafeInvokeService } from "./safe-invoke.service";
 import { EmitMetadataModel } from "@core/models/emit-metadata-model";
 import { SystemInfoModel } from "@core/models/system-info-model";
 import { KvSubscriptionModel } from "@core/models/kv-subscription-model";
-
+import { GetIconDTO } from "@core/dtos/get-icon-dto";
 @Injectable({ providedIn: "root" })
 export class TauriCommandsService {
   private currentFileModelListener: UnlistenFn | null = null;
@@ -28,40 +28,45 @@ export class TauriCommandsService {
     return await this.safeinvokeService.invokeSafe<T>(cmd, args, options);
   }
 
-  async getFilesAsModels(
-    directory: string,
-    params: GetFilesParamsDTO
-  ): Promise<FileModel[]> {
-    try {
-      const files = await this.invokeSafe<FileModel[]>("get_files_as_models_all", { directory, params });
-      console.log(`Files emitted: ${files.length}`);
-      return files;
-    } catch (err) {
-      throw new Error(`${err}`);
-    }
-  }
-
-
   // async getFilesAsModels(
   //   directory: string,
-  //   onEventEmit: (file: FileModel) => void,
   //   params: GetFilesParamsDTO
-  // ) {
-  //   let filesEmitted = 0;
-  //   const unlisten = await listen<FileModel>("sys_file_model", (event) => {
-  //     //const model: FileModel = newDefaultFileModel();
-  //     onEventEmit(event.payload);
-  //     filesEmitted++;
-  //   });
+  // ): Promise<FileModel[]> {
   //   try {
-  //     await this.invokeSafe("get_files_as_models", { directory, params });
+  //     const start = Date.now();
+  //     const files = await this.invokeSafe<FileModel[]>("get_files_as_models_all", { directory, params });
+  //     console.log(`Files emitted: ${files.length}`);
+  //     console.log(`Getting files took ${Date.now() - start}ms`)
+  //     return files;
   //   } catch (err) {
   //     throw new Error(`${err}`);
-  //   } finally {
-  //     unlisten();
   //   }
-  //   console.log(`Files emitted: ${filesEmitted}`);
   // }
+
+
+  async getFilesAsModels(
+    directory: string,
+    onEventEmit: (file: FileModel) => void,
+    params: GetFilesParamsDTO
+  ) {
+    let filesEmitted = 0;
+    const unlisten = await listen<FileModel>("sys_file_model", (event) => {
+      //const model: FileModel = newDefaultFileModel();
+      onEventEmit(event.payload);
+      filesEmitted++;
+    });
+    const start = Date.now();
+    try {
+      console.log("Invoked get files")
+      await this.invokeSafe("get_files_as_models", { directory, params });
+    } catch (err) {
+      throw new Error(`${err}`);
+    } finally {
+      unlisten();
+    }
+    console.log(`Files emitted: ${filesEmitted}`);
+    console.log(`Getting files took ${Date.now() - start}ms`)
+  }
 
   async formatPathIntoDir(path: string): Promise<string> {
     return await this.invokeSafe<string | undefined>("format_path_into_dir", {
@@ -445,8 +450,8 @@ export class TauriCommandsService {
   }
 
   /** Get the icon of a file as a base64 encoded string */
-  async getFileIcon(path: string, size: number): Promise<string | undefined> {
-    return await this.invokeSafe<string>("get_file_icon", {
+  async getFileIcon(path: string, size: number): Promise<GetIconDTO | undefined> {
+    return await this.invokeSafe<GetIconDTO>("get_file_icon", {
       path,
       width: size,
       height: size,

@@ -28,7 +28,7 @@ import { CommonModule } from "@angular/common";
       transition(":enter", [
         // :enter is a built-in state for elements entering the DOM
         style({ opacity: 0 }), // Start with opacity 0
-        animate(".5s ease-in", style({ opacity: 1 })), // Transition to opacity 1
+        animate(".2s ease-in", style({ opacity: 1 })), // Transition to opacity 1
       ]),
     ]),
   ],
