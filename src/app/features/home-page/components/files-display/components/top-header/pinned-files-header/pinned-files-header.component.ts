@@ -2,7 +2,7 @@ import { Component, OnDestroy, ViewChild } from "@angular/core";
 import { PinService } from "src/app/features/home-page/services/pin.service";
 import { FileModel } from "@core/models/file-model";
 import { CommonModule } from "@angular/common";
-import { getIconFromPath } from "@core/util/get-icon-from-path";
+import { getIconFromPath } from "src/app/features/home-page/components/file-icon/get-icon-from-path";
 import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.module";
 import { truncateText } from "@core/util/text-truncator";
 
@@ -59,5 +59,4 @@ export class PinnedFilesHeaderComponent implements OnDestroy {
   processFilename(name: string) {
     return truncateText(name, 20);
   }
-
 }

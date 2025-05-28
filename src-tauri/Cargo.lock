@@ -1160,7 +1160,9 @@ dependencies = [
 
 [[package]]
 name = "ext-index-macro"
-version = "0.1.1"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "816891ac31751cef8e1e27b6be7389d7de1ee0ac1657b26fc1b76b6f1c3e67df"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1535,7 +1537,9 @@ dependencies = [
 
 [[package]]
 name = "getfileicon"
-version = "0.2.3"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f75ab4723c1e896aef626ce7660020fd60197f15ec96efe983b8aa10419ad56"
 dependencies = [
  "base64 0.22.1",
  "image",
@@ -5043,7 +5047,9 @@ dependencies = [
 
 [[package]]
 name = "tantivy_ext"
-version = "0.1.0"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf679552426dc5c39bc6238dcfbf3944afb3a715d621d93d9fdeb3c4fcf525d1"
 dependencies = [
  "chrono",
  "ext-index-macro",

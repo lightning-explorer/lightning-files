@@ -56,7 +56,7 @@
 
 :root {
   margin: 0px;
-  --bg-light: #000000c7;
+  --bg-light: #000000b7;
   --bg-primary: #000000a4;
   --bg-solid: #242424;
   --bg-dark: #000000c9;
@@ -79,6 +79,10 @@
 
   --select: #ffffff65;
   --select-primary: #24ff9980;
+
+  --col-audio: #ff4848;
+  --col-doc: #4869ff;
+  --col-other: #45ad3c;
 }
 
 .light-theme {

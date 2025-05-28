@@ -8,12 +8,12 @@
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "yarn build",
     "frontendDist": "../dist/desktop-search/browser"
-    
+
   },
   "app": {
     "windows": [
       {
-        "title": "desktop-search",
+        "title": "Super Searcher",
         "width": 800,
         "height": 600,
         "titleBarStyle": "Transparent",

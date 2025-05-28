@@ -31,7 +31,8 @@ import { Subscription } from "rxjs";
     HomePageSearchService,
     DirectoryNavigatorService,
     DirectoryHistoryService,
-    DirectoryWatcherService,
+    // TODO: reenable when it works properly
+    // DirectoryWatcherService, Disabling for now.
     PinService,
     FileOperationsService,
     TabsService,
