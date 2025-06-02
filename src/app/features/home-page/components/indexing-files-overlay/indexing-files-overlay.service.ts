@@ -22,7 +22,7 @@ export class IndexingFilesOverlayService {
 
     // Set up polling every 5 seconds
     this.subscription.add(
-      interval(5000).subscribe(() => {
+      interval(2000).subscribe(() => {
         this.getCurrentIndexingItems();
       })
     );

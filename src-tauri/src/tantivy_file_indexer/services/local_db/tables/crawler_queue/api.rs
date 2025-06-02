@@ -80,7 +80,7 @@ impl CrawlerQueueTable {
         limit: u64,
     ) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
         indexed_dir::Entity::find()
-            .filter(indexed_dir::Column::Taken.eq(true))
+            // .filter(indexed_dir::Column::Taken.eq(false))
             .order_by_desc(indexed_dir::Column::AddedAt)
             .limit(limit)
             .all(&*self.db)
