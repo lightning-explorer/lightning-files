@@ -64,8 +64,7 @@
 }
 
 .name {
-  justify-content: center;
-  flex-direction: column;
+  flex-direction: row;
   display: flex;
   line-height: 0;
   align-items: inherit;
@@ -73,6 +72,7 @@
   text-wrap: wrap;
   color: var(--text-primary);
 }
+
 
 .name.icon{
   height: 2rem;
@@ -108,4 +108,9 @@ button.grow {
   color: #ffffff;
   transform: scale(1.01);
   box-shadow: 4px 5px 17px -4px var(--primary);
+}
+
+.indexed-icon{
+  padding-left: .5rem;
+  color: var(--primary);
 }

@@ -19,6 +19,8 @@ import { FileContextMenuService } from "./services/context-menu.service";
 import { FormsModule } from "@angular/forms";
 import { rangeToLastPeriod } from "@shared/util/string";
 import { FileIconComponent } from "../file-icon/file-icon.component";
+import { IndexingFilesOverlayService } from "../indexing-files-overlay/indexing-files-overlay.service";
+import { IndexedDirModel } from "@core/models/indexed-dir-model";
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
 
@@ -42,13 +44,15 @@ export class FileResultComponent implements OnInit, DoCheck {
   _isIconType = false;
   _isRenaming = false;
   _nameBeforeRename?: string;
+  _filesGettingIndexed$ = this.indexingFilesOverlayService.itemsBeingIndexed$;
+
   @ViewChild("renameInputBox") renameBox!: ElementRef<HTMLInputElement>;
 
   mouseOver = false;
 
   get shouldGrow() {
     return (this.state.draggedOver || this.mouseOver) && !this.state.hide;
-  } 
+  }
 
   @Input() file: FileModel | undefined;
   @Input() state: FileState = defaultFileState();
@@ -60,7 +64,11 @@ export class FileResultComponent implements OnInit, DoCheck {
   @Input() altColor = false;
   @Input() viewType: FileViewType = FileViewType.Detail;
 
-  constructor(private pinService: PinService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private pinService: PinService,
+    private indexingFilesOverlayService: IndexingFilesOverlayService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this._isIconType = this.isIconType(this.viewType);
@@ -72,9 +80,9 @@ export class FileResultComponent implements OnInit, DoCheck {
     }
   }
 
-  get fileDisplayName():string{
+  get fileDisplayName(): string {
     const fileName = this.fileNameField;
-    if(fileName.endsWith(".lnk")){
+    if (fileName.endsWith(".lnk")) {
       return fileName.split(".")[0];
     }
     return fileName;
@@ -164,5 +172,9 @@ export class FileResultComponent implements OnInit, DoCheck {
       default:
         return false;
     }
+  }
+
+  isFileBeingIndexed(indexedFiles: any[]): boolean {
+    return indexedFiles.some((x) => x.Path === this.file?.FilePath);
   }
 }

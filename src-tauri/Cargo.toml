@@ -42,7 +42,7 @@ rand_chacha = "0.3"
 sqlx = { version = "0.8.2", features = ["sqlite"] }
 tantivy_ext = { version = "1.0.0" }
 trash = "3.0" # for moving files to the recycle bin
-tauri-plugin-drag = "2.0.0"
+tauri-plugin-drag = "2.1.0"
 uuid = { version = "1", features = ["v4"] }
 notify = "6.1.1"
 getfileicon = { version = "0.2.4" }

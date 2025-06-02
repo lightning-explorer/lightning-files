@@ -1,5 +1,5 @@
 use tantivy::{
-    query::{BooleanQuery, FuzzyTermQuery, Occur, Query, QueryParser, RangeQuery, TermQuery},
+    query::{BooleanQuery, FuzzyTermQuery, Occur, Query, QueryParser, RangeQuery},
     schema::Schema,
     DateTime, IndexReader, TantivyError, Term,
 };
@@ -29,13 +29,11 @@ impl QueryConstructor {
             SearchQueryType::Term => self
                 .construct_standard_query(search_params)
                 .map(|x| Box::new(BooleanQuery::new(x)) as Box<dyn Query>),
-            SearchQueryType::Fuzzy => self
-                .construct_fuzzy_query(search_params)
-                .map(|x| Box::new(x) as Box<dyn Query>),
+            SearchQueryType::Fuzzy => self.construct_fuzzy_query(search_params),
             SearchQueryType::Hybrid => {
                 let mut terms = self.construct_standard_query(search_params)?;
                 let fuzzy = self.construct_fuzzy_query(search_params)?;
-                terms.push((Occur::Should, Box::new(fuzzy)));
+                terms.push((Occur::Should, fuzzy));
                 Ok(Box::new(BooleanQuery::new(terms)))
             }
         }
@@ -54,11 +52,6 @@ impl QueryConstructor {
             queries.push(query);
         }
 
-        // if let Some(query_str) = &search_params.name {
-        //     let query = self.create_standard_query("name", query_str, Occur::Should)?;
-        //     queries.push(query);
-        // }
-
         if let Some(date_range) = &search_params.date_modified_range {
             let field_name: String = TantivyFileModel::date_modified_field().into();
             queries.push(self.create_date_query(&field_name, date_range, Occur::Must));
@@ -69,31 +62,29 @@ impl QueryConstructor {
             queries.push(self.create_date_query(&field_name, date_range, Occur::Must));
         }
 
-        // if let Some(metadata) = &search_params.metadata {
-        //     let query = self.create_term_query("metadata", metadata, Occur::Must)?;
-        //     queries.push(query);
-        // }
-
         Ok(queries)
     }
 
     fn construct_fuzzy_query(
         &self,
         search_params: &SearchParamsDTO,
-    ) -> tantivy::Result<FuzzyTermQuery> {
-        let term = if let Some(file_path) = &search_params.file_path {
+    ) -> tantivy::Result<Box<dyn Query>> {
+        let mut queries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
+
+        // Add fuzzy term query
+        if let Some(file_path) = &search_params.file_path {
             let field_name: String = TantivyFileModel::file_path_field().into();
             let field = self.schema.get_field(&field_name)?;
             let term = Term::from_field_text(field, file_path);
-            Ok(term)
+            let fuzzy_query = FuzzyTermQuery::new(term, 2, true);
+            queries.push((Occur::Must, Box::new(fuzzy_query)));
         } else {
-            Err(TantivyError::InvalidArgument(
+            return Err(TantivyError::InvalidArgument(
                 "Fuzzy query only works on file_path field".to_string(),
-            ))
-        }?;
-        // Distance must be less than 3 or else Tantivy throws an error
-        let query = FuzzyTermQuery::new(term, 2, true);
-        Ok(query)
+            ));
+        }
+
+        Ok(Box::new(BooleanQuery::new(queries)))
     }
 
     fn create_standard_query(
@@ -120,18 +111,5 @@ impl QueryConstructor {
         let end_date = DateTime::from_utc(range.end);
         let query = RangeQuery::new_date(field_name.to_string(), start_date..end_date);
         (occur, Box::new(query))
-    }
-
-    /// More rigid than a standard query. Checks for exact matches
-    fn create_term_query(
-        &self,
-        field_name: &str,
-        query: &str,
-        occur: Occur,
-    ) -> Result<(Occur, Box<dyn Query>), TantivyError> {
-        let field = self.schema.get_field(field_name)?;
-        let term = Term::from_field_text(field, query);
-        let query = TermQuery::new(term, tantivy::schema::IndexRecordOption::WithFreqs);
-        Ok((occur, Box::new(query)))
     }
 }

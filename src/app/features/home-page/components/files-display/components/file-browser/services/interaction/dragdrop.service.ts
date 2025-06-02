@@ -32,7 +32,7 @@ export class DragDropService {
   constructor(
     private commandsService: TauriCommandsService,
     private filesListService: FilesListService
-  ) { }
+  ) {}
 
   onDragStart(event: DragEvent, items: Set<FileModel>) {
     event.preventDefault();
@@ -40,6 +40,9 @@ export class DragDropService {
       console.warn("No items to drag");
       return;
     }
+    const filePaths = Array.from(items).map((x) =>
+      x.FilePath
+    );
 
     startDrag({
       item: Array.from(items).map(x => x.FilePath),
@@ -64,7 +67,7 @@ export class DragDropService {
     event.preventDefault();
     if (!event.dataTransfer?.files) return;
     const files = Array.from(event.dataTransfer.files);
-    if (files.some(x => x.name == targetItem.Name)) {
+    if (files.some((x) => x.name == targetItem.Name)) {
       console.log("Same file");
       return;
     }

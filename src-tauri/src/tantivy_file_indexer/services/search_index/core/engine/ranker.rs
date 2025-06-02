@@ -11,9 +11,9 @@ pub fn rank_new_file(mut file: TantivyFileModel) -> TantivyFileModel {
     file
 }
 
-pub fn rank_existing_file(
+pub fn rank_existing_file(  
     mut new_file: TantivyFileModel,
-    old_file: &SystemFileModel,
+    _old_file: &SystemFileModel,
 ) -> TantivyFileModel {
     // TODO: possible factor in the old file
     new_file.popularity = heuristic_rank(&new_file).into();

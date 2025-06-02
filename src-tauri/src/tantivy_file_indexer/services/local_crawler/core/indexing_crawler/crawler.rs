@@ -1,5 +1,6 @@
 use std::{path::PathBuf, sync::Arc};
 
+use chrono::Utc;
 use tokio::fs::ReadDir;
 
 use crate::{
@@ -72,6 +73,7 @@ where
                             path: entry_path,
                             priority: file.priority + 1,
                             taken: false,
+                            added_at:Utc::now()
                         });
                     }
                     // Attempt to rest if a throttle is applied

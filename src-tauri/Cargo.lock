@@ -1006,9 +1006,9 @@ dependencies = [
 
 [[package]]
 name = "drag"
-version = "2.0.0"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64223816f66ef644c52b12ff838eda3ff3f0713670ee8598a59864b61bed77ba"
+checksum = "67fd9ae1736d6ebb2e472740fbee86fb2178b8d56feb98a6751411d4c95b7e72"
 dependencies = [
  "cocoa",
  "core-graphics",
@@ -1016,6 +1016,7 @@ dependencies = [
  "gdk",
  "gdkx11",
  "gtk",
+ "log",
  "objc",
  "raw-window-handle",
  "serde",
@@ -5255,9 +5256,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-drag"
-version = "2.0.0"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a25f35672f11127f90f96fbe787ed93ca3eecd2e2f23bd198351d3991afa9079"
+checksum = "57788e3175d71de47f449e642ebf135e86a41279be1e4714c7eb8c682abb37ca"
 dependencies = [
  "base64 0.21.7",
  "drag",

@@ -15,6 +15,7 @@ pub struct Model {
     /// Upon application startup, all models should have `taken` set to `false`, due to the fact that some crawler
     /// workers could have terminated while they were trying to process a directory.
     pub taken: bool,
+    pub added_at:DateTimeUtc
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

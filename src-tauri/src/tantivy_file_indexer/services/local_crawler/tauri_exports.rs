@@ -26,9 +26,8 @@ pub async fn add_dirs_to_crawler_queue(
 #[tauri::command]
 pub async fn dispatch_crawlers(
     service: State<'_, Arc<FileCrawlerService>>,
-) -> Result<(), ()> {
-    service.dispatch_crawlers().await;
-    Ok(())
+) -> Result<(), String> {
+    service.dispatch_crawlers().await
 }
 
 // #[tauri::command]

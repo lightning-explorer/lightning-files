@@ -18,7 +18,7 @@ pub struct AppServiceContainer {
 
 impl AppServiceContainer {
     pub async fn new_async(handle: &AppHandle) -> Self {
-        let app_name = "DesktopSearch";
+        let app_name = "SuperSearcher";
 
         // Ensure that the app service is initialized before the rest to ensure that the AppData save path is created
         let app_save_service = Self::initialize_app_save_service(AppSavePath::AppData, app_name);

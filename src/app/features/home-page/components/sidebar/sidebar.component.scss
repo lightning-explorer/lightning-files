@@ -9,11 +9,17 @@
   flex-direction: row;
   background-color: var(--bg-light);
   padding: 1em;
-  height: 100%;
+  height:100%;
   padding-right: 0rem;
   box-sizing: border-box;
 }
 
+.noscroll-region{
+  display: flex;
+  position: relative;
+  flex-direction: column;
+
+}
 
 .scroll-region {
   display: block;
@@ -30,4 +36,8 @@
   height: 2px;
   width: 100%;
   background-color: var(--input);
+  margin-top: .5rem;
+
+  margin-bottom: .5rem;
 }
+
