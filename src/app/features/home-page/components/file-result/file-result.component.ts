@@ -11,7 +11,6 @@ import { FileViewType } from "./enums/view-type";
 import { CommonModule } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { IconifyIconModule } from "@shared/components/icons/IconifyIcons/icon.module";
-import { FileModel } from "@core/models/file-model";
 import { HighlightableLabelComponent } from "@shared/components/highlightable-label/highlightable-label.component";
 import { PinService } from "src/app/features/home-page/services/pin.service";
 import { defaultFileState, FileState } from "./file-state";
@@ -51,7 +50,9 @@ export class FileResultComponent implements OnInit, DoCheck {
   mouseOver = false;
 
   get shouldGrow() {
-    return (this.state.draggedOver || this.mouseOver) && !this.state.hide;
+    if(!this.file)
+      return false;
+    return (this.file.draggedOver || this.mouseOver) && !this.file.hide;
   }
 
   @Input() file: FileModel | undefined;
@@ -106,7 +107,7 @@ export class FileResultComponent implements OnInit, DoCheck {
 
   get isPinned(): boolean {
     if (!this.file) return false;
-    return this.pinService.isFilePinned(this.file);
+    return this.pinService.isFilePinned(this.file.model);
   }
 
   onMouseEnter() {

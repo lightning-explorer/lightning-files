@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit, Optional } from "@angular/core";
 import { FileBrowserComponent } from "./components/file-browser/file-browser.component";
 import { FormControl } from "@angular/forms";
 import { FileModel } from "@core/models/file-model";
-import { FilePreviewComponent } from "./components/file-preview/file-preview.component";
 import { Observable, Subscription } from "rxjs";
 import { FilesListService } from "./services/files-list.service";
 import { CommonModule } from "@angular/common";
