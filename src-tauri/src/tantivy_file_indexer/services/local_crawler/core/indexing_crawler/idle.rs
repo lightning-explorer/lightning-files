@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use chrono::Utc;
+
 use crate::tantivy_file_indexer::shared::indexing_crawler::{
     models::crawler_file::CrawlerFile, traits::crawler_queue_api::CrawlerQueueApi,
 };
@@ -20,6 +22,7 @@ where
             path: path.into(),
             priority: 8,
             taken: false,
+            added_at:Utc::now()
         };
         files.push(file);
     }

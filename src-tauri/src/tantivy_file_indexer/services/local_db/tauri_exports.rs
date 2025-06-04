@@ -11,7 +11,7 @@ pub async fn view_crawler_queue(
 ) -> Result<Vec<indexed_dir::Model>, String> {
     service
         .crawler_queue_table()
-        .view_all_limit(limit)
+        .view_taken_files(limit)
         .await
         .map_err(|err| format!("Error viewing crawler queue: {}", err))
 }

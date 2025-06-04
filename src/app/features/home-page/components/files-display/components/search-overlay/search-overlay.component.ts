@@ -20,6 +20,7 @@ import { Subscription } from "rxjs";
 import { FileModel } from "@core/models/file-model";
 import { quadraticEase } from "@shared/util/ease-value";
 import { fadeInOnEnterAnimation } from "@shared/animations/fade-in-on-enter.animation";
+import { isLetter } from "@shared/util/string";
 
 @Component({
   selector: "app-search-overlay",
@@ -36,6 +37,8 @@ export class SearchOverlayComponent implements OnInit, OnDestroy {
   _lastValueWasNothing = false;
   _inputText = "";
   _resultsHeight = 0;
+  _highlightSubstring:{start:number,end:number}|undefined = undefined;
+  filterLabels$ = this.searchService.searchFilterLabels$;
   files: FileModel[] = [];
 
   constructor(
@@ -79,6 +82,7 @@ export class SearchOverlayComponent implements OnInit, OnDestroy {
 
   onInputTextChange(text:string) {
     this._inputText = text;
+    this.handleSubstringHighlights();
     if (this._inputText.length == 0) {
       this.searchService.clearResults();
       return;
@@ -87,6 +91,18 @@ export class SearchOverlayComponent implements OnInit, OnDestroy {
       FilePath: this._inputText,
     };
     this.search(params);
+  }
+
+  private handleSubstringHighlights(){
+    const text = this._inputText;
+    if(isLetter(text[0]) && text[1] ==':'){
+      this._highlightSubstring = {
+        start:0,end:1
+      };
+
+    }else{
+      this._highlightSubstring = undefined;
+    }
   }
 
   onEnterPressed() {

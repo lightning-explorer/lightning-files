@@ -26,10 +26,32 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: "Karla";
+  src: url("./assets/fonts/Karla-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "RedHatDisplay";
+  src: url("./assets/fonts/RedHatDisplay-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "RedHatDisplay";
+  src: url("./assets/fonts/RedHatDisplay-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+}
+
+
 * {
   /* Disables the default blue bg when highlighting text with the cursor*/
   user-select: none;
-  
+
 }
 
 :root {
@@ -47,16 +69,20 @@
   --bg-grad2: #1b1b1bfb;
   --alt: #0000003d;
 
-  --primary: #e60690;
-  --primary-light: #ff5096;
+  --primary: #42c26c;
+  --primary-light: #50ffff;
 
   --text-primary: #ffffff;
   --text-muted: #ffffff88;
 
-  --icon: #ffffff;
+  --icon: #979797;
 
   --select: #ffffff65;
-  --select-primary: #ff85ef80;
+  --select-primary: #24ff9980;
+
+  --col-audio: #ff4848;
+  --col-doc: #4869ff;
+  --col-other: #45ad3c;
 }
 
 .light-theme {
@@ -82,11 +108,8 @@
   --select-primary: #85e3ff80;
 }
 
-html, body{
-  font-size: 15px;
-}
 
-input::selection{
+input::selection {
   background-color: var(--primary);
 }
 
@@ -120,7 +143,8 @@ input {
   margin: 0px;
   font-weight: 400;
   color: var(--font-color);
-  font-family: 'Poppins';
+  font-size: 12px;
+  font-family: 'Segoe UI';
   min-width: 0px;
 }
 

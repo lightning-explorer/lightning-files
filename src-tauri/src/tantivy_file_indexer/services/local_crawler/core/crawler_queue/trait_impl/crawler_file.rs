@@ -15,6 +15,7 @@ impl From<CrawlerFile> for indexed_dir::Model {
             path: val.path.to_string_lossy().to_string(),
             priority: val.priority,
             taken: val.taken,
+            added_at: val.added_at  
         }
     }
 }
@@ -25,6 +26,7 @@ impl From<indexed_dir::Model> for CrawlerFile {
             path: PathBuf::from(val.path),
             priority: val.priority,
             taken: val.taken,
+            added_at: val.added_at
         }
     }
 }
@@ -41,6 +43,7 @@ impl From<(PathBuf, u32)> for CrawlerFile {
             path: value.0,
             priority: value.1,
             taken: false,
+            added_at: Utc::now()
         }
     }
 }

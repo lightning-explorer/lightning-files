@@ -16,8 +16,10 @@ import { PinService } from "src/app/features/home-page/services/pin.service";
 import { defaultFileState, FileState } from "./file-state";
 import { FileContextMenuService } from "./services/context-menu.service";
 import { FormsModule } from "@angular/forms";
-import { rangeToFirstPeriod } from "@shared/util/string";
+import { rangeToLastPeriod } from "@shared/util/string";
 import { FileIconComponent } from "../file-icon/file-icon.component";
+import { IndexingFilesOverlayService } from "../indexing-files-overlay/indexing-files-overlay.service";
+import { IndexedDirModel } from "@core/models/indexed-dir-model";
 // If you are looking for the drag functionality, it gets handled by the parent component
 // 'files-display' for example
 
@@ -41,6 +43,8 @@ export class FileResultComponent implements OnInit, DoCheck {
   _isIconType = false;
   _isRenaming = false;
   _nameBeforeRename?: string;
+  _filesGettingIndexed$ = this.indexingFilesOverlayService.itemsBeingIndexed$;
+
   @ViewChild("renameInputBox") renameBox!: ElementRef<HTMLInputElement>;
 
   mouseOver = false;
@@ -61,7 +65,11 @@ export class FileResultComponent implements OnInit, DoCheck {
   @Input() altColor = false;
   @Input() viewType: FileViewType = FileViewType.Detail;
 
-  constructor(private pinService: PinService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private pinService: PinService,
+    private indexingFilesOverlayService: IndexingFilesOverlayService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this._isIconType = this.isIconType(this.viewType);
@@ -73,9 +81,9 @@ export class FileResultComponent implements OnInit, DoCheck {
     }
   }
 
-  get fileDisplayName():string{
+  get fileDisplayName(): string {
     const fileName = this.fileNameField;
-    if(fileName.endsWith(".lnk")){
+    if (fileName.endsWith(".lnk")) {
       return fileName.split(".")[0];
     }
     return fileName;
@@ -119,7 +127,7 @@ export class FileResultComponent implements OnInit, DoCheck {
       // since it is typically hidden behind an ngIf
       this.cdr.detectChanges();
       this.renameBox.nativeElement.focus();
-      const { start, end } = rangeToFirstPeriod(this.file.Name);
+      const { start, end } = rangeToLastPeriod(this.file.Name);
       setTimeout(() => {
         this.renameBox.nativeElement.setSelectionRange(start, end);
       }, 10);
@@ -133,6 +141,31 @@ export class FileResultComponent implements OnInit, DoCheck {
       this.file.Name = this._nameBeforeRename;
   }
 
+  // onDragOver(event: DragEvent) {
+  //   // Prevent default to allow drop
+  //   event.preventDefault();
+  //   if(!this.file?.IsDirectory) return;
+  //   // Check if files are being dragged
+  //   if (event.dataTransfer?.types.includes('Files')) {
+  //     this.state.draggedOver = true;
+  //   }
+  // }
+
+  // onDragLeave(event: DragEvent) {
+  //   event.preventDefault();
+  //   this.state.draggedOver = false;
+  // }
+
+  // onDrop(event: DragEvent){
+  //   event.preventDefault();
+  //   if (!event.dataTransfer?.files) return;
+  //   const files = Array.from(event.dataTransfer.files);
+  //   if(files.some(x=>x.name==this.file?.Name)){
+  //     console.log("Same file");
+  //     return;
+  //   }
+  // }
+
   private isIconType(viewType: FileViewType): boolean {
     switch (viewType) {
       case FileViewType.MediumIcon:
@@ -140,5 +173,9 @@ export class FileResultComponent implements OnInit, DoCheck {
       default:
         return false;
     }
+  }
+
+  isFileBeingIndexed(indexedFiles: any[]): boolean {
+    return indexedFiles.some((x) => x.Path === this.file?.FilePath);
   }
 }

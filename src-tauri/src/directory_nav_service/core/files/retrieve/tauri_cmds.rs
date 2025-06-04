@@ -16,22 +16,23 @@ pub async fn get_files_as_models(
 ) -> Result<(), String> {
     let path = Path::new(&directory);
 
-    match params.sort_by {
-        Some(ref sort_params) => {
-            // Files can't be output as we get to them, they must be preprocessed first
-            let files =
-                file_retriever::read_files_and_process(path).map_err(|err| err.to_string())?;
-            let mut filtered: Vec<SystemFileModel> = files
-                .into_iter()
-                .filter(|file| file_retriever::should_include_file(file, &params))
-                .collect();
-            // Now we can sort the files:
-            file_sorter::sort_files(&mut filtered, sort_params);
-            for model in filtered.iter() {
-                emit_file(&app_handle, model);
-            }
-        }
-        None => {
+    // TODO: implement sort logic
+    // match params.sort_by {
+    //     Some(ref sort_params) => {
+    //         // Files can't be output as we get to them, they must be preprocessed first
+    //         let files =
+    //             file_retriever::read_files_and_process(path).map_err(|err| err.to_string())?;
+    //         let mut filtered: Vec<SystemFileModel> = files
+    //             .into_iter()
+    //             .filter(|file| file_retriever::should_include_file(file, &params))
+    //             .collect();
+    //         // Now we can sort the files:
+    //         file_sorter::sort_files(&mut filtered, sort_params);
+    //         for model in filtered.iter() {
+    //             emit_file(&app_handle, model);
+    //         }
+    //     }
+    //     None => {
             // Output files as we get to them
             let mut files_to_add = Vec::new();
             file_retriever::read_files_incremental(path, |fp| {
@@ -43,8 +44,8 @@ pub async fn get_files_as_models(
                 }
             })
             .map_err(|err| err.to_string())?;
-        }
-    }
+    //     }
+    // }
 
     Ok(())
 }

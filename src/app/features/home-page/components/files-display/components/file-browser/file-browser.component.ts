@@ -68,7 +68,7 @@ import { FileViewType } from "../../../file-result/enums/view-type";
       state("visible", style({ opacity: 1, display: "block" })),
       transition("hidden => visible", [
         style({ display: "block" }),
-        animate("100ms ease-in"),
+        animate("25ms ease-in"),
       ]),
     ]),
   ],
@@ -175,6 +175,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   }
 
   onFileClick(index: number, event: MouseEvent) {
+    event.stopPropagation();
     const model = this.files[index];
     const state = this.states[index];
     this.fileClickedOn.emit(this.files[index]);
@@ -183,9 +184,14 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   }
 
   onFileRightClick(index: number, event: MouseEvent) {
-    const file = this.files[index];
-    const state = this.states[index];
-    this.contextMenuService.openMenu(this.contextMenu, event, file, state);
+    if(this.selectedIndices.has(index)) {
+      const indices = Array.from(this.selectedIndices);
+      const files = indices.map(x=>this.files[x]);
+      const states = indices.map(x=>this.states[x]);
+      this.contextMenuService.openMenu(this.contextMenu, event, files, states);
+    } else {
+      this.contextMenuService.openMenu(this.contextMenu, event, [this.files[index]], [this.states[index]]);
+    }
   }
 
   onFileRightClick(index:number, event: MouseEvent) {
@@ -224,8 +230,9 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   async onFileDrop(event: DragEvent, targetItem: FileModel) {
     this.dragService.onDrop(event, targetItem);
     if (this.dragService.draggingItemsToADirectory) {
-      if (this.dragService.numberOfItemsBeingDragged > 0) {
+      if (this.dragService.numFilesAwaitingDrop > 0) {
         // If the popup doesn't get opened, it means the user disabled it
+        this.moveItemsPopupState.setItemsAdding(this.dragService.numFilesAwaitingDrop);
         if (!this.moveItemsPopupState.attemptOpen()) {
           await this.dragService.moveDraggedItemsAsync();
         }

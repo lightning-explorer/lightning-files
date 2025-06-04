@@ -3,6 +3,7 @@ use tokio::sync::{oneshot, watch, RwLock};
 use tokio::task::JoinHandle;
 
 type AtomicOption<T> = Arc<RwLock<Option<T>>>;
+#[derive(Clone)]
 pub struct CancellableTask {
     current_task: AtomicOption<(watch::Sender<()>, JoinHandle<()>)>,
 }
@@ -14,26 +15,28 @@ impl CancellableTask {
         }
     }
 
+    /// Dispatch the task and watch for cancellation but don't return the result.
+    pub fn run_unwatched<T>(&self, task: JoinHandle<T>) -> Result<(), String>
+    where
+        T: Send + 'static,
+    {
+        let self_clone = self.clone();
+        tokio::spawn(async move {
+            self_clone.run_internal(task, || {}).await
+        });
+        Ok(())
+    }
+
+
+    /// Runs a new task, canceling any previously running task.
     pub async fn run<T>(&self, task: JoinHandle<T>) -> Result<T, String>
     where
+
         T: Send + 'static,
     {
         self.run_internal(task, || {}).await
     }
- 
-    pub async fn run_with_cleanup<T, F>(
-        &self,
-        task: JoinHandle<T>,
-        on_cancel: F,
-    ) -> Result<T, String>
-    where
-        T: Send + 'static,
-        F: Fn() + Send + 'static,
-    {
-        self.run_internal(task, on_cancel).await
-    }
 
-    /// Runs a new task, canceling any previously running task.
     async fn run_internal<T, F>(&self, task: JoinHandle<T>, on_cancel: F) -> Result<T, String>
     where
         T: Send + 'static,

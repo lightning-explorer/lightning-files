@@ -2,5 +2,5 @@
   <div class="top">
     <app-search-input [text]="_inputText" (textChanged)="onInputTextChanged($event)" #searchInput/>
   </div>
-  <app-file-browser/>
+  <app-file-browser [showFullFilePaths]="true"/>
 </div>

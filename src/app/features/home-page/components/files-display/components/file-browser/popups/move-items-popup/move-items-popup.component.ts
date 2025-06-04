@@ -25,9 +25,9 @@ import { PrettyButtonComponent } from "../../../../../../../../shared/components
 })
 export class MoveItemsPopupComponent {
   currentDir$ = this.directoryNavService.currentDir$;
-  itemsAdding$ = this.selectService.selectedIndices$;
   dest$ = this.dragDropService.draggingItemsTo$;
   isVisible$ = this.stateService.isVisible$;
+  itemsAdding$ = this.stateService.itemsAdding$;
 
   constructor(
     private directoryNavService: DirectoryNavigatorService,

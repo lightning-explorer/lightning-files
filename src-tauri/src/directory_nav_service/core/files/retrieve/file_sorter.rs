@@ -4,6 +4,7 @@ use crate::{
     shared::models::sys_file_model::SystemFileModel,
 };
 
+// ! Possibly leave unused in favor of the frontend performing the sorting logic
 pub fn sort_files(files: &mut [SystemFileModel], params: &SortFilesByDTO) {
     // Date
     if let Some(ref criteria) = params.date_created {

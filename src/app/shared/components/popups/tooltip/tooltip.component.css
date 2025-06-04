@@ -1,9 +1,9 @@
 .tooltiptext {
     position: absolute;
-    z-index: 3222;
+    z-index: 32222;
     top: 120%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) translateY(20%);
     padding: 0.3em 0.6em;
     opacity: 0;
     pointer-events: none;

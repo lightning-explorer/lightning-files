@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { IconifyIconModule } from "../../../../shared/components/icons/IconifyIcons/icon.module";
 import { FileViewType } from "../file-result/enums/view-type";
-import { getIconFromPath } from "@core/util/get-icon-from-path";
+import { getIconFromPath } from "src/app/features/home-page/components/file-icon/get-icon-from-path";
 import { TauriCommandsService } from "@core/services/tauri/commands.service";
 import { BehaviorSubject } from "rxjs";
 import { AsyncPipe, CommonModule } from "@angular/common";
@@ -50,14 +50,20 @@ export class FileIconComponent implements OnInit, OnChanges {
         this.icon$.next(icon);
         return;
       }
-      const base64Icon = await this.commandsService.getFileIcon(
-        this.filePath,
-        20
-      );
-      if (base64Icon) {
-        this._isBase64 = true;
-        this.icon$.next(base64Icon);
-        return;
+      const useSystemIcon = false; // TODO: reenable
+      if (useSystemIcon) {
+        const systemIcon = await this.commandsService.getFileIcon(
+          this.filePath,
+          20
+        );
+        if (systemIcon) {
+          if (!systemIcon.DefaultIcon) {
+            this._isBase64 = true;
+            this.icon$.next(systemIcon.Base64Icon);
+            return;
+          }
+        }
+        this.icon$.next("default");
       }
     }
     this.icon$.next("default");

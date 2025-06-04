@@ -1,6 +1,6 @@
 use std::{path::PathBuf, sync::Arc};
 
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use sea_orm::DbErr;
 use tokio::sync::Notify;
 
@@ -139,6 +139,7 @@ impl CrawlerQueue {
                 path: path.to_string_lossy().into_owned(),
                 priority: *priority,
                 taken: false, // TODO: ensure setting this to false is correct
+                added_at:Utc::now()
             })
             .collect()
     }

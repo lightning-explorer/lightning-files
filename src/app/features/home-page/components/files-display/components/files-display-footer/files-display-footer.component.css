@@ -9,6 +9,8 @@
   justify-content: center;
   background-color: var(--bg-transparent);
   gap: 1rem;
+  /* This makes up for some of the layout jank causes byt crappy css*/
+  padding-bottom: 2rem;
 }
 
 .content .button {

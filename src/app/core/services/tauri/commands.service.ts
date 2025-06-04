@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { listen } from "@tauri-apps/api/event";
+import { listen, UnlistenFn } from "@tauri-apps/api/event";
 import { GetFilesParamsDTO } from "@core/dtos/get-files-params-dto";
 import { FileModel, newDefaultFileModel } from "../../models/file-model";
 import { InvokeArgs, InvokeOptions } from "@tauri-apps/api/core";
@@ -14,10 +14,11 @@ import { SafeInvokeService } from "./safe-invoke.service";
 import { EmitMetadataModel } from "@core/models/emit-metadata-model";
 import { SystemInfoModel } from "@core/models/system-info-model";
 import { KvSubscriptionModel } from "@core/models/kv-subscription-model";
-
+import { GetIconDTO } from "@core/dtos/get-icon-dto";
 @Injectable({ providedIn: "root" })
 export class TauriCommandsService {
-  constructor(private safeinvokeService: SafeInvokeService) {}
+  private currentFileModelListener: UnlistenFn | null = null;
+  constructor(private safeinvokeService: SafeInvokeService) { }
 
   async invokeSafe<T>(
     cmd: string,
@@ -32,17 +33,23 @@ export class TauriCommandsService {
     onEventEmit: (file: FileModel) => void,
     params: GetFilesParamsDTO
   ) {
+    let filesEmitted = 0;
     const unlisten = await listen<FileModel>("sys_file_model", (event) => {
-      const model: FileModel = newDefaultFileModel();
-      onEventEmit({ ...model, ...event.payload });
+      //const model: FileModel = newDefaultFileModel();
+      onEventEmit(event.payload);
+      filesEmitted++;
     });
+    const start = Date.now();
     try {
+      console.log("Invoked get files")
       await this.invokeSafe("get_files_as_models", { directory, params });
     } catch (err) {
       throw new Error(`${err}`);
     } finally {
       unlisten();
     }
+    console.log(`Files emitted: ${filesEmitted}`);
+    console.log(`Getting files took ${Date.now() - start}ms`)
   }
 
   async formatPathIntoDir(path: string): Promise<string> {
@@ -232,7 +239,7 @@ export class TauriCommandsService {
 
   async addDirsToCrawlerQueue(directories: AddToCrawlerQueueDTO[]) {
     await this.invokeSafe<void>("add_dirs_to_crawler_queue", { directories })
-      .then(() => {})
+      .then(() => { })
       .catch((err) => console.log(err));
     console.log(
       `Frontend validation: added ${directories.length} to the crawler queue`
@@ -301,6 +308,16 @@ export class TauriCommandsService {
     await this.invokeSafe<void>("upsert_file_to_index", { file }).catch((err) =>
       console.log(err)
     );
+  }
+
+  /**
+   * Returns `true` if the file exists in the file system. If the file does not exist, it is removed from the index.
+   */
+  async validateFileExists(path: string): Promise<boolean> {
+    return await this.invokeSafe<boolean>("validate_file_exists", { path }).catch((err) => {
+      console.log(err);
+      return false;
+    });
   }
 
   /**
@@ -398,27 +415,27 @@ export class TauriCommandsService {
   }
 
   /** Dispatch the file crawlers if they are not already running */
-  async dispatchCrawlers(){
+  async dispatchCrawlers() {
     await this.invokeSafe<void>(
       "dispatch_crawlers"
     );
   }
 
   /** Tell the directory watcher to stop watching whatever directory it is watching */
-  async watchDirectory(path:string):Promise<string>{
+  async watchDirectory(path: string): Promise<string> {
     return await this.invokeSafe<string>("watch_directory",
-      {path}
+      { path }
     );
   }
 
   /**  The directory watcher can currently only watch one directory at a time, so this function will make it stop watching whatever it is currently watching. */
-  async stopWatchingDirectory(){
+  async stopWatchingDirectory() {
     await this.invokeSafe<void>("stop_watching_directory");
   }
 
   /** Get the icon of a file as a base64 encoded string */
-  async getFileIcon(path: string, size:number): Promise<string | undefined> {
-    return await this.invokeSafe<string>("get_file_icon", {
+  async getFileIcon(path: string, size: number): Promise<GetIconDTO | undefined> {
+    return await this.invokeSafe<GetIconDTO>("get_file_icon", {
       path,
       width: size,
       height: size,
@@ -427,5 +444,33 @@ export class TauriCommandsService {
       return undefined;
     });
   }
-}
 
+  async copyPathsToClipboard(paths: string[]) {
+    await this.invokeSafe<void>("copy_paths_to_clipboard", { paths }).catch((err) => {
+      console.error(`Error copying paths to clipboard: ${err}`);
+    });
+  }
+
+  async pasteFilesToDirectory(destinationDir: string) {
+    await this.invokeSafe<void>("paste_files_to_directory", { destinationDir }).catch((err) => {
+      console.error(`Error pasting files to directory: ${err}`);
+    });
+  }
+
+  /** Check if there are files in the system clipboard */
+  async filesExistInClipboard(): Promise<boolean> {
+    return await this.invokeSafe<boolean>("files_exist_in_clipboard");
+  }
+
+  async createNewFile(directory: string, fileName: string) {
+    await this.invokeSafe<void>("create_new_file", { directory, fileName }).catch((err) => {
+      console.error(`Error creating new file: ${err}`);
+    });
+  }
+
+  async createNewDirectory(directory: string, directoryName: string) {
+    await this.invokeSafe<void>("create_new_directory", { directory, directoryName }).catch((err) => {
+      console.error(`Error creating new directory: ${err}`);
+    });
+  }
+}

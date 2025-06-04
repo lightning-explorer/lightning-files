@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit, Optional } from "@angular/core";
 import { FileBrowserComponent } from "./components/file-browser/file-browser.component";
 import { FormControl } from "@angular/forms";
 import { FileModel } from "@core/models/file-model";
@@ -17,7 +17,14 @@ import { HomeViewComponent } from "./components/home-view/home-view.component";
 @Component({
   selector: "app-files-display",
   standalone: true,
-  imports: [FileBrowserComponent, CommonModule, FilesDisplayFooterComponent, TopHeaderComponent, SearchOverlayComponent, HomeViewComponent],
+  imports: [
+    FileBrowserComponent,
+    CommonModule,
+    FilesDisplayFooterComponent,
+    TopHeaderComponent,
+    SearchOverlayComponent,
+    HomeViewComponent,
+  ],
   providers: [FilesListService, SelectService, SearchOverlayStateService],
   templateUrl: "./files-display.component.html",
   styleUrl: "./files-display.component.scss",
@@ -36,13 +43,14 @@ export class FilesDisplayComponent implements OnInit, OnDestroy {
   constructor(
     private filesListService: FilesListService,
     private directoryService: DirectoryNavigatorService,
-    private watcherService: DirectoryWatcherService
+    private selectService: SelectService,
+    @Optional() private watcherService?: DirectoryWatcherService
   ) {}
 
   async ngOnInit() {
     this.subscription.add(
-      this.directoryService.currentFiles$.subscribe((models) => {
-        this.filesListService.setFilesDefault(models);
+      this.directoryService.currentFiles$.subscribe((files) => {
+        this.filesListService.setFiles(files);
       })
     );
     this.subscription.add(
@@ -52,15 +60,22 @@ export class FilesDisplayComponent implements OnInit, OnDestroy {
       this.directoryService.currentDir$.subscribe(async (dir) => {
         this._isOnHomePage = dir === "Home";
         this.noFilesMsg = dir;
-        this.watcherService.watchDirectory(dir);
+        if (this.watcherService) this.watcherService.watchDirectory(dir);
       })
     );
-    this.subscription.add(
-      this.watcherService.directoryChanges$.subscribe(() => {
-        this.directoryService.setFiles();
-      })
-    );
+    if (this.watcherService) {
+      this.subscription.add(
+        this.watcherService.directoryChanges$.subscribe(() => {
+          this.directoryService.setFiles();
+        })
+      );
+    }
     this.directoryService.setFiles();
+  }
+
+  onClick() {
+    console.log("clicked");
+    this.selectService.clearSelection();
   }
 
   ngOnDestroy(): void {

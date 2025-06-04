@@ -119,3 +119,12 @@ pub async fn get_file_from_index(
 ) -> Result<Option<SystemFileModel>, String> {
     Ok(search_service.get_file_from_index(file).await)
 }
+
+#[tauri::command]
+pub async fn validate_file_exists(
+    path: String,
+    search_service: State<'_, Arc<SearchIndexService>>,
+) -> Result<bool, String> {
+    search_service.validate_file_exists(&path).await.map_err(|err| err.to_string())
+}
+

@@ -1,5 +1,6 @@
 use std::{path::PathBuf, sync::Arc};
 
+use chrono::Utc;
 use tokio::fs::ReadDir;
 
 use crate::{
@@ -15,9 +16,9 @@ use super::plugins::{
 };
 
 pub enum CrawlerError {
-    ReadDirError(String),
-    PushToQueueError(String),
-    NotDirError(String),
+    ReadDir(String),
+    PushToQueue(String),
+    NotDir(String),
 }
 
 /// Where `file` should ideally be a directory. If its not, it will get ignored. Note that this is not a recursive crawl.
@@ -33,7 +34,7 @@ where
     C: CrawlerQueueApi,
 {
     if !file.path.is_dir() {
-        return Err(CrawlerError::NotDirError(format!(
+        return Err(CrawlerError::NotDir(format!(
             "The path {} is not a directory",
             file.path.to_string_lossy()
         )));
@@ -59,7 +60,7 @@ where
                     //     _reason
                     // );
                     // DONT BREAK HERE!!!!!!!!!!!!!!!!!!!!!!!!!
-                    continue
+                    continue;
                 }
             }
 
@@ -72,6 +73,7 @@ where
                             path: entry_path,
                             priority: file.priority + 1,
                             taken: false,
+                            added_at:Utc::now()
                         });
                     }
                     // Attempt to rest if a throttle is applied
@@ -91,7 +93,7 @@ where
         queue
             .push(&dir_paths_found)
             .await
-            .map_err(|err| CrawlerError::PushToQueueError(err.to_string()))?;
+            .map_err(|err| CrawlerError::PushToQueue(err.to_string()))?;
     }
 
     Ok(dtos)
@@ -100,6 +102,6 @@ where
 async fn read_dir(dir_path: &PathBuf) -> Result<ReadDir, CrawlerError> {
     let dir = tokio::fs::read_dir(&dir_path)
         .await
-        .map_err(|err| CrawlerError::ReadDirError(err.to_string()))?;
+        .map_err(|err| CrawlerError::ReadDir(err.to_string()))?;
     Ok(dir)
 }

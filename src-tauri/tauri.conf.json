@@ -1,19 +1,19 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "desktop-search",
+  "productName": "Super Searcher",
   "version": "0.1.0",
-  "identifier": "com.desktop-search.app",
+  "identifier": "com.super-searcher.app",
   "build": {
     "beforeDevCommand": "yarn start",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "yarn build",
     "frontendDist": "../dist/desktop-search/browser"
-    
+
   },
   "app": {
     "windows": [
       {
-        "title": "desktop-search",
+        "title": "Super Searcher",
         "width": 800,
         "height": 600,
         "titleBarStyle": "Transparent",

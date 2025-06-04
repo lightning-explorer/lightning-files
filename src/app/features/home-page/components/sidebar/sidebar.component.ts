@@ -3,7 +3,6 @@ import { DriveService } from "@core/services/files/drive.service";
 import { DriveModel } from "@core/models/drive-model";
 import { CommonModule } from "@angular/common";
 import { DriveResultComponent } from "../drive-result/drive-result.component";
-import { ToolbarComponent } from "./toolbar/toolbar.component";
 import { DropdownButtonComponent } from "@shared/components/buttons/dropdown-button/dropdown-button.component";
 import { Subscription } from "rxjs";
 import {
@@ -13,10 +12,10 @@ import {
 import { QuickAccessShortcutComponent } from "../quick-access-shortcut/quick-access-shortcut.component";
 import { DirectoryNavigatorService } from "../../services/directory-navigator.service";
 import { HomePageService } from "../../services/home-page.service";
-import { ColorThemeService } from "@core/services/customization/color-theme.service";
-import { AppIconNameComponent } from "../../../../layout/app-icon-name/app-icon-name.component";
 import { ExtendBarVerticalComponent } from "../../../../shared/components/draggable/extend-bar-vertical/extend-bar-vertical.component";
 import { ButtonWSvgComponent } from "../../../../shared/components/buttons/button-w-svg/button-w-svg.component";
+import { ButtonWIconComponent } from "../../../../shared/components/buttons/button-w-icon/button-w-icon.component";
+import { InfoBoxComponent } from "../indexing-files-overlay/info-box.component";
 
 @Component({
   selector: "app-sidebar",
@@ -27,7 +26,9 @@ import { ButtonWSvgComponent } from "../../../../shared/components/buttons/butto
     DropdownButtonComponent,
     QuickAccessShortcutComponent,
     ExtendBarVerticalComponent,
-    ButtonWSvgComponent
+    ButtonWSvgComponent,
+    ButtonWIconComponent,
+    InfoBoxComponent
 ],
   templateUrl: "./sidebar.component.html",
   styleUrl: "./sidebar.component.scss",

@@ -1,5 +1,5 @@
-<div *ngIf="path">
-    <app-button-w-svg [svgSrc]="this.getSvgIconPath()">
+<div *ngIf="path" class="content">
+    <app-button-w-icon [iconName]="this.getIconName()" iconSize='1.2rem'>
         {{path.name}}
-    </app-button-w-svg>
+    </app-button-w-icon>
 </div>

@@ -1,19 +1,28 @@
-use sysinfo::Disks;
+use std::ffi::OsString;
+use std::os::windows::ffi::OsStringExt;
+use winapi::um::fileapi::GetLogicalDriveStringsW;
 
 use crate::models::drive_model::DriveModel;
 
 pub fn get_system_drives() -> Vec<DriveModel> {
-    let mut drives = Vec::new();
-    let disks = Disks::new_with_refreshed_list();
+    let mut buffer: [u16; 1024] = [0; 1024];
+    let length = unsafe { GetLogicalDriveStringsW(buffer.len() as u32, buffer.as_mut_ptr()) };
 
-    for disk in disks.iter() {
-        let model = DriveModel {
-            name: disk.mount_point().to_string_lossy().to_string(),
-            label: None, // TODO: fill in if the user sets a custom label
-            total_space: disk.total_space(),
-            available_space: disk.available_space(),
-        };
-        drives.push(model);
+    if length == 0 {
+        println!("no drives found");
+        return vec![];
     }
-    drives
+
+    let drive_str = OsString::from_wide(&buffer[..length as usize]);
+    drive_str
+        .to_string_lossy()
+        .split('\0')
+        .filter(|s| !s.is_empty())
+        .map(|x| DriveModel {
+            name: x.to_string(),
+            label: None,
+            total_space: 0,
+            available_space: 0,
+        })
+        .collect()
 }

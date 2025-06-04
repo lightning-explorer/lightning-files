@@ -27,11 +27,12 @@ impl CrawlerQueueTable {
         // Raw SQL is needed because SQLite is picky about on conflict operations
         // Prepare raw SQL for upsert
         let query = r#"
-            INSERT INTO crawler_queue (path, priority, taken)
-            VALUES (?, ?, ?)
+            INSERT INTO crawler_queue (path, priority, taken, added_at)
+            VALUES (?, ?, ?, ?) 
             ON CONFLICT(path) DO UPDATE SET
                 priority = excluded.priority,
-                taken = excluded.taken
+                taken = excluded.taken,
+                added_at = excluded.added_at
         "#;
 
         // Execute the query for each model
@@ -40,6 +41,7 @@ impl CrawlerQueueTable {
                 .bind(&model.path)
                 .bind(model.priority)
                 .bind(model.taken)
+                .bind(model.added_at)
                 .execute(&mut *transaction)
                 .await?;
         }
@@ -48,11 +50,6 @@ impl CrawlerQueueTable {
         transaction.commit().await?;
         Ok(())
     }
-
-    // pub async fn pop(&self) -> Result<Option<indexed_dir::Model>, sea_orm::DbErr> {
-    //     let mut items = self.take_many(1).await?;
-    //     Ok(items.pop())
-    // }
 
     /// Completely removes the given models from the database
     ///
@@ -68,16 +65,6 @@ impl CrawlerQueueTable {
         Ok(result.rows_affected)
     }
 
-    // Retrieves the next most popular directories in the collection and removes them
-    // pub async fn take_many(&self, amount: u64) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
-    //     // Fetch the entry with the highest priority (biggest number)
-    //     let next_entries = self.get_next_entries(amount).await?;
-    //     // Collect the paths of the fetched entries
-    //     self.delete_many(&next_entries).await?;
-    //     // Return the fetched entries
-    //     Ok(next_entries)
-    // }
-
     /// Retrieves the next most popular directories in the collection without removing them
     pub async fn get_many(&self, amount: u64) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
         let next_entries = self.get_next_entries(amount).await?;
@@ -85,19 +72,16 @@ impl CrawlerQueueTable {
         Ok(next_entries)
     }
 
-    // pub async fn count_dirs(&self) -> Result<u64, sea_orm::DbErr> {
-    //     let count = indexed_dir::Entity::find().count(&*self.db).await?;
-    //     Ok(count)
-    // }
-
     /**
     Retrieve the top n entries from the database
     */
-    pub async fn view_all_limit(
+    pub async fn view_taken_files(
         &self,
         limit: u64,
     ) -> Result<Vec<indexed_dir::Model>, sea_orm::DbErr> {
         indexed_dir::Entity::find()
+            // .filter(indexed_dir::Column::Taken.eq(false))
+            .order_by_desc(indexed_dir::Column::AddedAt)
             .limit(limit)
             .all(&*self.db)
             .await
