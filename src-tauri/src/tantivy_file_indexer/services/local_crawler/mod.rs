@@ -8,21 +8,7 @@ mod core {
             pub mod crawler_queue_api;
         }
     }
-    pub mod indexing_crawler {
-        pub mod plugins{
-            pub mod garbage_collector;
-            pub mod filterer;
-            pub mod throttle;
-        }
-        mod idle;
-        mod crawler;
-        mod worker;
-        mod worker_task_handle;
-        pub mod factory;
-        pub mod task_manager;
-    }
+    pub mod indexing_crawler;
+    pub mod settings;
 }
-// pub mod analyzer {
-//     pub mod service;
-// }
 pub mod tauri_exports;

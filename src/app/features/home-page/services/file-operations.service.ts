@@ -9,7 +9,6 @@ export class FileOperationsService {
   constructor(
     private directoryService: DirectoryNavigatorService,
     private fileCrawlerService: FileCrawlerService,
-    private indexingFilesOverlayService:IndexingFilesOverlayService,
   ) {}
 
   /** If the file represents a directory, this function will set it to the current directory. If the file is an actual file, then it will attempt to open it with the command prompt  */
@@ -24,8 +23,6 @@ export class FileOperationsService {
       await this.fileCrawlerService.addDirectoriesToQueue([
         { DirPath: path, Priority: 0 },
       ]);
-      // For now, just make the popup appear each time:
-      this.indexingFilesOverlayService.toggleOn();
     }
   }
 }

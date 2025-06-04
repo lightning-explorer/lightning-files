@@ -1,6 +1,6 @@
 use std::{path::PathBuf, sync::Arc};
 
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use sea_orm::DbErr;
 use tokio::sync::Notify;
 
@@ -34,7 +34,9 @@ impl CrawlerQueue {
 
     pub async fn fetch_many(&self, amount: u64) -> Result<Vec<(PathBuf, Priority)>, DbErr> {
         let models = self.get_crawler_queue_table().get_many(amount).await?;
-        self.get_crawler_queue_table().mark_taken(&models, true).await?;
+        self.get_crawler_queue_table()
+            .mark_taken(&models, true)
+            .await?;
         Ok(models
             .into_iter()
             .map(|model| (PathBuf::from(model.path), model.priority))
@@ -139,7 +141,7 @@ impl CrawlerQueue {
                 path: path.to_string_lossy().into_owned(),
                 priority: *priority,
                 taken: false, // TODO: ensure setting this to false is correct
-                added_at:Utc::now()
+                added_at: Utc::now(),
             })
             .collect()
     }

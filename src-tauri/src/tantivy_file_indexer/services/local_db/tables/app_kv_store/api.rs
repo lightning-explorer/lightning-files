@@ -119,6 +119,16 @@ impl AppKvStoreTable {
     /// Retrieve the value with the certain key in the store, given that it exists and it is in the format you want it in
     ///
     /// Not necessarily an expensive operation, as results just get cached for future requests. Though, the underlying JSON has to be deserialized every time.
+    pub async fn get_or_create_default<T>(&self, key: &str) -> Result<T, String>
+    where
+        T: DeserializeOwned + Serialize + Clone + Default,
+    {
+        return self.get_or_create(key, T::default()).await;
+    }
+
+    /// Retrieve the value with the certain key in the store, given that it exists and it is in the format you want it in
+    ///
+    /// Not necessarily an expensive operation, as results just get cached for future requests. Though, the underlying JSON has to be deserialized every time.
     pub async fn get_or_create<T>(&self, key: &str, default: T) -> Result<T, String>
     where
         T: DeserializeOwned + Serialize + Clone,
@@ -140,7 +150,10 @@ impl AppKvStoreTable {
                     }
                     None => {
                         // The key does not exist in the database or the temporary storage
-                        print_err("AppKvStore:GetOrCreate", self.set(key.to_string(), default.clone()).await);
+                        print_err(
+                            "AppKvStore:GetOrCreate",
+                            self.set(key.to_string(), default.clone()).await,
+                        );
                         serde_json::to_value(default)
                             .expect("Could not convert default value to JSON")
                     }
@@ -159,7 +172,7 @@ impl AppKvStoreTable {
     /// If the value in the KV store differs from what the caller's value is, then the caller's value will get updated.
     ///
     /// Returns `true` if the value was updated
-    pub async fn update_value<T>(
+    pub async fn refresh_value<T>(
         &self,
         key: &str,
         callers_value: &AutoSerializingValue<T>,

@@ -13,7 +13,7 @@ interface QueryModifiers {
 export class LocalStreamingSearchService {
   private filesSubject = new BehaviorSubject<FileModel[]>([]);
   public files$ = this.filesSubject.asObservable();
-  
+
   private searchFilterLabelsSubject = new BehaviorSubject<string[]>([]);
   public searchFilterLabels$ = this.searchFilterLabelsSubject.asObservable();
 
@@ -93,7 +93,7 @@ export class LocalStreamingSearchService {
     return { newParams: params, modifier: undefined };
   }
 
-  fuzzyQueryIsAdequate(params: SearchParamsDTO): boolean {
+  private fuzzyQueryIsAdequate(params: SearchParamsDTO): boolean {
     const minLen = 4;
     if (params.FilePath !== undefined && params.FilePath.length < minLen) {
       return false;

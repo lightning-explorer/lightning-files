@@ -8,12 +8,12 @@ pub enum ThrottleAmount {
     High,
 }
 #[derive(Clone)]
-pub struct CrawlerThrottle {
+pub struct ThrottlePlugin {
     duration: Duration,
     amount: ThrottleAmount,
 }
 
-impl CrawlerThrottle {
+impl ThrottlePlugin {
     /// Initialize a new throttler with the throttle set to `None`
     pub fn new() -> Self {
         let amount = ThrottleAmount::None;
@@ -34,18 +34,6 @@ impl CrawlerThrottle {
             ThrottleAmount::High => {}
         }
     }
-    pub fn downgrade(&mut self) {
-        match self.amount {
-            ThrottleAmount::None => {}
-            ThrottleAmount::Low => self.amount = ThrottleAmount::None,
-            ThrottleAmount::Medium => self.amount = ThrottleAmount::Low,
-            ThrottleAmount::High => self.amount = ThrottleAmount::Medium,
-        }
-    }
-    /// Sets the throttle to `None`
-    pub fn reset(&mut self) {
-        self.amount = ThrottleAmount::None;
-    }
     /// If the throttle amount is set to `None`, then no rest happens
     pub async fn rest_short(&self) {
         if let ThrottleAmount::None = self.amount {
@@ -63,8 +51,8 @@ impl CrawlerThrottle {
     }
 }
 
-impl From<CrawlerThrottle> for ThrottleAmount {
-    fn from(value: CrawlerThrottle) -> Self {
+impl From<ThrottlePlugin> for ThrottleAmount {
+    fn from(value: ThrottlePlugin) -> Self {
         value.amount
     }
 }

@@ -9,17 +9,13 @@ use std::{
 use tokio::task::JoinHandle;
 
 use crate::tantivy_file_indexer::{
-    services::{
-        local_db::{service::LocalDbService, tables::app_kv_store::api::AppKvStoreTable},
-        search_index::service::SearchIndexService,
-    },
+    services::local_db::{service::LocalDbService, tables::app_kv_store::api::AppKvStoreTable},
     shared::async_retry,
 };
 
-pub struct CrawlerGarbageCollector {
+pub struct GarbageCollectorPlugin {
     db_service: Arc<LocalDbService>,
     kv_table: AppKvStoreTable,
-    search_service: Arc<SearchIndexService>,
 
     num_files_processed: AtomicUsize,
     /// How big `num_files_processed` can get before it is persisted to disk
@@ -28,16 +24,11 @@ pub struct CrawlerGarbageCollector {
     batch_size: usize,
 }
 
-impl CrawlerGarbageCollector {
-    pub fn new(
-        db_service: Arc<LocalDbService>,
-        kv_table: AppKvStoreTable,
-        search_service: Arc<SearchIndexService>,
-    ) -> Self {
+impl GarbageCollectorPlugin {
+    pub fn new(db_service: Arc<LocalDbService>, kv_table: AppKvStoreTable) -> Self {
         Self {
             db_service,
             kv_table,
-            search_service,
             num_files_processed: AtomicUsize::new(0),
             mini_batch_size: 1000,
             batch_size: 30_000,
@@ -72,7 +63,7 @@ impl CrawlerGarbageCollector {
                 }
                 Err(err) => {
                     println!(
-                        "CrawlerGarbageCollector: Error registering number of files processed: {}",
+                        "GarbageCollectorPlugin: Error registering number of files processed: {}",
                         err
                     );
                 }
@@ -87,7 +78,7 @@ impl CrawlerGarbageCollector {
 
     async fn collect_garbage_task(&self) -> Result<(), String> {
         // Attempt to vacuum the db
-        println!("CrawlerGarbageCollector: Collecting garbage");
+        println!("GarbageCollectorPlugin: Collecting garbage");
         async_retry::retry_with_backoff(
             |_| self.db_service.vacuum_database(),
             3,
@@ -101,7 +92,7 @@ impl CrawlerGarbageCollector {
         //     .collect_garbage()
         //     .await
         //     .map_err(|err| err.to_string())?;
-        println!("CrawlerGarbageCollector: Successfully collected garbage");
+        println!("GarbageCollectorPlugin: Successfully collected garbage");
         Ok(())
     }
 }

@@ -16,6 +16,7 @@ import { ExtendBarVerticalComponent } from "../../../../shared/components/dragga
 import { ButtonWSvgComponent } from "../../../../shared/components/buttons/button-w-svg/button-w-svg.component";
 import { ButtonWIconComponent } from "../../../../shared/components/buttons/button-w-icon/button-w-icon.component";
 import { InfoBoxComponent } from "../indexing-files-overlay/info-box.component";
+import { MockDriveService } from "./mock-drives.service";
 
 @Component({
   selector: "app-sidebar",
@@ -23,10 +24,8 @@ import { InfoBoxComponent } from "../indexing-files-overlay/info-box.component";
   imports: [
     CommonModule,
     DriveResultComponent,
-    DropdownButtonComponent,
     QuickAccessShortcutComponent,
     ExtendBarVerticalComponent,
-    ButtonWSvgComponent,
     ButtonWIconComponent,
     InfoBoxComponent
 ],
@@ -45,7 +44,7 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private directoryNavService: DirectoryNavigatorService,
     private homePageService: HomePageService,
-    private driveService: DriveService,
+    private driveService: MockDriveService,
     private quickAccessService: QuickAccessFilesService
   ) {}
 

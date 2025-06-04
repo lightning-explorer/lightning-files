@@ -1,8 +1,9 @@
+import { CrawlerSettingsModel } from "@core/models/crawler-settings";
 import { FileModel } from "../../models/file-model";
 
 /**
  * These items lazily exist in the local db's KV Store
- * 
+ *
  * This interface should never be constructed
  */
 export interface ConfigKeys {
@@ -18,5 +19,6 @@ export interface ConfigKeys {
   /** NOTE: The extensions should not have a leading dot */
   crawlerWhitelistedExtensions:string[],
   /** NOTE: The extensions should not have a leading dot */
-  crawlerBlacklistedExtensions:string[]
+  crawlerBlacklistedExtensions:string[],
+  crawlerSettings:CrawlerSettingsModel,
 }

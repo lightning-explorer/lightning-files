@@ -5,15 +5,12 @@ use tokio::fs::ReadDir;
 
 use crate::{
     shared::models::sys_file_model::SystemFileModel,
-    tantivy_file_indexer::shared::indexing_crawler::{
+    tantivy_file_indexer::{services::local_crawler::core::indexing_crawler::plugins::FiltererPlugin, shared::indexing_crawler::{
         models::crawler_file::CrawlerFile, traits::crawler_queue_api::CrawlerQueueApi,
-    },
+    }},
 };
 
-use super::plugins::{
-    filterer::{CrawlerFilterer, ShouldIndexResult},
-    throttle::CrawlerThrottle,
-};
+use super::plugins::{filterer::ShouldIndexResult};
 
 pub enum CrawlerError {
     ReadDir(String),
@@ -27,8 +24,7 @@ pub async fn crawl<C>(
     file: &CrawlerFile,
     queue: Arc<C>,
 
-    filterer: Option<Arc<CrawlerFilterer>>,
-    throttle: CrawlerThrottle,
+    filterer: Option<Arc<FiltererPlugin>>,
 ) -> Result<Vec<SystemFileModel>, CrawlerError>
 where
     C: CrawlerQueueApi,
@@ -73,11 +69,12 @@ where
                             path: entry_path,
                             priority: file.priority + 1,
                             taken: false,
-                            added_at:Utc::now()
+                            added_at: Utc::now(),
                         });
                     }
                     // Attempt to rest if a throttle is applied
-                    throttle.rest_short().await;
+                    // * What if we dont rest?
+                    // throttle.rest_short().await;
                 }
                 Err(err) => {
                     println!(

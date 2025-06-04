@@ -11,13 +11,14 @@
     flex-direction: column;
     height: 100%;
     width: 100%;
+    padding-top:.5rem;
 }
 
 .top {
     display: flex;
     flex-direction: column;
 
-    padding: .5rem;
+    padding: 1rem;
 }
 
 .top label{

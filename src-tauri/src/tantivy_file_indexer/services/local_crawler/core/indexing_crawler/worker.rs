@@ -5,7 +5,7 @@ use tokio::sync::mpsc::error::TryRecvError;
 use crate::{
     shared::models::sys_file_model::SystemFileModel,
     tantivy_file_indexer::{
-        services::local_crawler::core::indexing_crawler::idle,
+        services::local_crawler::core::indexing_crawler::{idle, plugins::{FiltererPlugin, GarbageCollectorPlugin, ThrottleAmount, ThrottlePlugin}},
         shared::{
             async_retry,
             indexing_crawler::{
@@ -20,11 +20,7 @@ use crate::{
 
 use super::{
     crawler::{self, CrawlerError},
-    plugins::{
-        filterer::CrawlerFilterer,
-        garbage_collector::CrawlerGarbageCollector,
-        throttle::{CrawlerThrottle, ThrottleAmount},
-    },
+
     task_manager::{CrawlerManagerMessageReceiver, CrawlerMessage},
 };
 
@@ -40,9 +36,9 @@ where
     receiver: CrawlerManagerMessageReceiver,
     channel_closed: bool,
 
-    garbage_collector: Option<Arc<CrawlerGarbageCollector>>,
-    filterer: Option<Arc<CrawlerFilterer>>,
-    throttle: CrawlerThrottle,
+    garbage_collector: Option<Arc<GarbageCollectorPlugin>>,
+    filterer: Option<Arc<FiltererPlugin>>,
+    throttle: ThrottlePlugin,
 }
 
 impl<C, P> IndexingCrawlerWorker<C, P>
@@ -68,15 +64,15 @@ where
 
             garbage_collector: None,
             filterer: None,
-            throttle: CrawlerThrottle::new(),
+            throttle: ThrottlePlugin::new(),
         }
     }
 
-    pub fn inject_garbage_collector(&mut self, c: Arc<CrawlerGarbageCollector>) {
+    pub fn inject_garbage_collector(&mut self, c: Arc<GarbageCollectorPlugin>) {
         self.garbage_collector = Some(c);
     }
 
-    pub fn inject_filterer(&mut self, f: Arc<CrawlerFilterer>) {
+    pub fn inject_filterer(&mut self, f: Arc<FiltererPlugin>) {
         self.filterer = Some(f);
     }
 
@@ -123,7 +119,9 @@ where
                         if num_files_processed >= self.batch_size {
                             // Commit all and drain the bank of files
                             num_files_processed = 0;
-                            files_bank = self.commit_files_bank(files_bank).await;
+                            files_bank.clear();
+                            // ! REENABLE THIS:
+                            //files_bank = self.commit_files_bank(files_bank).await;
                         }
                     }
                     None if !files_bank.is_empty() => {
@@ -226,12 +224,10 @@ where
         C: CrawlerQueueApi,
     {
         let filterer_clone = self.filterer.clone();
-        let throttle_clone = self.throttle.clone();
         match crawler::crawl(
             directory,
             Arc::clone(&self.crawler_queue),
             filterer_clone,
-            throttle_clone,
         )
         .await
         {
@@ -241,7 +237,7 @@ where
             Err(err) => match err {
                 CrawlerError::PushToQueue(err) => {
                     println!(
-                        "Crawler could not push found directories to queue: {}. 
+                        "Crawler could not push found directories to queue: {}.
             The original directory will stay in the queue for re-indexing",
                         err
                     );

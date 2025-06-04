@@ -15,7 +15,7 @@ pub enum ShouldIndexResult {
 
 type JsonVal<T> = AutoSerializingValue<T>;
 /// Tells the crawler what to process and what to avoid based on criteria that the user has set
-pub struct CrawlerFilterer {
+pub struct FiltererPlugin {
     kv_store: AppKvStoreTable,
 
     /// If there are ANY values in here, then only files with this extension will get indexed, along with normal directories of course.
@@ -28,7 +28,7 @@ pub struct CrawlerFilterer {
     exclude_dirs_starting_with_period: JsonVal<bool>,
 }
 
-impl CrawlerFilterer {
+impl FiltererPlugin {
     pub fn new(kv_store: AppKvStoreTable) -> Self {
         Self {
             kv_store,
@@ -40,9 +40,9 @@ impl CrawlerFilterer {
     }
 
     pub async fn should_crawl_directory(&self, dir_path: &Path) -> bool {
-        self.update_json("crawlerDirectoryNamesExclude", &self.dir_names_exclude)
+        self.refresh_json("crawlerDirectoryNamesExclude", &self.dir_names_exclude)
             .await;
-        self.update_json(
+        self.refresh_json(
             "crawlerExcludeDirectoriesStartingWithPeriod",
             &self.exclude_dirs_starting_with_period,
         )
@@ -74,9 +74,9 @@ impl CrawlerFilterer {
     }
 
     pub async fn should_index(&self, path: &Path) -> ShouldIndexResult {
-        self.update_json("crawlerWhitelistedExtensions", &self.whitelisted_extensions)
+        self.refresh_json("crawlerWhitelistedExtensions", &self.whitelisted_extensions)
             .await;
-        self.update_json("crawlerBlacklistedExtensions", &self.blacklisted_extensions)
+        self.refresh_json("crawlerBlacklistedExtensions", &self.blacklisted_extensions)
             .await;
 
         if let Some(ext) = path.extension() {
@@ -113,11 +113,11 @@ impl CrawlerFilterer {
         false
     }
 
-    async fn update_json<T>(&self, key: &str, json: &JsonVal<T>)
+    async fn refresh_json<T>(&self, key: &str, json: &JsonVal<T>)
     where
         T: Serialize + Clone + DeserializeOwned,
     {
-        match self.kv_store.update_value(key, json).await {
+        match self.kv_store.refresh_value(key, json).await {
             Ok(did_update) => {
                 if did_update {
                     println!(

@@ -14,9 +14,7 @@ impl CrawlerWorkerTaskHandle {
             task,
         }
     }
-    pub async fn run_until_complete(self){
-        self.task.await;
-    }
+   
     pub fn is_finished(&self)->bool{
         self.task.is_finished()
     }

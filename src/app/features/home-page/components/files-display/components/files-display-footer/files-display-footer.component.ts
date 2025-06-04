@@ -9,13 +9,13 @@ import { DragCollectButtonComponent } from "./components/drag-collect-button/dra
 @Component({
   selector: 'app-files-display-footer',
   standalone: true,
-  imports: [IconifyIconModule, CommonModule, DragCollectButtonComponent],
+  imports: [IconifyIconModule, CommonModule],
   templateUrl: './files-display-footer.component.html',
   styleUrl: './files-display-footer.component.css'
 })
-export class FilesDisplayFooterComponent { 
+export class FilesDisplayFooterComponent {
 
-  
+
   constructor(private searchStateService:SearchOverlayStateService){}
 
 

@@ -24,15 +24,6 @@ pub async fn add_dirs_to_crawler_queue(
 
 /// Dispatch the file crawlers if they are not already active
 #[tauri::command]
-pub async fn dispatch_crawlers(
-    service: State<'_, Arc<FileCrawlerService>>,
-) -> Result<(), String> {
+pub async fn dispatch_crawlers(service: State<'_, Arc<FileCrawlerService>>) -> Result<(), String> {
     service.dispatch_crawlers().await
 }
-
-// #[tauri::command]
-// pub async fn get_crawler_analyzer_data(
-//     service: State<'_, Arc<FileCrawlerAnalyzerService>>,
-// ) -> Result<HashMap<String, String>, ()> {
-//     Ok(service.get_data_points().await)
-// }
