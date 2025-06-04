@@ -79,8 +79,8 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
   @ViewChild("contextMenu") contextMenu!: ContextMenuComponent;
 
   _arrangeFilesAsGrid = false;
+  fileStates: FileState[] = [];
   files: FileModel[] = [];
-  states: FileState[] = [];
 
   @Input() showFullFilePaths = false;
   @Input() allowFadeIn: boolean = true;
@@ -103,6 +103,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     private selectService: SelectService,
     private contextMenuService: FileContextMenuService,
     private moveItemsPopupState: MoveItemsPopupStateService,
+    private contextMenuService: FileContextMenuService,
     private ngZone: NgZone
   ) {}
 
@@ -110,7 +111,7 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     if (this.viewType != FileViewType.Detail) this._arrangeFilesAsGrid = true;
 
     this.subscription.add(
-      this.filesListService.observeAllFiles().subscribe((x) => {
+      this.filesListService.observeAllFiles().subscribe((states) => {
         if (this.allowFadeIn) {
           this.hideAndFadeIn();
         } else {
@@ -119,12 +120,6 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
         this.selectService.clearSelection();
         this.files = x;
       })
-    );
-
-    this.subscription.add(
-      this.filesListService
-        .observeAllStates()
-        .subscribe((x) => (this.states = x))
     );
 
     this.subscription.add(
@@ -197,6 +192,10 @@ export class FileBrowserComponent implements OnInit, OnDestroy {
     } else {
       this.contextMenuService.openMenu(this.contextMenu, event, [this.files[index]], [this.states[index]]);
     }
+  }
+
+  onFileRightClick(index:number, event: MouseEvent) {
+      this.contextMenuService.openMenu(this.contextMenu, event, this.fileStates[index]);
   }
 
   onFileDoubleClick(file: FileModel) {

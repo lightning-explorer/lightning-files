@@ -19,6 +19,7 @@ export class FileContextMenuService {
     states?: FileState[]
   ) {
     event.preventDefault();
+    const caller = file.model;
 
     let content: any[] = [];
     if (callers.length == 1) {

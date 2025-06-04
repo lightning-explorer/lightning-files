@@ -72,7 +72,10 @@ fn manage_crawl_tasks(
                     kill_crawlers(&crawl_task_handles, crawlers_to_kill).await;
                 }
             }
+            println!("Crawler cycle {}", i);
         }
+        println!("Killing all crawlers");
+        kill_crawlers(&crawl_task_handles, 99).await;
     });
 }
 

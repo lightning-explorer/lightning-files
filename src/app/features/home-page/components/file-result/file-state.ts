@@ -1,3 +1,5 @@
+import { FileModel } from "@core/models/file-model";
+
 export interface FileState{
     highlightedText: string,
     draggedOver:boolean,
@@ -6,7 +8,7 @@ export interface FileState{
 }
 
   /** Default file state factory */
-  export function defaultFileState(): FileState {
+  export function defaultFileState(model:FileModel): FileState {
     return {
       highlightedText: "",
       draggedOver: false,

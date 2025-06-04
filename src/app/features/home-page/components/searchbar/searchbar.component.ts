@@ -27,7 +27,7 @@ export class SearchbarComponent implements OnInit, OnDestroy {
   isOnExtendedSearchPage = false;
   exceededSearchResults = false;
 
-  searchResults: FileModel[] = [];
+  searchResults: FileState[] = [];
   inputControl = new FormControl();
 
   constructor(
@@ -65,8 +65,9 @@ export class SearchbarComponent implements OnInit, OnDestroy {
     await this.searchEngineService.search(searchParams);
   }
 
-  onResultClick(model: FileModel) {
+  onResultClick(file: FileState) {
     //this.inlineSearchService.clearQuery();
+    const model = file.model;
     this.fileOperationsService.openOrNavigateToFile(model);
   }
 
