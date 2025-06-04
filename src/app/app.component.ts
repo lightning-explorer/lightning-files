@@ -39,6 +39,6 @@ export class AppComponent implements OnInit {
       Priority: 5,
     };
     await this.commandsService.addDirsToCrawlerQueue([d]);
-    await this.commandsService.dispatchCrawlers();
+    // await this.commandsService.dispatchCrawlers();
   }
 }

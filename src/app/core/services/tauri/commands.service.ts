@@ -28,22 +28,6 @@ export class TauriCommandsService {
     return await this.safeinvokeService.invokeSafe<T>(cmd, args, options);
   }
 
-  // async getFilesAsModels(
-  //   directory: string,
-  //   params: GetFilesParamsDTO
-  // ): Promise<FileModel[]> {
-  //   try {
-  //     const start = Date.now();
-  //     const files = await this.invokeSafe<FileModel[]>("get_files_as_models_all", { directory, params });
-  //     console.log(`Files emitted: ${files.length}`);
-  //     console.log(`Getting files took ${Date.now() - start}ms`)
-  //     return files;
-  //   } catch (err) {
-  //     throw new Error(`${err}`);
-  //   }
-  // }
-
-
   async getFilesAsModels(
     directory: string,
     onEventEmit: (file: FileModel) => void,
@@ -490,4 +474,3 @@ export class TauriCommandsService {
     });
   }
 }
-

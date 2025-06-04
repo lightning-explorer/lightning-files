@@ -51,7 +51,7 @@ export class DirectoryNavigatorService {
       this.currentDirSubject.next(formattedDir);
       this.isLoadingSubject.next(true);
 
-      console.log(`Took ${Date.now() - start} time to get here`)
+      console.log(`Took ${Date.now() - start} time to get here`);
       await this.setFiles(params);
 
       this.isLoadingSubject.next(false);
@@ -79,14 +79,16 @@ export class DirectoryNavigatorService {
 
     if (!params) params = getFilesParams_DefaultParams(); // No sorting logic or anything fancy
 
-    const files = await this.commandsService.getFilesAsModels(
+    await this.commandsService.getFilesAsModels(
       directory,
-      (files)=>{
-        this.currentFilesSubject.next([...this.currentFilesSubject.getValue(), files]);
+      (files) => {
+        this.currentFilesSubject.next([
+          ...this.currentFilesSubject.getValue(),
+          files,
+        ]);
       },
       params
     );
-    
   }
 
   async isPathAFile(filePath: string): Promise<boolean> {

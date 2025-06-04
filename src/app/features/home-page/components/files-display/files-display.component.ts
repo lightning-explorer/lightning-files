@@ -50,9 +50,9 @@ export class FilesDisplayComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.subscription.add(
-      this.directoryService.currentFiles$.subscribe((files) =>
-        this.filesListService.setFiles(files)
-      )
+      this.directoryService.currentFiles$.subscribe((files) => {
+        this.filesListService.setFiles(files);
+      })
     );
     this.subscription.add(
       this.directoryService.isLoading$.subscribe((x) => (this.isLoading = x))

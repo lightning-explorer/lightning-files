@@ -15,7 +15,6 @@ pub fn run() {
         .plugin(tauri_plugin_drag::init())
         .invoke_handler(tauri::generate_handler![
             get_files_as_models,
-            get_files_as_models_all,
             format_path_into_dir,
             get_directory_path,
             get_root_path,

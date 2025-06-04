@@ -1,4 +1,4 @@
-use getfileicon::api::PngCache;
+use getfileicon::prelude::EasyPngCache;
 use tauri::State;
 
 use crate::directory_nav_service::dtos::get_icon_dto::GetIconDTO;
@@ -7,14 +7,14 @@ use crate::directory_nav_service::dtos::get_icon_dto::GetIconDTO;
 #[tauri::command]
 pub async fn get_file_icon(
     path: &str,
-    width: u32,
-    height: u32,
-    cache: State<'_, PngCache>,
+    cache: State<'_, EasyPngCache>,
 ) -> Result<GetIconDTO, String> {
     //println!("Getting file icon for path: {}", path);
-    match cache.get(path, width, height).await {
+    match cache.get(path).await {
         Some(image) => {
             let png = image.as_base64_png().map_err(|e| e.to_string())?;
+            let width = image.width;
+            let height = image.height;
             let dto = GetIconDTO {
                 base64_icon: png.base64,
                 width,
